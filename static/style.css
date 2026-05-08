@@ -1,0 +1,728 @@
+:root {
+  --bg: #141414;
+  --surface: #1e1e1e;
+  --surface2: #282828;
+  --border: #333;
+  --text: #ddd;
+  --muted: #777;
+  --accent: #4a9eff;
+  --accent-h: #6ab4ff;
+  --danger: #ff5555;
+  --success: #50fa7b;
+  --warn: #ffb86c;
+  --r: 7px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  font-size: 16px;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app { display: flex; flex-direction: column; height: 100vh; }
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  height: 44px;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--accent);
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+.conn-bar { display: flex; align-items: center; gap: 7px; flex: 1; }
+
+.conn-bar input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--text);
+  padding: 5px 9px;
+  font-size: 15px;
+  outline: none;
+  font-family: monospace;
+}
+.conn-bar input:focus { border-color: var(--accent); }
+
+.conn-bar button {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--text);
+  padding: 5px 11px;
+  font-size: 15px;
+  cursor: pointer;
+}
+.conn-bar button:hover { background: var(--border); }
+
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--muted);
+  transition: background 0.3s;
+}
+.dot.connected { background: var(--success); }
+.dot.connecting { background: var(--warn); animation: blink 1s infinite; }
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* Main layout */
+.main { display: flex; flex: 1; overflow: hidden; }
+
+/* Screen panel */
+.screen-panel {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #0d0d0d;
+  padding: 16px;
+  gap: 10px;
+  min-width: 0;
+}
+
+.screen-wrap {
+  position: relative;
+  display: inline-block;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px var(--border), 0 8px 32px rgba(0,0,0,.6);
+  background: #000;
+  flex-shrink: 0;
+}
+
+#screenImg {
+  display: block;
+  max-height: calc(100vh - 90px);
+  width: auto;
+  max-width: 100%;
+  pointer-events: none;
+  user-select: none;
+}
+
+#overlay {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  display: none;
+}
+
+#clickLayer {
+  position: absolute; inset: 0;
+  cursor: crosshair;
+}
+
+.offline-msg {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 8px;
+  background: #0d0d0d;
+  color: var(--muted);
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.screen-meta {
+  font-size: 14px;
+  color: var(--muted);
+  font-family: monospace;
+  letter-spacing: 0.3px;
+}
+
+/* Control panel */
+.ctrl {
+  width: 450px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.card {
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.card-hd {
+  padding: 9px 13px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.card-bd {
+  padding: 10px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.case-name-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 15px;
+  padding: 5px 9px;
+  outline: none;
+  font-family: inherit;
+}
+.case-name-input:focus { border-color: var(--accent); }
+
+/* Buttons */
+button {
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.12s;
+  white-space: nowrap;
+}
+
+.btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.btn-rec {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+.btn-rec:hover { background: var(--accent-h); }
+.btn-rec.on { background: var(--danger); }
+.btn-rec.on:hover { background: #ff6e6e; }
+
+.btn-sm {
+  background: var(--surface2);
+  color: var(--text);
+}
+.btn-sm:hover { background: var(--border); }
+
+.btn-rec:disabled,
+.btn-sm:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  filter: saturate(0.2);
+}
+
+.chk-label {
+  display: flex; align-items: center; gap: 7px;
+  color: var(--muted); cursor: pointer; user-select: none;
+  font-size: 15px;
+}
+.chk-label:hover { color: var(--text); }
+
+/* Steps */
+.steps-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.steps-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.empty { color: var(--muted); font-size: 15px; text-align: center; padding: 24px 0; }
+
+.badge {
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 13px;
+  font-weight: normal;
+}
+
+.step {
+  background: var(--surface2);
+  border-radius: 6px;
+  padding: 7px 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 3px solid var(--border);
+  flex-shrink: 0;
+}
+.step.t-acc  { border-left-color: var(--accent); }
+.step.t-name { border-left-color: var(--success); }
+.step.t-coord { border-left-color: var(--warn); }
+.step.t-xpath { border-left-color: var(--muted); }
+
+.step-n    { font-size: 13px; color: var(--muted); }
+.step-type { font-size: 13px; color: var(--muted); font-family: monospace; }
+.step-val  { font-size: 15px; color: var(--text); font-family: monospace; word-break: break-all; }
+
+/* Click ripple */
+.ripple {
+  position: absolute;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(74,158,255,.9);
+  background: rgba(74,158,255,.35);
+  transform: translate(-50%, -50%) scale(0);
+  animation: ripple .55s ease-out forwards;
+  pointer-events: none;
+  z-index: 200;
+}
+
+@keyframes ripple {
+  0%   { transform: translate(-50%,-50%) scale(0);   opacity: 1; }
+  65%  { transform: translate(-50%,-50%) scale(1.5); opacity: .5; }
+  100% { transform: translate(-50%,-50%) scale(2.2); opacity: 0; }
+}
+
+/* Long-press indicator ring */
+.long-ring {
+  position: absolute;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 2.5px solid var(--warn);
+  transform: translate(-50%, -50%);
+  animation: long-ring-pulse 0.5s ease-out forwards;
+  pointer-events: none;
+  z-index: 200;
+}
+
+@keyframes long-ring-pulse {
+  0%   { transform: translate(-50%,-50%) scale(0.4); opacity: 0; }
+  55%  { transform: translate(-50%,-50%) scale(1);   opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(1.25); opacity: 0.6; }
+}
+
+/* Gesture trail fade-out */
+@keyframes gesture-fade {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* Step color for gesture (swipe/drag) actions */
+.step.t-gesture { border-left-color: #ff79c6; }
+
+/* Finger sidebar (left of screen) */
+.finger-sidebar {
+  width: 300px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 14px 0 0;
+  gap: 0;
+}
+
+.finger-sidebar-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 6px;
+  padding: 0 8px;
+}
+
+/* Row of 3 buttons */
+.finger-sidebar .finger-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.finger-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  padding: 10px 28px;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 0;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  border: none;
+  white-space: nowrap;
+}
+.finger-btn:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+.finger-btn.active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.finger-icon { font-size: 23px; line-height: 1; }
+.finger-label { font-size: 13px; letter-spacing: 0.2px; }
+
+.finger-divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* Gesture mode buttons (Pinch / Rotate) in left sidebar */
+.gesture-divider-h {
+  width: 80%;
+  height: 1px;
+  background: var(--border);
+  margin: 10px auto;
+  flex-shrink: 0;
+}
+
+.gesture-sidebar-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 6px;
+  padding: 0 8px;
+}
+
+.gesture-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  padding: 10px 28px;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 0;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  border: none;
+  white-space: nowrap;
+}
+.gesture-btn:hover { background: var(--surface2); color: var(--text); }
+.gesture-btn.active { background: #ff79c6; color: #1a1a2e; font-weight: 700; }
+
+/* Drag mode buttons */
+.drag-mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  padding: 10px 28px;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 0;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  border: none;
+  white-space: nowrap;
+}
+.drag-mode-btn:hover { background: var(--surface2); color: var(--text); }
+.drag-mode-btn.active { background: var(--success); color: #0d1f0d; font-weight: 700; }
+
+/* Auto-exit checkbox inside left sidebar */
+.pgst-exit-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+  padding: 8px 14px 4px;
+}
+.pgst-exit-label:hover { color: var(--text); }
+.pgst-exit-label input { cursor: pointer; accent-color: var(--accent); }
+
+/* Pinch / Rotate SVG overlay */
+#pgstSvg { z-index: 10; }
+
+/* Text input overlay */
+.text-input-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+
+.text-input-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  width: min(340px, 90%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6);
+}
+
+.text-input-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.text-input-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.text-input-hint {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.text-input-field {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text);
+  font-size: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  padding: 8px 10px;
+  resize: vertical;
+  outline: none;
+  line-height: 1.5;
+}
+.text-input-field:focus { border-color: var(--accent); }
+
+.text-input-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* App Picker Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+}
+
+.modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: min(360px, 90vw);
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 40px rgba(0,0,0,.7);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 17px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
+}
+.modal-close:hover { background: var(--border); color: var(--text); }
+
+.modal-list {
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal-app-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.1s;
+}
+.modal-app-item:hover { background: var(--border); border-color: var(--border); }
+
+.modal-app-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.modal-app-bundle {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+.modal-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+/* ── Verify buttons ─────────────────────────────────────────────────────────── */
+.verify-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  padding: 8px 4px;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 0;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  border: none;
+  white-space: nowrap;
+}
+.verify-btn:hover { background: var(--surface2); color: var(--text); }
+.verify-btn.active { background: #6a3fb5; color: #fff; font-weight: 600; }
+
+/* Screen area: relative wrapper so sidebar can be positioned outside screen-wrap */
+.screen-area {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ── Verify phase sidebar (left of screen image) ────────────────────────────── */
+#verifyPhaseSidebar {
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 12px 8px;
+  background: rgba(20,20,20,0.88);
+  border-radius: 14px;
+  box-shadow: 3px 0 16px rgba(0,0,0,0.6);
+  z-index: 50;
+  min-width: 72px;
+}
+
+/* ── Verify phase label (TARGET / PROCESS) ──────────────────────────────────── */
+.verify-phase-label {
+  background: #fff;
+  color: #000;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  padding: 8px 8px 6px;
+  border-radius: 8px;
+  text-align: center;
+  line-height: 1.3;
+}
+.vpl-mode {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #555;
+  margin-bottom: 2px;
+}
+.vpl-phase {
+  display: block;
+  font-size: 18px;
+}
+
+/* ── Verify context badge (outer SCR DIFF · PROCESS reminder) ───────────────── */
+.verify-context-badge {
+  background: rgba(255,180,0,0.18);
+  border: 1px solid rgba(255,180,0,0.5);
+  color: #ffc800;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ── Verify Done button ──────────────────────────────────────────────────────── */
+.verify-done-btn {
+  background: #22c55e;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 800;
+  padding: 10px 8px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  white-space: nowrap;
+}
+.verify-done-btn:hover { background: #16a34a; }

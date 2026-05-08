@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>iOS Recorder</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+<div class="app">
+
+  <header class="header">
+    <span class="logo">iOS Recorder</span>
+    <div class="conn-bar">
+      <input id="urlInput" type="text" placeholder="http://192.168.x.x:8100" spellcheck="false" />
+      <button id="connectBtn">Connect</button>
+      <div id="dot" class="dot"></div>
+    </div>
+  </header>
+
+  <div class="main">
+    <!-- ── Finger sidebar ── -->
+    <div class="finger-sidebar">
+      <div class="finger-sidebar-label">Finger</div>
+      <div class="finger-row">
+        <button class="finger-btn active" data-finger="single">
+          <span class="finger-icon">☝️</span>
+          <span class="finger-label">1F</span>
+        </button>
+        <div class="finger-divider"></div>
+        <button class="finger-btn" data-finger="two">
+          <span class="finger-icon">✌️</span>
+          <span class="finger-label">2F</span>
+        </button>
+        <div class="finger-divider"></div>
+        <button class="finger-btn" data-finger="multi">
+          <span class="finger-icon">🤚</span>
+          <span class="finger-label">3F</span>
+        </button>
+      </div>
+      <div class="gesture-divider-h"></div>
+      <div class="gesture-sidebar-label">Gesture</div>
+      <div class="finger-row">
+        <button class="gesture-btn" id="pinchBtn">
+          <span class="finger-icon">🤛</span>
+          <span class="finger-label">Pinch</span>
+        </button>
+        <div class="finger-divider"></div>
+        <button class="gesture-btn" id="rotateBtn">
+          <span class="finger-icon">🔄</span>
+          <span class="finger-label">Rotate</span>
+        </button>
+      </div>      <label class="pgst-exit-label">
+        <input type="checkbox" id="pgstAutoExit" checked />
+        Exit mode after apply
+      </label>
+      <div class="gesture-divider-h"></div>
+      <div class="gesture-sidebar-label">Drag Mode</div>
+      <div class="finger-row">
+        <button class="drag-mode-btn active" data-drag="scroll">
+          <span class="finger-icon">📜</span>
+          <span class="finger-label">Scroll</span>
+        </button>
+        <div class="finger-divider"></div>
+        <button class="drag-mode-btn" data-drag="drag">
+          <span class="finger-icon">✊</span>
+          <span class="finger-label">Drag</span>
+        </button>
+        <div class="finger-divider"></div>
+        <button class="drag-mode-btn" data-drag="swipe">
+          <span class="finger-icon">⤵️</span>
+          <span class="finger-label">Swipe</span>
+        </button>
+      </div>
+      <div class="gesture-divider-h"></div>
+      <div class="gesture-sidebar-label">Text</div>
+      <div class="finger-row">
+        <button class="finger-btn" id="typeBtn" style="flex:1">
+          <span class="finger-icon">⌨️</span>
+          <span class="finger-label">Type</span>
+        </button>
+      </div>
+      <div class="gesture-divider-h"></div>
+      <div class="gesture-sidebar-label">Device</div>
+      <div class="finger-row">
+        <button class="finger-btn" id="homeBtn" style="flex:1">
+          <span class="finger-icon">🏠</span>
+          <span class="finger-label">Home</span>
+        </button>
+        <div class="finger-divider"></div>
+        <button class="finger-btn" id="launchAppBtn" style="flex:1">
+          <span class="finger-icon">📱</span>
+          <span class="finger-label">App</span>
+        </button>
+      </div>
+      <div class="gesture-divider-h"></div>
+      <div class="gesture-sidebar-label">Verify</div>
+      <div class="finger-row">
+        <button class="verify-btn" data-verify="visible">
+          <span class="finger-icon">👁</span>
+          <span class="finger-label">Visible</span>
+        </button>
+        <div class="finger-divider"></div>
+        <button class="verify-btn" data-verify="not_visible">
+          <span class="finger-icon">🚫</span>
+          <span class="finger-label">Not Vis</span>
+        </button>
+      </div>
+      <div class="finger-row" style="margin-top:4px">
+        <button class="verify-btn" data-verify="get_text">
+          <span class="finger-icon">📝</span>
+          <span class="finger-label">Text</span>
+        </button>
+        <div class="finger-divider"></div>
+        <button class="verify-btn" data-verify="screenshot_gt">
+          <span class="finger-icon">📸</span>
+          <span class="finger-label">Scr GT</span>
+        </button>
+        <div class="finger-divider"></div>
+        <button class="verify-btn" data-verify="screenshot_diff">
+          <span class="finger-icon">🔀</span>
+          <span class="finger-label">Scr Diff</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Screen ── -->
+    <div class="screen-panel">
+      <div class="screen-area">
+        <!-- Verify phase label + Done: positioned to the left of the phone image -->
+        <div id="verifyPhaseSidebar" style="display:none">
+          <div id="verifyContextBadge" class="verify-context-badge" style="display:none"></div>
+          <div id="verifyPhaseLabel" class="verify-phase-label"></div>
+          <button id="verifyDoneBtn" class="verify-done-btn">✓ Done</button>
+        </div>
+        <div class="screen-wrap" id="screenWrap">
+          <img id="screenImg" alt="" />
+          <canvas id="overlay"></canvas>
+          <svg id="gestureSvg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible"></svg>
+          <svg id="pgstSvg"    style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:10"></svg>
+          <svg id="verifySvg"  style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:20"></svg>
+          <svg id="hoverSvg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:5"><rect id="hoverBboxRect" x="0" y="0" width="0" height="0" fill="rgba(255,215,0,0.10)" stroke="#ffd700" stroke-width="2" rx="3" visibility="hidden"/></svg>
+          <div id="clickLayer"></div>
+          <!-- Text input overlay (shown when typing mode is active) -->
+          <div id="textInputOverlay" class="text-input-overlay" style="display:none">          <div class="text-input-box">
+            <div class="text-input-header">
+              <span class="text-input-title">⌨️ Type Text</span>
+              <span class="text-input-hint">Press Enter or click outside to send</span>
+            </div>
+            <textarea id="textInputField" class="text-input-field" placeholder="Type or paste text here…" rows="3" autocomplete="off" spellcheck="false"></textarea>
+            <div class="text-input-actions">
+              <button class="btn-sm" id="textCancelBtn">Cancel</button>
+              <button class="btn-rec" id="textSendBtn">Send ↵</button>
+            </div>
+          </div>
+        </div>
+          <div class="offline-msg" id="offlineMsg">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.5">
+              <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18.01"/>
+            </svg>
+            <span>Connect to WDA to see device screen</span>
+          </div>
+        </div><!-- /screen-wrap -->
+      </div><!-- /screen-area -->
+      <div class="screen-meta" id="screenMeta">—</div>
+    </div>
+
+    <!-- ── Controls ── -->
+    <div class="ctrl">
+
+      <div class="card">
+        <div class="card-hd">Case Name</div>
+        <div class="card-bd" style="padding-top:0;padding-bottom:8px">
+          <input id="caseNameInput" class="case-name-input" type="text" placeholder="Enter case name to start…" autocomplete="off" spellcheck="false" />
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd">Recording</div>
+        <div class="card-bd">
+          <div class="btn-row">
+            <button class="btn-rec" id="recBtn" disabled>⏺ Record</button>
+            <button class="btn-sm" id="clearBtn" disabled>Clear</button>
+            <button class="btn-sm" id="exportBtn" disabled>Export</button>
+          </div>
+          <label class="chk-label">
+            <input type="checkbox" id="overlayChk" />
+            Show element overlay
+          </label>
+        </div>
+      </div>
+
+      <div class="card steps-card">
+        <div class="card-hd">
+          Steps <span class="badge" id="stepCount">0</span>
+        </div>
+        <div class="steps-body" id="stepsList">
+          <div class="empty">No steps recorded yet</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Verify: Get Text confirm dialog ──────────────────────────────────── -->
+<div id="verifyTextModal" class="modal-backdrop" style="display:none">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">📝 Verify Text / Value</span>
+      <button class="modal-close" id="verifyTextClose">✕</button>
+    </div>
+    <div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:11px;color:var(--muted)">Expected value:</div>
+      <input id="verifyTextExpected" class="case-name-input" type="text" autocomplete="off" />
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
+        <button class="btn-sm" id="verifyTextCancel">Cancel</button>
+        <button class="btn-rec" id="verifyTextConfirm">Record ↵</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Verify: Screenshot GT name dialog ─────────────────────────────────── -->
+<div id="verifyScreenshotGtModal" class="modal-backdrop" style="display:none">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">📸 Screenshot GT Name</span>
+      <button class="modal-close" id="verifyGtClose">✕</button>
+    </div>
+    <div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:11px;color:var(--muted)">Screenshot filename (without extension):</div>
+      <input id="verifyGtNameInput" class="case-name-input" type="text" autocomplete="off" />
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
+        <button class="btn-sm" id="verifyGtCancel">Cancel</button>
+        <button class="btn-rec" id="verifyGtConfirm">Record ↵</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── App Picker Modal ──────────────────────────────────────────────────── -->
+<div id="appPickerModal" class="modal-backdrop" style="display:none">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">📱 Switch to App</span>
+      <button class="modal-close" id="appPickerClose">✕</button>
+    </div>
+    <div class="modal-list" id="appPickerList">
+      <!-- populated by JS -->
+    </div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

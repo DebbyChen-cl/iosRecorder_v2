@@ -1,0 +1,7 @@
+appium-python-client>=3.0
+selenium>=4.0
+pytest>=7.0
+pytest-reportportal>=5.4   # ReportPortal integration
+pytest-html>=3.0           # optional: local HTML report
+Pillow>=10.0               # screenshot_diff
+numpy>=1.24                # screenshot_diff

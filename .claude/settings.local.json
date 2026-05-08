@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s http://192.168.36.191:8100/mjpeg --max-time 2 -o /dev/null -w \"%{http_code} %{content_type}\")",
+      "Bash(curl -s http://192.168.36.191:9100/mjpeg --max-time 2 -o /dev/null -w \"%{http_code} %{content_type}\")",
+      "Bash(curl -s -X POST http://localhost:8888/api/config -H 'Content-Type: application/json' -d '{\"wda_url\": \"http://192.168.36.191:8100\"}')",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s http://localhost:8888/api/status)",
+      "Bash(curl -s -X POST http://localhost:8888/api/config -H \"Content-Type: application/json\" -d '{\"wda_url\": \"http://192.168.36.191:8100\"}' -m 15)",
+      "Bash(curl -s http://localhost:8888/api/status -m 5)",
+      "Bash(curl -s -X POST http://192.168.36.191:8100/wda/tap/0 -H 'Content-Type: application/json' -d '{\"x\": 195, \"y\": 422}' -m 5)",
+      "Bash(curl -s http://192.168.36.191:8100/sessions -m 5)",
+      "Bash(curl -s http://192.168.36.191:8100/session -m 5)",
+      "Bash(curl -s -X POST http://192.168.36.191:8100/session -H 'Content-Type: application/json' -d '{\"capabilities\": {\"alwaysMatch\": {}}}' -m 10)",
+      "Bash(curl -s -X POST http://192.168.36.191:8100/session/133605B5-6A6D-4880-BB25-93D4C718C529/actions -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(curl -s -X POST http://localhost:8888/api/config -H 'Content-Type: application/json' -d '{\"wda_url\": \"http://192.168.36.191:8100\"}' -m 15)",
+      "Bash(curl -s -X POST http://localhost:8888/api/tap -H 'Content-Type: application/json' -d '{\"x\": 195, \"y\": 422}' -m 5)",
+      "Bash(curl -s http://192.168.36.191:8100/session/3780E0B1-860C-4EA8-B9A9-CD45582D6BD4/window/size -m 5)",
+      "Bash(curl -s http://localhost:8888/api/tree)",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s -X POST http://localhost:8888/api/record -H 'Content-Type: application/json' -d '{\"x\": 160, \"y\": 346}')",
+      "Bash(curl -s http://localhost:8888/api/steps)",
+      "Bash(curl -s -X DELETE http://localhost:8888/api/steps)",
+      "Bash(curl -s -X POST http://localhost:8888/api/record -H 'Content-Type: application/json' -d '{\"x\": 284, \"y\": 61}')",
+      "Bash(curl -s -X POST http://localhost:8888/api/record -H 'Content-Type: application/json' -d '{\"x\": 22, \"y\": 56}')",
+      "Bash(tree -aL 3 /Users/rdqe/iosRecorder_v2)"
+    ]
+  }
+}
