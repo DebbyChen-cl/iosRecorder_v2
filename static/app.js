@@ -56,6 +56,7 @@ const textCancelBtn     = document.getElementById("textCancelBtn");
 const textSendBtn       = document.getElementById("textSendBtn");
 const homeBtn           = document.getElementById("homeBtn");
 const launchAppBtn      = document.getElementById("launchAppBtn");
+const terminateAppBtn   = document.getElementById("terminateAppBtn");
 const appPickerModal    = document.getElementById("appPickerModal");
 const appPickerList     = document.getElementById("appPickerList");
 const appPickerClose    = document.getElementById("appPickerClose");
@@ -746,7 +747,7 @@ homeBtn.addEventListener("click", () => {
 // ── App Picker ────────────────────────────────────────────────────────────────
 let _appList = [];
 
-async function openAppPicker() {
+async function openAppPicker(onSelect = sendLaunchApp) {
   if (!_appList.length) {
     _appList = await api("GET", "/api/apps").catch(() => []);
   }
@@ -764,7 +765,7 @@ async function openAppPicker() {
       el.addEventListener("click", () => {
         const app = _appList[+el.dataset.idx];
         closeAppPicker();
-        sendLaunchApp(app.bundle_id);
+        onSelect(app.bundle_id);
       });
     });
   }
@@ -788,7 +789,21 @@ function sendLaunchApp(bundleId) {
   }
 }
 
+function sendTerminateApp(bundleId) {
+  const record = isRecording;
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: "terminate_app", bundle_id: bundleId, record }));
+    return;
+  }
+  if (record) {
+    api("POST", "/api/record/terminate_app", { bundle_id: bundleId }).then(() => api("POST", "/api/terminate_app", { bundle_id: bundleId }));
+  } else {
+    api("POST", "/api/terminate_app", { bundle_id: bundleId });
+  }
+}
+
 launchAppBtn.addEventListener("click", () => openAppPicker());
+terminateAppBtn.addEventListener("click", () => openAppPicker(sendTerminateApp));
 appPickerClose.addEventListener("click", () => closeAppPicker());
 appPickerModal.addEventListener("click", e => {
   if (e.target === appPickerModal) closeAppPicker();
@@ -1365,6 +1380,10 @@ function renderSteps() {
     } else if (s.action === "launch_app") {
       cls = "t-name";
       typeStr = "launch";
+      valStr = s.app_name ?? s.bundle_id ?? "";
+    } else if (s.action === "terminate_app") {
+      cls = "t-name";
+      typeStr = "kill";
       valStr = s.app_name ?? s.bundle_id ?? "";
     } else if (s.action === "verify_visible") {
       const t = s.target;

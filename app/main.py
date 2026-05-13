@@ -286,6 +286,12 @@ async def api_launch_app(req: LaunchAppReq):
     return {"ok": True}
 
 
+@app.post("/api/terminate_app")
+async def api_terminate_app(req: LaunchAppReq):
+    asyncio.create_task(wda.terminate_app(req.bundle_id))
+    return {"ok": True}
+
+
 @app.get("/api/apps")
 async def api_apps():
     return _load_apps()
@@ -403,6 +409,12 @@ async def record_home():
 @app.post("/api/record/launch_app")
 async def record_launch_app(req: LaunchAppReq):
     asyncio.create_task(_record_launch_app(req.bundle_id))
+    return {"ok": True}
+
+
+@app.post("/api/record/terminate_app")
+async def record_terminate_app(req: LaunchAppReq):
+    asyncio.create_task(_record_terminate_app(req.bundle_id))
     return {"ok": True}
 
 
@@ -735,6 +747,14 @@ async def _record_launch_app(bundle_id: str):
     step: dict = {"action": "launch_app", "bundle_id": bundle_id, "app_name": name, "timestamp": time.time()}
     _steps.append(step)
     logger.info(f"Recorded launch_app: {bundle_id}")
+
+
+async def _record_terminate_app(bundle_id: str):
+    apps = _load_apps()
+    name = next((a["name"] for a in apps if a["bundle_id"] == bundle_id), bundle_id)
+    step: dict = {"action": "terminate_app", "bundle_id": bundle_id, "app_name": name, "timestamp": time.time()}
+    _steps.append(step)
+    logger.info(f"Recorded terminate_app: {bundle_id}")
 
 
 async def _record_verify_visible(tx: float, ty: float, not_visible: bool, snapshot=None, pre_screenshot: Optional[str] = None):
@@ -1135,6 +1155,14 @@ async def ws_handler(ws: WebSocket):
                     asyncio.create_task(_record_launch_app(bundle_id))
                 else:
                     asyncio.create_task(wda.launch_app(bundle_id))
+
+            elif t == "terminate_app":
+                bundle_id = data.get("bundle_id", "")
+                if rec:
+                    await wda.terminate_app(bundle_id)
+                    asyncio.create_task(_record_terminate_app(bundle_id))
+                else:
+                    asyncio.create_task(wda.terminate_app(bundle_id))
 
             elif t == "verify_visible":
                 tx, ty = float(data["target_x"]), float(data["target_y"])

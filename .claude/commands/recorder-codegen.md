@@ -77,8 +77,8 @@ def test_<safe_name>(actions: DriverActions):
   "scale":            float,  # pinch scale
   "rotation":         float,  # degrees — passed directly to actions.rotate() (no conversion in codegen)
   "text":             str,    # type_text
-  "bundle_id":        str,    # launch_app
-  "app_name":         str,    # launch_app display name (optional)
+  "bundle_id":        str,    # launch_app, terminate_app
+  "app_name":         str,    # launch_app / terminate_app display name (optional)
   "expected_text":    str,    # verify_get_text
   "screenshot_name":  str,    # verify_screenshot_*
   "phase":            str,    # verify_screenshot_diff: "before" | "after"

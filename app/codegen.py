@@ -270,6 +270,13 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
         return (f"[Action] Launch {name}",
                 [f"actions.launch_app('{bundle_id}')"])
 
+    # ── terminate app ─────────────────────────────────────────────────────────
+    if action == "terminate_app":
+        bundle_id = _q(step.get("bundle_id", ""))
+        name = step.get("app_name") or bundle_id
+        return (f"[Action] Terminate {name}",
+                [f"actions.terminate_app('{bundle_id}')"])
+
     # ── verify visible ────────────────────────────────────────────────────────
     if action == "verify_visible":
         if has_el:

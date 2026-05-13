@@ -89,6 +89,7 @@ def test_<safe_name>(actions: DriverActions):
 ### System
 - `press_home()` — press Home button
 - `launch_app(bundle_id)` — launch or foreground an app
+- `terminate_app(bundle_id)` — force-quit an app
 - `hide_keyboard()` — dismiss keyboard
 - `background_app(seconds=3)` — background then restore
 - `get_screen_size()` — returns `(width, height)` in points

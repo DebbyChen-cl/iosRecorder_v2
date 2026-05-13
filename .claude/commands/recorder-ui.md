@@ -25,6 +25,7 @@ style.css    → BEM-like class naming
 |---------|----------|
 | **WebSocket** `/ws/tap` | Live tap events during recording (low latency) |
 | **REST** `POST /api/record/*` | All other gestures sent to recording engine |
+| **REST** `POST /api/terminate_app` | Force-quit an app on device (non-recording) |
 | **REST** `GET/DELETE /api/steps` | Step list management |
 | **REST** `POST /api/export` | Generate and download pytest code |
 | **MJPEG** `/api/stream` | Live device screen video |

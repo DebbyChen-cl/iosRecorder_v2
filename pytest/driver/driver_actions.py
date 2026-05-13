@@ -722,6 +722,12 @@ class DriverActions:
         self.driver.execute_script("mobile: launchApp", {"bundleId": bundle_id})
         logger.info("launch_app: %s", bundle_id)
 
+    @step("Terminate app")
+    def terminate_app(self, bundle_id: str) -> None:
+        """Force-quit *bundle_id*. No-op if the app is not running."""
+        self.driver.execute_script("mobile: terminateApp", {"bundleId": bundle_id})
+        logger.info("terminate_app: %s", bundle_id)
+
     # ──────────────────────────────────────────
     # Verify (assertions)
     # ──────────────────────────────────────────
