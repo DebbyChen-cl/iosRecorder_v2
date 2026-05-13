@@ -1427,13 +1427,48 @@ function renderSteps() {
         valStr = t.value;
       }
     }
-    return `<div class="step ${cls}">
+    return `<div class="step ${cls}" data-step-idx="${i}">
       <span class="step-n">#${i + 1}</span>
       <span class="step-type">${esc(typeStr)}</span>
       <span class="step-val">${esc(valStr)}</span>
     </div>`;
   }).join("");
   stepsList.scrollTop = stepsList.scrollHeight;
+}
+
+// ── Step deletion (7 consecutive clicks) ────────────────────────────────────
+const _stepClickCounters = new Map(); // "idx" -> { count, timer }
+
+stepsList.addEventListener("click", e => {
+  const stepEl = e.target.closest(".step[data-step-idx]");
+  if (!stepEl) return;
+  const idx = parseInt(stepEl.dataset.stepIdx, 10);
+  const key = String(idx);
+
+  let entry = _stepClickCounters.get(key);
+  if (!entry) {
+    entry = { count: 0, timer: null };
+    _stepClickCounters.set(key, entry);
+  }
+
+  clearTimeout(entry.timer);
+  entry.count++;
+
+  if (entry.count >= 7) {
+    _stepClickCounters.delete(key);
+    _deleteStep(idx);
+    return;
+  }
+
+  entry.timer = setTimeout(() => {
+    _stepClickCounters.delete(key);
+  }, 1500);
+});
+
+async function _deleteStep(idx) {
+  await api("DELETE", `/api/steps/${idx}`);
+  steps.splice(idx, 1);
+  renderSteps();
 }
 
 function typeClass(type) {

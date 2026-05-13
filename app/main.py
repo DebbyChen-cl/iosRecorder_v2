@@ -955,6 +955,14 @@ async def clear_steps():
     return {"ok": True}
 
 
+@app.delete("/api/steps/{index}")
+async def delete_step(index: int):
+    if index < 0 or index >= len(_steps):
+        return JSONResponse({"error": "index out of range"}, status_code=400)
+    _steps.pop(index)
+    return {"ok": True}
+
+
 # ── UI Tree ────────────────────────────────────────────────────────────────────
 
 @app.get("/api/tree")
