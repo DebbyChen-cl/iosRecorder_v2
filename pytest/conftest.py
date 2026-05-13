@@ -59,14 +59,14 @@ def actions(driver):
 def screenshot_on_failure(request, driver):
     """
     Automatically capture a screenshot when a test FAILS.
-    - Saves the PNG locally under screenshots/
+    - Saves the PNG locally under pytest/screenshots/error/
     - Attaches it to the active ReportPortal launch via a log record
       (requires pytest-reportportal; silently skipped otherwise).
     """
     yield  # run the test
 
     if request.node.rep_call.failed if hasattr(request.node, "rep_call") else False:
-        folder = "screenshots"
+        folder = "pytest/screenshots/error"
         os.makedirs(folder, exist_ok=True)
         ts   = datetime.now().strftime("%Y%m%d_%H%M%S")
         name = request.node.nodeid.replace("/", "_").replace("::", "_")

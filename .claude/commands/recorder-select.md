@@ -12,18 +12,24 @@ Read these files before making changes:
 
 `build_selector(el: ET.Element) -> Tuple[str, str]` returns `(selector_type, selector_value)`.
 
+`get_selector_quality(el: ET.Element) -> str` classifies the element's selector stability for UI color coding and the HTML export report. Returns one of:
+- `"id"` — has a proper accessibility id that differs from the label (most stable)
+- `"id_indexed"` — accessibility id ends with `-<digits>` (e.g. `Cell-3`) — index may shift (yellow)
+- `"id_eq_label"` — accessibility id exists but equals the label (may be fragile) (blue)
+- `"label_only"` — no stable id; matched by label attribute only (orange)
+- `"xpath_only"` — no id or label; xpath fallback (most fragile) (red)
+
+This value is stored as `selector_quality` in every target dict built by `_build_target()` or any inline target construction in `app/main.py`.
+
 ### Priority Order — Never Change This
 
 1. **`"accessibility id"`** — from `el.attrib["name"]`
    - Skip if value starts with `"0x"` (memory pointer, not a real ID)
+   - Skip if value starts with `"/"` (file/bundle path — contains app UUID, changes on reinstall)
    - This is the most stable selector across app versions
 2. **`"name"`** — from `el.attrib["label"]`
    - Human-readable label set by the app
-3. **`"xpath"` with `@value`** — from `el.attrib["value"]`
-   - Only valid for these input types: `XCUIElementTypeTextField`, `XCUIElementTypeSecureTextField`, `XCUIElementTypeStaticText`
-   - Format: `//{tag}[@value="{escaped_value}"]`
-   - Use `_esc()` to escape double-quotes in the value
-4. **`"xpath"` fallback** — `//{tag}`
+3. **`"xpath"` fallback** — `//{tag}`
    - Last resort; matches all elements of that XCUIElement type
 
 ### Adding a New Selector Type
@@ -34,18 +40,30 @@ Read these files before making changes:
 
 ## Hit-Test Strategy (`app/hittest.py`)
 
-`hit_test(x, y, root: dict) -> dict | None` returns the single best element at screen coordinate `(x, y)`.
+`hit_test(x, y, root: dict) -> dict | None` returns the single best element at screen coordinate `(x, y)`. Used for taps and most gestures.
+
+`hit_test_for_swipe(x, y, root)` returns the best **swipe container** at `(x, y)`. Uses a different scorer than `hit_test`: interactive elements first → penalise `GENERIC_CONTAINER_TAGS` (`XCUIElementTypeOther`, `XCUIElementTypeApplication`, `XCUIElementTypeWindow`, `XCUIElementTypeView`) → smallest area. This avoids selecting a nameless canvas leaf or a root application wrapper when the real target is a specific element like `XCUIElementTypeImage`. Used in `main.py::_record_move` when `action == "swipe"`.
 
 `find_scroll_container(x, y, root)` returns the **innermost scrollable element** that contains `(x, y)` — used during scroll recording to identify which view to scroll within. Detection order: (1) standard scrollable tags — `XCUIElementTypeScrollView`, `XCUIElementTypeCollectionView`, `XCUIElementTypeTable`, `XCUIElementTypeWebView`, `XCUIElementTypeTextView`; (2) fallback: any element with `scrollable="true"` attribute (WDA exposes this for non-standard scroll views such as `XCUIElementTypeOther` wrappers). Returns `None` if no scrollable container found at the coordinate.
 
 `build_scroll_container_selector(el, root)` builds the most specific selector for a scroll container. Returns `accessibility id` or `name` when available; otherwise generates a **structural xpath** anchored on the deepest named ancestor — e.g. `//XCUIElementTypeOther[@name="photodirector.AddImageViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/...`. Used in `main.py::_record_scroll` instead of the plain `build_selector` to handle containers that lack accessibility IDs.
 
-### How Scoring Works (`_score()`)
+### How Scoring Works
 
-Lower score = better match. The scorer prefers:
-1. Elements that are **interactive** (buttons, links, text fields)
-2. **Smallest bounding area** (most specific element)
-3. Elements that **have an accessibility ID** (more stable)
+**`_score()`** — used by `hit_test` (taps). Lower score = better. Tuple `(is_container, -has_stable_id, -is_interactive, area, -has_id, has_children)`. Prefers:
+1. **Non-container** — `TAP_CONTAINER_TAGS` (`XCUIElementTypeCollectionView`, `ScrollView`, `Table`, `WebView`, `TextView`, `Application`, `Window`) are sorted last
+2. **Stable-ID leaf** — `get_selector_quality()` returns `"id"` or `"id_eq_label"` **and** element has no children; containers with stable names (e.g. ViewController root views) do NOT get this bonus
+3. **Interactive** (buttons, links, text fields) — tiebreaker within same ID quality
+4. **Smallest bounding area** (most specific element)
+5. **Has any identifier** — over pure xpath fallback
+6. **Leaf node** preferred over elements with children
+
+Note: `XCUIElementTypeCell` is NOT in `INTERACTIVE_TAGS` — cells are containers, not leaf interactive elements.
+
+**`_swipe_score()`** — used by `hit_test_for_swipe`. Prefers:
+1. **Interactive** elements
+2. **Non-generic tag** — penalises `GENERIC_CONTAINER_TAGS` (`XCUIElementTypeOther` etc.)
+3. **Smallest area** among remaining candidates
 
 ### `_collect(x, y, el)`
 

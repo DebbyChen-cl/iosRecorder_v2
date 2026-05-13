@@ -10,6 +10,7 @@ import logging
 import math
 import os
 import time
+from datetime import datetime
 from typing import Optional, Tuple
 
 from appium.webdriver.common.appiumby import AppiumBy
@@ -61,7 +62,7 @@ def wait_for_stable_hierarchy(fn):
                 time.sleep(interval)
                 curr = self.driver.page_source
                 if curr == prev:
-                    logger.debug("[stability] hierarchy stable after action '%s'", fn.__name__)
+                    logger.info("[stability] hierarchy stable after action '%s'", fn.__name__)
                     break
                 prev = curr
             else:
@@ -73,6 +74,23 @@ def wait_for_stable_hierarchy(fn):
     return wrapper
 
 
+def _apply_stability_to_all(cls):
+    """
+    Class decorator: automatically wraps every public (non-dunder) method with
+    wait_for_stable_hierarchy so that the ``stability_check`` instance flag
+    applies uniformly to the entire class.
+    Individual ``@wait_for_stable_hierarchy`` decorators are no longer needed.
+    """
+    for attr_name in list(vars(cls)):
+        if attr_name.startswith('_'):
+            continue
+        method = vars(cls)[attr_name]
+        if callable(method):
+            setattr(cls, attr_name, wait_for_stable_hierarchy(method))
+    return cls
+
+
+@_apply_stability_to_all
 class DriverActions:
     """
     Thin wrapper around the Appium driver that provides reusable
@@ -94,6 +112,19 @@ class DriverActions:
 
         # Maximum time to keep polling before giving up and continuing (seconds).
         self.stability_timeout: float = 10.0
+        # ──────────────────────────────────────────────────────────────────
+
+        # ── Screenshot comparison queues ───────────────────────────────────
+        # Populated by capture_for_gt / capture_for_preview during the test.
+        # GT queue entries     : (name, compare_path, threshold_or_None)
+        # Preview queue entries: (name, before_path, after_path, threshold_or_None, expected_result)
+        #   expected_result = "same"      → similarity >= threshold to PASS
+        #   expected_result = "different" → similarity <  threshold to PASS
+        # None threshold means use the global value from run_screenshot_comparisons().
+        self._gt_compare_queue: list[tuple[str, str, Optional[float]]] = []
+        self._preview_compare_queue: list[tuple[str, str, str, Optional[float], str]] = []
+        # Pending before-captures: name → (ts, before_path), waiting for the matching "after".
+        self._preview_pending: dict[str, tuple[str, str]] = {}
         # ──────────────────────────────────────────────────────────────────
 
     # ──────────────────────────────────────────
@@ -163,7 +194,6 @@ class DriverActions:
     # ──────────────────────────────────────────
 
     @step("Tap element")
-    @wait_for_stable_hierarchy
     def tap(self, element: WebElement) -> None:
         """Tap a WebElement."""
         element.click()
@@ -174,14 +204,29 @@ class DriverActions:
         self.tap(self.wait_for_visible(by, value, timeout))
 
     @step("Tap at coordinates")
-    @wait_for_stable_hierarchy
     def tap_by_coordinates(self, x: int, y: int) -> None:
         """
         Tap at absolute screen coordinates using the iOS mobile:tap command.
         Coordinates are in points (not pixels).
         """
         self.driver.execute_script("mobile: tap", {"x": x, "y": y})
-        logger.debug("Tapped at (%d, %d)", x, y)
+        logger.info("Tapped at (%d, %d)", x, y)
+
+    def _visible_fraction(self, element: WebElement) -> float:
+        """Return the fraction (0.0–1.0) of element that lies within the device screen."""
+        r = element.rect
+        el_x, el_y, el_w, el_h = r["x"], r["y"], r["width"], r["height"]
+        el_area = el_w * el_h
+        if el_area <= 0:
+            return 0.0
+        win = self.driver.get_window_size()
+        ix1 = max(el_x, 0)
+        iy1 = max(el_y, 0)
+        ix2 = min(el_x + el_w, win["width"])
+        iy2 = min(el_y + el_h, win["height"])
+        if ix2 <= ix1 or iy2 <= iy1:
+            return 0.0
+        return (ix2 - ix1) * (iy2 - iy1) / el_area
 
     def _coord_at_pct(self, element: WebElement, pct_x: float, pct_y: float) -> Tuple[int, int]:
         """Compute absolute screen coordinates at (pct_x%, pct_y%) within element bounds."""
@@ -193,7 +238,6 @@ class DriverActions:
         )
 
     @step("Tap within element")
-    @wait_for_stable_hierarchy
     def tap_within_element(self, by: str, value: str, pct_x: float, pct_y: float, timeout: int = DEFAULT_WAIT) -> None:
         """Find element and tap at (pct_x%, pct_y%) within its bounds."""
         el = self.wait_for_visible(by, value, timeout)
@@ -201,7 +245,6 @@ class DriverActions:
         self.driver.execute_script("mobile: tap", {"x": tx, "y": ty})
 
     @step("Double tap within element")
-    @wait_for_stable_hierarchy
     def double_tap_within_element(self, by: str, value: str, pct_x: float, pct_y: float, timeout: int = DEFAULT_WAIT) -> None:
         """Find element and double-tap at (pct_x%, pct_y%) within its bounds."""
         el = self.wait_for_visible(by, value, timeout)
@@ -209,7 +252,6 @@ class DriverActions:
         self.driver.execute_script("mobile: doubleTap", {"x": tx, "y": ty})
 
     @step("Triple tap within element")
-    @wait_for_stable_hierarchy
     def triple_tap_within_element(self, by: str, value: str, pct_x: float, pct_y: float, timeout: int = DEFAULT_WAIT) -> None:
         """Find element and triple-tap at (pct_x%, pct_y%) within its bounds."""
         from selenium.webdriver.common.action_chains import ActionChains
@@ -231,7 +273,6 @@ class DriverActions:
         ac.perform()
 
     @step("Long press within element")
-    @wait_for_stable_hierarchy
     def long_press_within_element(self, by: str, value: str, pct_x: float, pct_y: float, duration: float = 1.0, timeout: int = DEFAULT_WAIT) -> None:
         """Find element and long-press at (pct_x%, pct_y%) within its bounds."""
         el = self.wait_for_visible(by, value, timeout)
@@ -239,13 +280,11 @@ class DriverActions:
         self.driver.execute_script("mobile: touchAndHold", {"x": tx, "y": ty, "duration": duration})
 
     @step("Double tap")
-    @wait_for_stable_hierarchy
     def double_tap(self, element: WebElement) -> None:
         """Double-tap a WebElement."""
         self.driver.execute_script("mobile: doubleTap", {"element": element.id})
 
     @step("Long press")
-    @wait_for_stable_hierarchy
     def long_press(self, element: WebElement, duration: float = 1.0) -> None:
         """Long-press a WebElement for *duration* seconds (default 500 ms+)."""
         self.driver.execute_script(
@@ -254,7 +293,6 @@ class DriverActions:
         )
 
     @step("Triple tap")
-    @wait_for_stable_hierarchy
     def triple_tap(self, element: WebElement) -> None:
         """Triple-tap a WebElement using native XCUITest gesture."""
         self.driver.execute_script(
@@ -263,7 +301,6 @@ class DriverActions:
         )
 
     @step("Two finger tap")
-    @wait_for_stable_hierarchy
     def two_finger_tap(self, element: WebElement) -> None:
         """
         Two-finger tap on *element* using XCUITest mobile: twoFingerTap.
@@ -273,10 +310,9 @@ class DriverActions:
             "mobile: twoFingerTap",
             {"element": element.id},
         )
-        logger.debug("two_finger_tap on element")
+        logger.info("two_finger_tap on element")
 
     @step("Multi finger tap")
-    @wait_for_stable_hierarchy
     def multi_finger_tap(
         self,
         element: WebElement,
@@ -303,30 +339,64 @@ class DriverActions:
     # Swipe / Scroll
     # ──────────────────────────────────────────
 
-    @step("Swipe")
-    def swipe(
+    @step("Swipe on element")
+    def swipe_on_element(
         self,
-        start_x: int,
-        start_y: int,
-        end_x: int,
-        end_y: int,
-        duration: int = DEFAULT_SCROLL_DURATION,
+        by: str,
+        value: str,
+        direction: str,
+        velocity: float = 500.0,
+        from_pct_x: float = 50.0,
+        from_pct_y: float = 50.0,
+        distance_pts: Optional[float] = None,
     ) -> None:
         """
-        Swipe from (start_x, start_y) to (end_x, end_y).
-        *duration* is in milliseconds.
+        Swipe in *direction* starting from a percentage offset within an element.
+
+        *velocity* is in pixels/second — pass the value computed from the original
+        gesture (distance_px * 1000 / duration_ms) to reproduce the recorded speed.
+        *from_pct_x / from_pct_y* are the start point as a percentage of the
+        element's width / height (0–100, default centre = 50, 50).
+        *distance_pts* is the exact swipe distance in logical points from the
+        original recording. When omitted, falls back to 40 % of element dimension.
         """
+        element = self.find_element(by, value)
+        rect = element.rect  # {x, y, width, height}
+
+        start_x = rect["x"] + rect["width"]  * from_pct_x / 100
+        start_y = rect["y"] + rect["height"] * from_pct_y / 100
+
+        if distance_pts is not None:
+            d = distance_pts
+            dx_map = {"left": -d, "right": d, "up": 0.0, "down": 0.0}
+            dy_map = {"up": -d, "down": d, "left": 0.0, "right": 0.0}
+        else:
+            dx_map = {"left": -rect["width"] * 0.4, "right": rect["width"] * 0.4,
+                      "up": 0.0, "down": 0.0}
+            dy_map = {"up": -rect["height"] * 0.4, "down": rect["height"] * 0.4,
+                      "left": 0.0, "right": 0.0}
+
+        end_x = start_x + dx_map.get(direction, 0.0)
+        end_y = start_y + dy_map.get(direction, 0.0)
+
         self.driver.execute_script(
             "mobile: dragFromToWithVelocity",
             {
-                "startX": start_x,
-                "startY": start_y,
-                "endX": end_x,
-                "endY": end_y,
-                "velocity": max(1, 1000 - duration),  # rough velocity inversion
+                "fromX": int(start_x),
+                "fromY": int(start_y),
+                "toX":   int(end_x),
+                "toY":   int(end_y),
+                "velocity": velocity,
+                "pressDuration": 0.05,
+                "holdDuration":  0.05,
             },
         )
-        logger.debug("Swipe (%d,%d) → (%d,%d)", start_x, start_y, end_x, end_y)
+        logger.info(
+            "swipe_on_element: %r direction=%s velocity=%.1f dist=%s start=(%.1f%%,%.1f%%)",
+            value, direction, velocity,
+            f"{distance_pts:.1f}pts" if distance_pts is not None else "40%",
+            from_pct_x, from_pct_y,
+        )
 
     @step("Scroll")
     def scroll(self, direction: str = "down", distance: float = 0.5) -> None:
@@ -354,7 +424,7 @@ class DriverActions:
             "mobile: scroll",
             {"direction": direction},
         )
-        logger.debug("Scrolled %s", direction)
+        logger.info("Scrolled %s", direction)
 
     @step("Scroll to element")
     def scroll_to_element(
@@ -371,7 +441,7 @@ class DriverActions:
         for attempt in range(max_scrolls):
             if self.is_element_present(by, value, timeout=2):
                 return self.find_element(by, value)
-            logger.debug("Scroll attempt %d/%d looking for (%s, %r)", attempt + 1, max_scrolls, by, value)
+            logger.info("Scroll attempt %d/%d looking for (%s, %r)", attempt + 1, max_scrolls, by, value)
             self.scroll(direction)
         raise NoSuchElementException(
             f"Element ({by}, {value!r}) not found after {max_scrolls} scrolls."
@@ -382,7 +452,6 @@ class DriverActions:
     # ──────────────────────────────────────────
 
     @step("Type text")
-    @wait_for_stable_hierarchy
     def type_text(self, element: WebElement, text: str, clear_first: bool = True) -> None:
         """Type text into an input element, optionally clearing it first."""
         if clear_first:
@@ -430,43 +499,7 @@ class DriverActions:
         logger.info("Screenshot saved: %s", path)
 
     # ──────────────────────────────────────────
-    # Swipe screen (high-velocity fling)
-    # ──────────────────────────────────────────
-
-    @step("Swipe screen")
-    def swipe_screen(
-        self,
-        direction: str = "up",
-        distance: float = 0.7,
-        velocity: float = 2500.0,
-    ) -> None:
-        """
-        Fast full-screen swipe (higher velocity than scroll).
-        direction : 'up' | 'down' | 'left' | 'right'
-        distance  : fraction of the screen dimension to travel (0.0–1.0).
-        velocity  : points/sec – higher = faster fling.
-        """
-        w, h = self.get_screen_size()
-        cx, cy = w // 2, h // 2
-        half_h = int(h * distance / 2)
-        half_w = int(w * distance / 2)
-        direction_map = {
-            "up":    (cx, cy + half_h, cx, cy - half_h),
-            "down":  (cx, cy - half_h, cx, cy + half_h),
-            "left":  (cx + half_w, cy, cx - half_w, cy),
-            "right": (cx - half_w, cy, cx + half_w, cy),
-        }
-        if direction not in direction_map:
-            raise ValueError(f"Unknown swipe direction: {direction!r}")
-        sx, sy, ex, ey = direction_map[direction]
-        self.driver.execute_script(
-            "mobile: dragFromToWithVelocity",
-            {"startX": sx, "startY": sy, "endX": ex, "endY": ey, "velocity": velocity},
-        )
-        logger.debug("swipe_screen %s (dist=%.1f, vel=%.0f)", direction, distance, velocity)
-
-    # ──────────────────────────────────────────
-    # scroll_until / swipe_until
+    # scroll_until
     # ──────────────────────────────────────────
 
     @step("Scroll until element found and tap")
@@ -493,12 +526,18 @@ class DriverActions:
         for attempt in range(max_attempts):
             if self.is_element_present(target_by, target_value, timeout=2):
                 element = self.find_element(target_by, target_value)
-                logger.debug(
-                    "scroll_until: found (%s, %r) after %d scrolls",
-                    target_by, target_value, attempt,
+                vis = self._visible_fraction(element)
+                if vis >= 0.5:
+                    logger.info(
+                        "scroll_until: tapping (%s, %r) after %d scrolls (%.0f%% visible)",
+                        target_by, target_value, attempt, vis * 100,
+                    )
+                    return element
+                logger.info(
+                    "scroll_until: (%s, %r) found but only %.0f%% visible — scrolling more",
+                    target_by, target_value, vis * 100,
                 )
-                return element
-            logger.debug(
+            logger.info(
                 "Scroll attempt %d/%d looking for (%s, %r)",
                 attempt + 1, max_attempts, target_by, target_value,
             )
@@ -538,30 +577,6 @@ class DriverActions:
             f"Element ({target_by}, {target_value!r}) not found after {max_attempts} scrolls."
         )
 
-    @step("Swipe")
-    def swipe_until(
-        self,
-        by: str,
-        value: str,
-        direction: str = "up",
-        max_attempts: int = 8,
-        distance: float = 0.7,
-    ) -> WebElement:
-        """
-        Fast-swipe in *direction* 
-        """
-        for attempt in range(max_attempts):
-            if self.is_element_present(by, value, timeout=2):
-                element = self.find_element(by, value)
-                logger.debug(
-                    "swipe_until: found (%s, %r) after %d swipes", by, value, attempt
-                )
-                return element
-            self.swipe_screen(direction, distance=distance)
-        raise NoSuchElementException(
-            f"Element ({by}, {value!r}) not found after {max_attempts} swipes."
-        )
-
     # ──────────────────────────────────────────
     # Drag
     # ──────────────────────────────────────────
@@ -589,10 +604,9 @@ class DriverActions:
                 "duration": duration,
             },
         )
-        logger.debug("drag_element: source → target")
+        logger.info("drag_element: source → target")
 
     @step("Drag by coordinates")
-    @wait_for_stable_hierarchy
     def drag_coordinates(
         self,
         from_x: int,
@@ -610,7 +624,38 @@ class DriverActions:
                 "duration": duration,
             },
         )
-        logger.debug("drag_coordinates: (%d,%d) → (%d,%d)", from_x, from_y, to_x, to_y)
+        logger.info("drag_coordinates: (%d,%d) → (%d,%d)", from_x, from_y, to_x, to_y)
+
+    @step("Drag within elements by offset percent")
+    def drag_within_elements(
+        self,
+        from_by: str,
+        from_value: str,
+        from_pct_x: float,
+        from_pct_y: float,
+        to_by: str,
+        to_value: str,
+        to_pct_x: float,
+        to_pct_y: float,
+        duration: float = 1.0,
+    ) -> None:
+        """Drag from a % offset within the source element to a % offset within the target element."""
+        src = self.find_element(from_by, from_value)
+        tgt = self.find_element(to_by, to_value)
+        src_loc, src_sz = src.location, src.size
+        tgt_loc, tgt_sz = tgt.location, tgt.size
+        from_x = round(src_loc["x"] + src_sz["width"]  * from_pct_x / 100)
+        from_y = round(src_loc["y"] + src_sz["height"] * from_pct_y / 100)
+        to_x   = round(tgt_loc["x"] + tgt_sz["width"]  * to_pct_x   / 100)
+        to_y   = round(tgt_loc["y"] + tgt_sz["height"] * to_pct_y   / 100)
+        self.driver.execute_script(
+            "mobile: dragFromToForDuration",
+            {"fromX": from_x, "fromY": from_y, "toX": to_x, "toY": to_y, "duration": duration},
+        )
+        logger.info(
+            "drag_within_elements: %s@(%.1f%%,%.1f%%) → %s@(%.1f%%,%.1f%%)",
+            from_value, from_pct_x, from_pct_y, to_value, to_pct_x, to_pct_y,
+        )
 
     # ──────────────────────────────────────────
     # Pinch & Rotate
@@ -629,33 +674,33 @@ class DriverActions:
         scale   > 1.0  →  pinch out (zoom in).
         velocity: pinch speed in scale-factor/sec; -1.0 = XCUITest default.
         """
-        params: dict = {"element": element.id, "scale": scale}
-        if velocity > 0:
-            params["velocity"] = velocity
+        # velocity is required by xcuitest-driver; use a sensible default when not specified
+        effective_velocity = velocity if velocity > 0 else 1.0
+        params: dict = {"element": element.id, "scale": scale, "velocity": effective_velocity}
         self.driver.execute_script("mobile: pinch", params)
-        logger.debug("pinch: scale=%.2f vel=%.1f", scale, velocity)
+        logger.info("pinch: scale=%.2f vel=%.1f", scale, velocity)
 
     @step("Rotate")
     def rotate(
         self,
         element: WebElement,
-        rotation: float = math.pi,
+        rotation: float = 90.0,
         velocity: float = 1.5,
     ) -> None:
         """
         Rotate gesture on *element* via XCUITest mobile: rotateElement.
-        rotation : angle in radians (positive = clockwise).
+        rotation : angle in **degrees** (positive = clockwise).
         velocity : speed in radians/sec.
         """
         self.driver.execute_script(
             "mobile: rotateElement",
             {
                 "element": element.id,
-                "rotation": rotation,
+                "rotation": rotation * math.pi / 180,
                 "velocity": velocity,
             },
         )
-        logger.debug("rotate: %.2f rad at %.1f rad/s", rotation, velocity)
+        logger.info("rotate: %.1f deg at %.1f rad/s", rotation, velocity)
 
     # ──────────────────────────────────────────
     # System operations
@@ -665,7 +710,7 @@ class DriverActions:
     def press_home(self) -> None:
         """Press the physical Home button (sends the app to the background)."""
         self.driver.execute_script("mobile: pressButton", {"name": "home"})
-        logger.debug("press_home")
+        logger.info("press_home")
 
     @step("Launch app")
     def launch_app(self, bundle_id: str) -> None:
@@ -686,7 +731,7 @@ class DriverActions:
         self,
         by: str,
         value: str,
-        timeout: int = DEFAULT_WAIT,
+        timeout: int = 5,
         msg: str = "",
     ) -> WebElement:
         """
@@ -706,13 +751,21 @@ class DriverActions:
         self,
         by: str,
         value: str,
-        timeout: int = 3,
+        timeout: int = 5,
         msg: str = "",
-    ) -> None:
-        """Assert that the element is NOT visible (or absent) on screen."""
-        if self.is_element_present(by, value, timeout=timeout):
-            label = msg or f"({by}, {value!r})"
-            raise AssertionError(f"verify_not_visible FAILED – element is visible: {label}")
+    ) -> bool:
+        """
+        Poll for up to *timeout* seconds waiting for the element to disappear.
+        Returns True as soon as the element is absent.
+        Raises AssertionError if element is still present after *timeout* seconds.
+        """
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if not self.is_element_present(by, value, timeout=1):
+                logger.info("verify_not_visible: (%s, %r) is absent", by, value)
+                return True
+        label = msg or f"({by}, {value!r})"
+        raise AssertionError(f"verify_not_visible FAILED – element is still visible after {timeout}s: {label}")
 
     @step("Verify element text")
     def verify_text(
@@ -720,7 +773,7 @@ class DriverActions:
         by: str,
         value: str,
         expected: str,
-        timeout: int = DEFAULT_WAIT,
+        timeout: int = 5,
     ) -> None:
         """
         Assert that the element's text / label equals *expected*.
@@ -734,82 +787,337 @@ class DriverActions:
             f"  actual   : {actual!r}"
         )
 
+        if actual != expected:
+            raise AssertionError(
+                f"verify_text FAILED for ({by}, {value!r})\n"
+                f"  expected : {expected!r}\n"
+                f"  actual   : {actual!r}"
+            )
+        logger.info("verify_text PASSED for (%s, %r)", by, value)
+
     # ──────────────────────────────────────────
-    # Screenshot: ground truth & visual diff
+    # Screenshot: capture, compare GT, compare preview
     # ──────────────────────────────────────────
 
-    @step("Capture ground truth screenshot")
-    def screenshot_gt(
+    def _attach_to_rp(self, path: str, label: str) -> None:
+        """Attach an image file to the active ReportPortal step via logger."""
+        try:
+            with open(path, "rb") as fh:
+                logger.info(
+                    label,
+                    extra={"attachment": {"name": label, "data": fh.read(), "mime": "image/png"}},
+                )
+        except Exception as exc:
+            logger.warning("Could not attach image to ReportPortal: %s", exc)
+
+    @step("Capture screenshot for GT comparison")
+    def capture_for_gt(
         self,
         name: str,
-        folder: str = "screenshots/ground_truth",
+        by: Optional[str] = None,
+        value: Optional[str] = None,
+        compare_folder: str = "pytest/screenshots/compare",
+        threshold: Optional[float] = None,
     ) -> str:
         """
-        Capture the current screen and save it as the ground truth for *name*.
-        File path: <folder>/<name>.png
-        Re-running overwrites the previous ground truth.
+        Capture the target element (or full screen if no locator) and save it
+        to *compare_folder* as ``{name}_{ts}_compare.png`` (timestamp added to
+        prevent overwrite on repeated calls).
+
+        The name is queued for GT comparison; call ``run_screenshot_comparisons()``
+        at the end of the test to evaluate all queued items.
+
+        *threshold*: per-image SSIM threshold (0–1).  When ``None``, the global
+        threshold passed to ``run_screenshot_comparisons()`` is used instead.
         """
-        os.makedirs(folder, exist_ok=True)
-        path = os.path.join(folder, f"{name}.png")
-        self.driver.save_screenshot(path)
-        logger.info("Ground truth saved: %s", path)
+        os.makedirs(compare_folder, exist_ok=True)
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        path = os.path.join(compare_folder, f"{name}_{ts}_compare.png")
+        if by and value:
+            try:
+                el = self.find_element(by, value)
+                el.screenshot(path)
+            except Exception as exc:
+                logger.warning("Element screenshot failed (%s); falling back to full-screen", exc)
+                self.driver.save_screenshot(path)
+        else:
+            self.driver.save_screenshot(path)
+        self._gt_compare_queue.append((name, path, threshold))
+        logger.info("Captured for GT comparison: %s (threshold=%s)", path, threshold)
         return path
 
-    @step("Compare screenshot with ground truth")
-    def screenshot_diff(
+    @step("Capture preview screenshot")
+    def capture_for_preview(
         self,
         name: str,
-        gt_folder: str = "screenshots/ground_truth",
-        diff_folder: str = "screenshots/diffs",
-        threshold: float = 0.01,
+        phase: str,
+        by: Optional[str] = None,
+        value: Optional[str] = None,
+        compare_folder: str = "pytest/screenshots/compare",
+        threshold: Optional[float] = None,
+        expected_result: str = "same",
+    ) -> str:
+        """
+        Capture the target element (or full screen) for before/after preview diff.
+
+        Saves to ``{name}_{ts}_{phase}.png`` in *compare_folder* (timestamp
+        shared between the "before" and "after" pair to prevent overwrite).
+        When *phase* == ``"after"``, the name is queued for preview comparison;
+        call ``run_screenshot_comparisons()`` at the end of the test to evaluate.
+
+        *threshold*: per-image SSIM threshold (0–1).  When ``None``, the global
+        threshold passed to ``run_screenshot_comparisons()`` is used instead.
+
+        *expected_result*: ``"same"`` (default) — similarity ≥ threshold to PASS.
+                           ``"different"`` — similarity < threshold to PASS
+                           (i.e. the action was expected to visually change the screen).
+        Only meaningful when *phase* == ``"after"``.
+        """
+        os.makedirs(compare_folder, exist_ok=True)
+        if phase == "before":
+            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+            path = os.path.join(compare_folder, f"{name}_{ts}_before.png")
+            if by and value:
+                try:
+                    el = self.find_element(by, value)
+                    el.screenshot(path)
+                except Exception as exc:
+                    logger.warning("Element screenshot failed (%s); falling back to full-screen", exc)
+                    self.driver.save_screenshot(path)
+            else:
+                self.driver.save_screenshot(path)
+            self._preview_pending[name] = (ts, path)
+            logger.info("Captured before screenshot for preview: %s", path)
+        else:
+            pending = self._preview_pending.pop(name, None)
+            if pending:
+                ts, before_path = pending
+            else:
+                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                before_path = os.path.join(compare_folder, f"{name}_before.png")  # fallback
+            path = os.path.join(compare_folder, f"{name}_{ts}_after.png")
+            if by and value:
+                try:
+                    el = self.find_element(by, value)
+                    el.screenshot(path)
+                except Exception as exc:
+                    logger.warning("Element screenshot failed (%s); falling back to full-screen", exc)
+                    self.driver.save_screenshot(path)
+            else:
+                self.driver.save_screenshot(path)
+            self._preview_compare_queue.append((name, before_path, path, threshold, expected_result))
+            logger.info(
+                "Captured after screenshot for preview: %s (threshold=%s, expected=%s)",
+                path, threshold, expected_result,
+            )
+        return path
+
+    def _compare_images(
+        self,
+        img_a_path: str,
+        img_b_path: str,
+        diff_path: str,
     ) -> float:
         """
-        Compare the current screen against the ground truth <name>.png.
+        Compare two images using SSIM.  Returns the similarity score (1.0 = identical).
+        Saves an annotated side-by-side diff PNG to *diff_path* whenever differences
+        are found (contour area > 5 px).
 
-        Returns the diff ratio (0.0 = identical, 1.0 = every pixel differs).
-        Saves a diff PNG to *diff_folder* whenever any difference is found.
-        Raises AssertionError if diff_ratio > *threshold*.
-
-        Requires: pip install Pillow numpy
+        Requires: pip install opencv-python imutils scikit-image numpy
         """
         try:
-            from PIL import Image, ImageChops
+            import cv2
+            import imutils
             import numpy as np
+            from skimage.metrics import structural_similarity as compare_ssim
         except ImportError as exc:
             raise ImportError(
-                "screenshot_diff requires Pillow and numpy. "
-                "Run: pip install Pillow numpy"
+                "Screenshot comparison requires opencv-python, imutils, scikit-image, and numpy. "
+                "Run: pip install opencv-python imutils scikit-image numpy"
             ) from exc
 
-        gt_path = os.path.join(gt_folder, f"{name}.png")
-        if not os.path.exists(gt_path):
-            raise FileNotFoundError(
-                f"Ground truth not found: {gt_path}. "
-                f"Call screenshot_gt({name!r}) first."
-            )
+        img1 = cv2.imread(img_a_path)
+        img2 = cv2.imread(img_b_path)
 
-        os.makedirs(diff_folder, exist_ok=True)
-        current_path = os.path.join(diff_folder, f"{name}_current.png")
-        self.driver.save_screenshot(current_path)
+        if img1 is None:
+            raise FileNotFoundError(f"Cannot read image: {img_a_path}")
+        if img2 is None:
+            raise FileNotFoundError(f"Cannot read image: {img_b_path}")
 
-        gt_img      = Image.open(gt_path).convert("RGB")
-        current_img = Image.open(current_path).convert("RGB")
+        # Resize img2 to match img1 if sizes differ
+        if img1.shape != img2.shape:
+            img2 = cv2.resize(img2, (img1.shape[1], img1.shape[0]), interpolation=cv2.INTER_LANCZOS4)
 
-        if gt_img.size != current_img.size:
-            current_img = current_img.resize(gt_img.size, Image.LANCZOS)
+        img_height = img1.shape[0]
 
-        diff_img   = ImageChops.difference(gt_img, current_img)
-        diff_arr   = np.array(diff_img, dtype=np.float32)
-        diff_ratio = float(np.count_nonzero(diff_arr)) / diff_arr.size
+        gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+        gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 
-        if diff_ratio > 0:
-            diff_path = os.path.join(diff_folder, f"{name}_diff.png")
-            diff_img.save(diff_path)
-            logger.info("Diff image saved: %s (ratio=%.4f)", diff_path, diff_ratio)
+        similar, diff = compare_ssim(gray1, gray2, full=True)
+        logger.info("SSIM similarity: %.6f", similar)
 
-        assert diff_ratio <= threshold, (
-            f"screenshot_diff FAILED for {name!r}: "
-            f"diff_ratio={diff_ratio:.4f} > threshold={threshold:.4f}"
+        diff = (diff * 255).astype("uint8")
+        thresh = cv2.threshold(diff, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+        contours = imutils.grab_contours(
+            cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         )
-        logger.info("screenshot_diff PASSED for %r (diff_ratio=%.4f)", name, diff_ratio)
-        return diff_ratio
+
+        for contour in contours:
+            if cv2.contourArea(contour) > 5:
+                x, y, w, h = cv2.boundingRect(contour)
+                cv2.rectangle(img1, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                cv2.rectangle(img2, (x, y), (x + w, y + h), (0, 0, 255), 2)
+
+        separator = np.zeros((img_height, 10, 3), np.uint8)
+        result = np.hstack((img1, separator, img2))
+        os.makedirs(os.path.dirname(diff_path), exist_ok=True)
+        cv2.imwrite(diff_path, result)
+        logger.info("Diff image saved: %s", diff_path)
+
+        return similar
+
+    def compare_with_gt(
+        self,
+        name: str,
+        compare_path: str = "",
+        gt_folder: str = "pytest/screenshots/ground_truth",
+        threshold: float = 0.99,
+    ) -> tuple[bool, str]:
+        """
+        Compare *compare_path* against ``{name}.png`` in *gt_folder*.
+
+        - GT missing → copy compare screenshot as new GT, log, return ``(False, msg)``.
+        - GT exists  → compare via SSIM; if similarity < *threshold* save an annotated
+          side-by-side diff image and upload it to ReportPortal,
+          return ``(False, msg)``; otherwise return ``(True, "")``.
+
+        *threshold* is the minimum acceptable SSIM similarity (0–1, 1 = identical).
+        Does NOT raise — all failures are collected by ``run_screenshot_comparisons()``.
+        """
+        gt_path   = os.path.join(gt_folder, f"{name}.png")
+        diff_path = os.path.splitext(compare_path)[0] + "_diff.png"
+
+        if not os.path.exists(gt_path):
+            import shutil
+            os.makedirs(gt_folder, exist_ok=True)
+            shutil.copy2(compare_path, gt_path)
+            msg = f"GT created for '{name}' — first run; re-run to compare"
+            logger.info(msg)
+            return (False, msg)
+
+        compare_name = os.path.basename(compare_path)
+        gt_name      = os.path.basename(gt_path)
+        similar = self._compare_images(compare_path, gt_path, diff_path)
+        if similar < threshold:
+            msg = (
+                f"GT diff FAILED for '{name}': "
+                f"similarity={similar:.6f} < threshold={threshold:.6f} "
+                f"[{compare_name} vs {gt_name}]"
+            )
+            logger.warning(msg)
+            self._attach_to_rp(diff_path, f"diff: {compare_name} vs {gt_name}")
+            return (False, msg)
+
+        logger.info("GT diff PASSED for %r (similarity=%.6f) [%s vs %s]", name, similar, compare_name, gt_name)
+        return (True, "")
+
+    def compare_preview(
+        self,
+        name: str,
+        before_path: str = "",
+        after_path: str = "",
+        threshold: float = 0.99,
+        expected_result: str = "same",
+    ) -> tuple[bool, str]:
+        """
+        Compare *before_path* against *after_path*.
+
+        *expected_result* controls the pass/fail logic:
+        - ``"same"``      — PASS when similarity ≥ *threshold* (images should look alike).
+        - ``"different"`` — PASS when similarity < *threshold* (action was expected to
+          visually change the screen).
+
+        On failure, saves an annotated diff image and uploads it to ReportPortal.
+        Does NOT raise — all failures are collected by ``run_screenshot_comparisons()``.
+        """
+        diff_path    = os.path.splitext(before_path)[0] + "_diff.png"
+        before_name  = os.path.basename(before_path)
+        after_name   = os.path.basename(after_path)
+
+        for p in (before_path, after_path):
+            if not os.path.exists(p):
+                msg = f"Preview diff: file missing for '{name}': {p}"
+                logger.warning(msg)
+                return (False, msg)
+
+        similar = self._compare_images(before_path, after_path, diff_path)
+
+        if expected_result == "different":
+            # PASS when images are sufficiently different
+            if similar < threshold:
+                logger.info(
+                    "Preview diff (expected=different) PASSED for %r (similarity=%.6f) [%s vs %s]",
+                    name, similar, before_name, after_name,
+                )
+                return (True, "")
+            msg = (
+                f"Preview diff FAILED for '{name}' (expected=different): "
+                f"similarity={similar:.6f} >= threshold={threshold:.6f} "
+                f"[{before_name} vs {after_name}] — images look the same"
+            )
+            logger.warning(msg)
+            self._attach_to_rp(diff_path, f"diff: {before_name} vs {after_name}")
+            return (False, msg)
+        else:
+            # PASS when images are sufficiently similar (default: "same")
+            if similar >= threshold:
+                logger.info(
+                    "Preview diff (expected=same) PASSED for %r (similarity=%.6f) [%s vs %s]",
+                    name, similar, before_name, after_name,
+                )
+                return (True, "")
+            msg = (
+                f"Preview diff FAILED for '{name}' (expected=same): "
+                f"similarity={similar:.6f} < threshold={threshold:.6f} "
+                f"[{before_name} vs {after_name}]"
+            )
+            logger.warning(msg)
+            self._attach_to_rp(diff_path, f"diff: {before_name} vs {after_name}")
+            return (False, msg)
+
+    @step("Run all screenshot comparisons")
+    def run_screenshot_comparisons(
+        self,
+        threshold: float = 0.99,
+    ) -> None:
+        """
+        Process every name queued by ``capture_for_gt`` and ``capture_for_preview``.
+
+        *threshold* is the **global** minimum acceptable SSIM similarity (0–1).
+        Individual captures may override this with their own threshold by passing
+        ``threshold=<value>`` to ``capture_for_gt`` / ``capture_for_preview``.
+
+        AND logic — every comparison runs regardless of previous failures.
+        All failure messages are collected and raised together as a single
+        ``AssertionError``.  Queues are cleared after the run.
+        """
+        failures: list[str] = []
+
+        for name, compare_path, item_threshold in self._gt_compare_queue:
+            t = item_threshold if item_threshold is not None else threshold
+            passed, msg = self.compare_with_gt(name, compare_path=compare_path, threshold=t)
+            if not passed:
+                failures.append(msg)
+
+        for name, before_path, after_path, item_threshold, expected_result in self._preview_compare_queue:
+            t = item_threshold if item_threshold is not None else threshold
+            passed, msg = self.compare_preview(name, before_path=before_path, after_path=after_path, threshold=t, expected_result=expected_result)
+            if not passed:
+                failures.append(msg)
+
+        self._gt_compare_queue.clear()
+        self._preview_compare_queue.clear()
+
+        if failures:
+            combined = "\n".join(f"  • {f}" for f in failures)
+            raise AssertionError(f"Screenshot comparison failures:\n{combined}")

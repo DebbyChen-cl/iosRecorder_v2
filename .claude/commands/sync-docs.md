@@ -27,7 +27,7 @@ For each change, update the matching skill file AND any other file that referenc
 |--------------|-------------------|
 | `app/codegen.py` | `.claude/commands/recorder-codegen.md` — action type list, step dict schema |
 | `app/selector.py` | `.claude/commands/recorder-select.md` — selector priority table |
-| `app/hittest.py` | `.claude/commands/recorder-select.md` — scoring/serialization notes |
+| `app/hittest.py` | `.claude/commands/recorder-select.md` — scoring/serialization notes; `docs/hittest-scoring.md` — full scoring logic with field table and scenario verification |
 | `app/main.py` | `.claude/commands/recorder-ui.md` — endpoint table; `.claude/commands/recorder-codegen.md` if step schema changed |
 | `static/` | `.claude/commands/recorder-ui.md` — gesture buttons, canvas, communication |
 | `pytest/driver/driver_actions.py` | `.claude/commands/pytest.md` — method reference table |

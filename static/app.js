@@ -4,8 +4,8 @@
 let wdaUrl = "http://localhost:8100";
 let deviceW = 390, deviceH = 844;
 let isRecording = false;
-let showOverlay = false;
 let steps = [];
+let _treeElements = []; // cached from last /api/tree fetch
 let ws = null;let fingerMode = "single";  // "single" | "two" | "multi"
 let gestureMode = "normal"; // "normal" | "pinch" | "rotate"
 let dragMode    = "scroll"; // "scroll" | "swipe" | "drag"
@@ -18,28 +18,29 @@ let verifyMode  = null; // null|"visible"|"not_visible"|"get_text"|"screenshot_g
 let verifyPhase = 0;    // 0 = picking target, 1 = process (for not_visible / screenshot_diff)
 let verifyTarget = null; // { x, y, type, value, bounds }
 let _screenshotDiffCtx = null; // { x, y, bounds } — saved while screenshot_diff PROCESS is active
+let _diffExpectedCb    = null; // callback waiting for The Same / Not The Same choice
 let _rightDblCtx = { count: 0, timer: null }; // tracks consecutive right-clicks during drag
 
 // Pinch/Rotate overlay state
-const PGST_INIT_R     = 70;              // display px — initial finger radius
-const PGST_INIT_ANGLE = Math.PI / 4;     // 45° diagonal
-let pgst = null;           // { cx, cy, r, angle }
+const PGST_INIT_R           = 70;               // display px — initial finger radius
+const PGST_INIT_ANGLE       = Math.PI / 4;      // pinch: 45° diagonal
+const PGST_ROTATE_INIT_ANGLE = -Math.PI / 2;    // rotate: vertical (dots top/bottom) = 0°
+let pgst = null;           // { cx, cy, r, angle, initAngle }
 let activeDotIdx = null;   // null | 0 | 1 — which side dot is being dragged
 // ── DOM refs ───────────────────────────────────────────────────────────────────
-const urlInput   = document.getElementById("urlInput");
-const connectBtn = document.getElementById("connectBtn");
-const dot        = document.getElementById("dot");
-const screenImg  = document.getElementById("screenImg");
-const overlay    = document.getElementById("overlay");
-const gestureSvg = document.getElementById("gestureSvg");
-const clickLayer = document.getElementById("clickLayer");
-const offlineMsg = document.getElementById("offlineMsg");
-const screenMeta = document.getElementById("screenMeta");
-const recBtn     = document.getElementById("recBtn");
+const urlInput      = document.getElementById("urlInput");
+const connectBtn    = document.getElementById("connectBtn");
+const dot           = document.getElementById("dot");
+const screenImg     = document.getElementById("screenImg");
+const gestureSvg    = document.getElementById("gestureSvg");
+const clickLayer    = document.getElementById("clickLayer");
+const offlineMsg    = document.getElementById("offlineMsg");
+const screenMeta    = document.getElementById("screenMeta");
+const recBtn        = document.getElementById("recBtn");
+const versionBadge  = document.getElementById("versionBadge");
 const clearBtn   = document.getElementById("clearBtn");
 const exportBtn      = document.getElementById("exportBtn");
 const caseNameInput  = document.getElementById("caseNameInput");
-const overlayChk = document.getElementById("overlayChk");
 const stepsList  = document.getElementById("stepsList");
 const stepCount  = document.getElementById("stepCount");
 const fingerBtns = document.querySelectorAll(".finger-btn[data-finger]");
@@ -80,6 +81,9 @@ const hoverBboxRect         = document.getElementById("hoverBboxRect");
 window.addEventListener("load", async () => {
   const cfg = await api("GET", "/api/config").catch(() => null);
   if (cfg?.wda_url) { wdaUrl = cfg.wda_url; urlInput.value = wdaUrl; }
+  // Show version badge
+  const ver = await api("GET", "/api/version").catch(() => null);
+  if (ver?.version && versionBadge) versionBadge.textContent = `v${ver.version}`;
   await checkStatus();
   setInterval(checkStatus, 2000);
   setInterval(pollSteps, 800);
@@ -176,6 +180,11 @@ function showDragModeToast(mode) {
 // pgstSvg interaction ———————————————————————————————————————
 // All drag events route through pgstSvg (pointer-captured on side circles)
 pgstSvg.addEventListener("pointermove", e => {
+  // Show hover highlight while hovering over the overlay without dragging a dot
+  if (activeDotIdx === null) {
+    const rect = pgstSvg.getBoundingClientRect();
+    updateHoverHighlight(e.clientX - rect.left, e.clientY - rect.top);
+  }
   if (activeDotIdx === null || !pgst) return;
   const rect = pgstSvg.getBoundingClientRect();
   const mx = e.clientX - rect.left;
@@ -184,10 +193,17 @@ pgstSvg.addEventListener("pointermove", e => {
   if (gestureMode === "pinch") {
     pgst.r = Math.max(20, Math.hypot(dx, dy));
   } else {
-    // Dragging dot A (idx=0) means angle = atan2 - PI
-    pgst.angle = activeDotIdx === 0
+    const newAngle = activeDotIdx === 0
       ? Math.atan2(dy, dx) - Math.PI
       : Math.atan2(dy, dx);
+    // Accumulate delta normalised to [-π, π] to avoid atan2 wrap discontinuity.
+    // This lets the user drag past ±180° without any 360° jump.
+    let delta = newAngle - pgst.lastDragAngle;
+    if (delta >  Math.PI) delta -= 2 * Math.PI;
+    if (delta < -Math.PI) delta += 2 * Math.PI;
+    pgst.totalRotation += delta;
+    pgst.lastDragAngle  = newAngle;
+    pgst.angle = pgst.initAngle + pgst.totalRotation;
   }
   renderPgstOverlay();
 });
@@ -197,6 +213,7 @@ pgstSvg.addEventListener("pointerup", () => {
   executePgst();
 });
 pgstSvg.addEventListener("pointercancel", () => { activeDotIdx = null; });
+pgstSvg.addEventListener("pointerleave", () => { if (activeDotIdx === null) clearHoverHighlight(); });
 
 function clearPgstOverlay() {
   pgstSvg.innerHTML = "";
@@ -236,7 +253,7 @@ function renderPgstOverlay() {
     const s = r / PGST_INIT_R;
     labelText = `×${s.toFixed(2)}`;
   } else {
-    const deg = Math.round((angle - PGST_INIT_ANGLE) * 180 / Math.PI);
+    const deg = Math.round((angle - pgst.initAngle) * 180 / Math.PI);
     labelText = `${deg > 0 ? "+" : ""}${deg}°`;
   }
 
@@ -283,6 +300,10 @@ function addSvgSideDot(cx, cy, idx) {
     e.stopPropagation();
     e.preventDefault();
     activeDotIdx = idx;
+    pgst.dragStartTime = Date.now();
+    // Seed the accumulator with the angle at drag-start using the same formula
+    // as pointermove, so the first delta is always 0 (no jump on grab).
+    pgst.lastDragAngle = pgst.angle;
     pgstSvg.setPointerCapture(e.pointerId);
   });
   pgstSvg.appendChild(c);
@@ -296,21 +317,35 @@ function executePgst() {
   if (gestureMode === "pinch") {
     const scale    = parseFloat((pgst.r / PGST_INIT_R).toFixed(3));
     const spread   = Math.round(PGST_INIT_R * scaleX);
-    sendGesture("pinch", { x: center.x, y: center.y, scale, spread });
+    const duration = pgst.dragStartTime ? Math.max(100, Date.now() - pgst.dragStartTime) : 500;
+    sendGesture("pinch", { x: center.x, y: center.y, scale, spread, duration });
   } else {
-    const rotation = parseFloat(((pgst.angle - PGST_INIT_ANGLE) * 180 / Math.PI).toFixed(1));
+    const rotation = parseFloat(((pgst.angle - pgst.initAngle) * 180 / Math.PI).toFixed(1));
     const spread   = Math.round(pgst.r * scaleX);
-    sendGesture("rotate", { x: center.x, y: center.y, rotation, spread });
+    const duration = pgst.dragStartTime ? Math.max(100, Date.now() - pgst.dragStartTime) : 600;
+    sendGesture("rotate", { x: center.x, y: center.y, rotation, spread, duration });
   }
-  // Reset back to initial position (slope 1)
-  pgst.r     = PGST_INIT_R;
-  pgst.angle = PGST_INIT_ANGLE;
+  // Reset back to initial position
+  pgst.r             = PGST_INIT_R;
+  pgst.angle         = pgst.initAngle;
+  pgst.totalRotation = 0;
+  pgst.lastDragAngle = null;
   if (pgstAutoExit.checked) {
     exitGestureMode();
   } else {
     renderPgstOverlay();
   }
 }
+// ── Steps info popup ───────────────────────────────────────────────────────────
+const stepsInfoBtn   = document.getElementById("stepsInfoBtn");
+const stepsInfoPopup = document.getElementById("stepsInfoPopup");
+stepsInfoBtn.addEventListener("click", e => {
+  e.stopPropagation();
+  const visible = stepsInfoPopup.style.display !== "none";
+  stepsInfoPopup.style.display = visible ? "none" : "block";
+});
+document.addEventListener("click", () => { stepsInfoPopup.style.display = "none"; });
+
 // ── Connection ─────────────────────────────────────────────────────────────────
 connectBtn.addEventListener("click", doConnect);
 urlInput.addEventListener("keydown", e => { if (e.key === "Enter") doConnect(); });
@@ -353,7 +388,11 @@ function setDot(state) { dot.className = "dot" + (state ? " " + state : ""); }
 function loadStream(mjpegUrl) {
   // Always route through the server-side proxy (/api/stream) so the browser
   // never needs a direct connection to the device IP/port.
+  screenImg.onerror = null;
   screenImg.src = `/api/stream?t=${Date.now()}`;
+  screenImg.onerror = () => {
+    setTimeout(() => loadStream(mjpegUrl), 1500);
+  };
 }
 
 // ── WebSocket ──────────────────────────────────────────────────────────────────
@@ -390,7 +429,9 @@ clickLayer.addEventListener("pointerdown", e => {
 
   // In pinch/rotate mode: click places the three-dot overlay
   if (gestureMode !== "normal") {
-    pgst = { cx: e.offsetX, cy: e.offsetY, r: PGST_INIT_R, angle: PGST_INIT_ANGLE };
+    const initAngle = gestureMode === "rotate" ? PGST_ROTATE_INIT_ANGLE : PGST_INIT_ANGLE;
+    pgst = { cx: e.offsetX, cy: e.offsetY, r: PGST_INIT_R, angle: initAngle, initAngle,
+             totalRotation: 0, lastDragAngle: null };
     renderPgstOverlay();
     return;
   }
@@ -416,6 +457,10 @@ clickLayer.addEventListener("pointermove", e => {
   if (!gst && gestureMode === "normal") {
     updateHoverHighlight(e.offsetX, e.offsetY);
   }
+  // In pinch/rotate mode, show hover highlight before the overlay is placed
+  if (gestureMode !== "normal" && !pgst) {
+    updateHoverHighlight(e.offsetX, e.offsetY);
+  }
 
   // Live hover bbox for screenshot verify modes (phase 0 = picking target)
   if ((verifyMode === "screenshot_gt" || verifyMode === "screenshot_diff") && verifyPhase === 0) {
@@ -429,7 +474,12 @@ clickLayer.addEventListener("pointermove", e => {
     clearTimeout(gst.longTimer);
     clearGestureOverlay();
   }
-  if (gst.moved) drawSwipePreview(gst.sx, gst.sy, e.offsetX, e.offsetY);
+  if (gst.moved) {
+    const snapped = (dragMode === "scroll" || dragMode === "swipe")
+      ? snapCardinal(gst.sx, gst.sy, e.offsetX, e.offsetY)
+      : { ex: e.offsetX, ey: e.offsetY };
+    drawSwipePreview(gst.sx, gst.sy, snapped.ex, snapped.ey);
+  }
 });
 
 clickLayer.addEventListener("pointerup", e => {
@@ -576,18 +626,30 @@ function onLongPress(dx, dy) {
   sendGesture("long_press", { ...toDevice(dx, dy), duration: 1000 });
 }
 
+function snapCardinal(sx, sy, ex, ey) {
+  const dx = ex - sx, dy = ey - sy;
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    return { ex, ey: sy };  // horizontal — lock Y
+  } else {
+    return { ex: sx, ey };  // vertical — lock X
+  }
+}
+
 function onSwipe(sx, sy, ex, ey, elapsed) {
+  const snapped = snapCardinal(sx, sy, ex, ey);
+  ex = snapped.ex; ey = snapped.ey;
   showGestureTrail(sx, sy, ex, ey);
   const duration = Math.min(Math.max(elapsed, 200), 1500);
   const s = toDevice(sx, sy), e2 = toDevice(ex, ey);
-  // Compute direction from display-space delta
   const dx = ex - sx, dy = ey - sy;
-  const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
+  const dir = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
   sendGesture("swipe", { x1: s.x, y1: s.y, x2: e2.x, y2: e2.y, duration, direction: dir });
   if (isRecording) awaitingSwipeTarget = true;
 }
 
 function onScroll(sx, sy, ex, ey, elapsed) {
+  const snapped = snapCardinal(sx, sy, ex, ey);
+  ex = snapped.ex; ey = snapped.ey;
   showGestureTrail(sx, sy, ex, ey);
   const duration = Math.min(Math.max(elapsed, 300), 1500);
   const s = toDevice(sx, sy), e2 = toDevice(ex, ey);
@@ -610,12 +672,17 @@ function sendGesture(type, data) {
     return;
   }
 
-  // HTTP fallback
+  // HTTP fallback — recording endpoints own gesture execution, so never double-call
   const execEp = { tap: "/api/tap", double_tap: "/api/double_tap", triple_tap: "/api/triple_tap", long_press: "/api/long_press", two_finger_tap: "/api/two_finger_tap", multi_finger_tap: "/api/multi_finger_tap", pinch: "/api/pinch", rotate: "/api/rotate", scroll: "/api/scroll", swipe: "/api/swipe", drag: "/api/drag" };
   const recEp  = { tap: "/api/record", double_tap: "/api/record/double_tap", triple_tap: "/api/record/triple_tap", long_press: "/api/record/long_press", two_finger_tap: "/api/record/two_finger_tap", multi_finger_tap: "/api/record/multi_finger_tap", pinch: "/api/record/pinch", rotate: "/api/record/rotate", scroll: "/api/record/scroll", swipe: "/api/record/swipe", drag: "/api/record/drag" };
 
-  api("POST", execEp[type], data);
-  if (record) api("POST", recEp[type], data);
+  if (record) {
+    // Screenshot must be taken before the gesture fires: await record (screenshot),
+    // then fire gesture. The exec endpoint is still needed to actually run the gesture.
+    api("POST", recEp[type], data).then(() => api("POST", execEp[type], data));
+  } else {
+    api("POST", execEp[type], data);
+  }
 }
 
 // ── Type Text overlay ─────────────────────────────────────────────────────────
@@ -644,8 +711,11 @@ function sendTypeText(text, tx, ty) {
     ws.send(JSON.stringify({ type: "type_text", ...data, record }));
     return;
   }
-  api("POST", "/api/type_text", { text });
-  if (record) api("POST", "/api/record/type_text", data);
+  if (record) {
+    api("POST", "/api/record/type_text", data).then(() => api("POST", "/api/type_text", { text }));
+  } else {
+    api("POST", "/api/type_text", { text });
+  }
 }
 
 typeBtn.addEventListener("click", () => openTypeOverlay());
@@ -666,8 +736,11 @@ homeBtn.addEventListener("click", () => {
     ws.send(JSON.stringify({ type: "home", record }));
     return;
   }
-  api("POST", "/api/home");
-  if (record) api("POST", "/api/record/home");
+  if (record) {
+    api("POST", "/api/record/home").then(() => api("POST", "/api/home"));
+  } else {
+    api("POST", "/api/home");
+  }
 });
 
 // ── App Picker ────────────────────────────────────────────────────────────────
@@ -708,8 +781,11 @@ function sendLaunchApp(bundleId) {
     ws.send(JSON.stringify({ type: "launch_app", bundle_id: bundleId, record }));
     return;
   }
-  api("POST", "/api/launch_app", { bundle_id: bundleId });
-  if (record) api("POST", "/api/record/launch_app", { bundle_id: bundleId });
+  if (record) {
+    api("POST", "/api/record/launch_app", { bundle_id: bundleId }).then(() => api("POST", "/api/launch_app", { bundle_id: bundleId }));
+  } else {
+    api("POST", "/api/launch_app", { bundle_id: bundleId });
+  }
 }
 
 launchAppBtn.addEventListener("click", () => openAppPicker());
@@ -965,6 +1041,7 @@ async function handleVerifyTargetPick(fx, fy) {
       sendVerify("verify_screenshot_diff", { target_x: x, target_y: y, bounds: verifyTarget.bounds ?? {}, phase: "before" });
       // Save context so sub-verifications can run during PROCESS
       _screenshotDiffCtx = { x, y, bounds: verifyTarget.bounds ?? {} };
+      console.debug("[screenshot_diff] set _screenshotDiffCtx=", _screenshotDiffCtx);
       verifyMode  = null; // free up verifyMode for sub-verifications
       verifyPhase = 1;
       verifyBtns.forEach(b => b.classList.remove("active"));
@@ -975,13 +1052,15 @@ async function handleVerifyTargetPick(fx, fy) {
 }
 
 verifyDoneBtn.addEventListener("click", () => {
+  console.debug("[Done] _screenshotDiffCtx=", _screenshotDiffCtx, "verifyMode=", verifyMode, "verifyPhase=", verifyPhase, "verifyTarget=", verifyTarget);
   if (_screenshotDiffCtx !== null) {
-    // Commit the AFTER screenshot and fully exit
+    // Capture AFTER, then ask user for expected result before fully exiting
     const { x, y, bounds } = _screenshotDiffCtx;
     _screenshotDiffCtx = null;
-    sendVerify("verify_screenshot_diff", { target_x: x, target_y: y, bounds, phase: "after" });
-    // Now exitVerifyMode will fully exit since _screenshotDiffCtx is null
-    exitVerifyMode();
+    openVerifyDiffExpectedDialog((expectedResult) => {
+      sendVerify("verify_screenshot_diff", { target_x: x, target_y: y, bounds, phase: "after", expected_result: expectedResult });
+      exitVerifyMode();
+    });
     return;
   }
   if (!verifyTarget) { exitVerifyMode(); return; }
@@ -1040,6 +1119,24 @@ verifyTextConfirm.addEventListener("click", () => {
   sendVerify("verify_get_text", { target_x: x, target_y: y, expected_text: expected });
   exitVerifyMode();
 });
+
+// ── Verify: Screenshot Diff expected-result dialog ──────────────────────────
+const verifyDiffExpectedModal = document.getElementById("verifyDiffExpectedModal");
+const diffExpectedSameBtn     = document.getElementById("diffExpectedSame");
+const diffExpectedDiffBtn     = document.getElementById("diffExpectedDiff");
+
+function openVerifyDiffExpectedDialog(cb) {
+  _diffExpectedCb = cb;
+  verifyDiffExpectedModal.style.display = "flex";
+}
+
+function closeDiffExpectedDialog(expectedResult) {
+  verifyDiffExpectedModal.style.display = "none";
+  if (_diffExpectedCb) { _diffExpectedCb(expectedResult); _diffExpectedCb = null; }
+}
+
+diffExpectedSameBtn.addEventListener("click", () => { if (verifyDiffExpectedModal.style.display !== "none") closeDiffExpectedDialog("same"); });
+diffExpectedDiffBtn.addEventListener("click", () => { if (verifyDiffExpectedModal.style.display !== "none") closeDiffExpectedDialog("different"); });
 
 // ── Verify: Screenshot GT dialog ──────────────────────────────────────────────
 function openVerifyGtDialog(x, y, bounds) {
@@ -1158,53 +1255,23 @@ clearBtn.addEventListener("click", async () => {
   renderSteps();
 });
 
+// ── Export result modal ───────────────────────────────────────────────────────
+const exportResultModal = document.getElementById("exportResultModal");
+const exportResultClose = document.getElementById("exportResultClose");
+const exportResultPaths = document.getElementById("exportResultPaths");
+exportResultClose.addEventListener("click", () => { exportResultModal.style.display = "none"; });
+exportResultModal.addEventListener("click", e => { if (e.target === exportResultModal) exportResultModal.style.display = "none"; });
+
 exportBtn.addEventListener("click", async () => {
   const caseName = caseNameInput.value.trim();
-  const data = await api("POST", "/api/export", { steps, case_name: caseName }).catch(() => null);
+  const data = await api("POST", "/api/export", { case_name: caseName }).catch(() => null);
   if (!data?.script) return;
-  const blob = new Blob([data.script], { type: "text/plain" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = data.filename;
-  a.click();
-  URL.revokeObjectURL(a.href);
+  // Show export result dialog
+  exportResultPaths.innerHTML = (data.saved_paths || [data.filename])
+    .map(p => `<li style="font-family:monospace;font-size:13px;word-break:break-all;">${p}</li>`)
+    .join("");
+  exportResultModal.style.display = "flex";
 });
-
-// ── Overlay ────────────────────────────────────────────────────────────────────
-overlayChk.addEventListener("change", e => {
-  showOverlay = e.target.checked;
-  overlay.style.display = showOverlay ? "block" : "none";
-  if (showOverlay) refreshOverlay(); else clearOverlay();
-});
-
-let _treeElements = []; // cached from last /api/tree fetch
-
-async function refreshOverlay() {
-  const data = await api("GET", "/api/tree").catch(() => null);
-  if (!data?.elements) return;
-  _treeElements = data.elements;
-  drawOverlay(data.elements);
-}
-
-function drawOverlay(elements) {
-  const dpr = window.devicePixelRatio || 1;
-  const w = overlay.clientWidth, h = overlay.clientHeight;
-  overlay.width = w * dpr; overlay.height = h * dpr;
-  const ctx = overlay.getContext("2d");
-  ctx.scale(dpr, dpr);
-  ctx.clearRect(0, 0, w, h);
-  const sx = w / deviceW, sy = h / deviceH;
-  for (const el of elements) {
-    const r = el.rect;
-    ctx.strokeStyle = el.enabled ? "rgba(74,158,255,0.6)" : "rgba(120,120,120,0.3)";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(r.x * sx, r.y * sy, r.w * sx, r.h * sy);
-  }
-}
-
-function clearOverlay() {
-  overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height);
-}
 
 // ── Steps polling ──────────────────────────────────────────────────────────────
 async function pollSteps() {
@@ -1225,16 +1292,40 @@ function renderSteps() {
     const c = s.coords;
 
     if (s.action === "swipe" || s.action === "drag") {
-      cls = "t-gesture";
+      const st = s.start_target;
+      const qCls = (st && st.type !== "coordinate") ? qualityClass(st) : "";
+      cls = (qCls ? qCls + " " : "") + "is-gesture";
       typeStr = s.action === "drag" ? "drag" : "swipe";
       if (s.action === "swipe" && s.swipe_target && s.swipe_target.type !== "coordinate") {
         const dir = s.direction || "?";
         valStr = `${dir} until: ${s.swipe_target.type}: ${s.swipe_target.value}`;
+      } else if (s.action === "swipe" && s.start_target && s.start_target.type !== "coordinate") {
+        const dir = s.direction || "?";
+        const dur = s.duration != null ? `${s.duration}ms` : null;
+        const vel = s.velocity != null ? `${Math.round(s.velocity)}px/s` : null;
+        const meta = [dur, vel].filter(Boolean).join(" · ");
+        valStr = `${dir} on ${s.start_target.value}` + (meta ? ` · ${meta}` : "");
+      } else if (s.action === "drag") {
+        const st = s.start_target, et = s.end_target;
+        const hasStart = st && st.type !== "coordinate";
+        const hasEnd   = et && et.type !== "coordinate";
+        if (hasStart && hasEnd) {
+          const sp = st.offset_pct ?? { x: "?", y: "?" };
+          const ep = et.offset_pct ?? { x: "?", y: "?" };
+          valStr = `${st.value} (${sp.x}%,${sp.y}%) → ${et.value} (${ep.x}%,${ep.y}%)`;
+        } else if (hasStart) {
+          const sp = st.offset_pct ?? { x: "?", y: "?" };
+          valStr = `${st.value} (${sp.x}%,${sp.y}%) → (${c.x2},${c.y2})`;
+        } else {
+          valStr = `(${c.x1},${c.y1}) → (${c.x2},${c.y2})`;
+        }
       } else {
         valStr = `(${c.x1},${c.y1}) → (${c.x2},${c.y2})`;
       }
     } else if (s.action === "scroll") {
-      cls = "t-gesture";
+      const sc = s.scroll_container;
+      const qCls = (sc && sc.type !== "coordinate") ? qualityClass(sc) : "";
+      cls = (qCls ? qCls + " " : "") + "is-scroll";
       typeStr = "scroll";
       if (s.scroll_target && s.scroll_target.type !== "coordinate") {
         valStr = `→ ${s.scroll_target.type}: ${s.scroll_target.value}`;
@@ -1242,13 +1333,23 @@ function renderSteps() {
         valStr = `(${c.x1},${c.y1}) → (${c.x2},${c.y2})`;
       }
     } else if (s.action === "pinch") {
-      cls = "t-gesture";
+      const pt = s.target;
+      const qCls = (pt && pt.type !== "coordinate") ? qualityClass(pt) : "";
+      cls = (qCls ? qCls + " " : "") + "is-gesture";
       typeStr = "pinch";
-      valStr = `×${(s.scale ?? 1).toFixed(2)} @ (${c.x},${c.y})`;
+      const pEl = pt && pt.type !== "coordinate" ? `${pt.type}: ${pt.value}` : null;
+      valStr = pEl
+        ? `×${(s.scale ?? 1).toFixed(2)} on ${pEl}`
+        : `×${(s.scale ?? 1).toFixed(2)} @ (${c.x},${c.y})`;
     } else if (s.action === "rotate") {
-      cls = "t-gesture";
+      const rt = s.target;
+      const qCls = (rt && rt.type !== "coordinate") ? qualityClass(rt) : "";
+      cls = (qCls ? qCls + " " : "") + "is-gesture";
       typeStr = "rotate";
-      valStr = `${(s.rotation ?? 0).toFixed(1)}° @ (${c.x},${c.y})`;
+      const rEl = rt && rt.type !== "coordinate" ? `${rt.type}: ${rt.value}` : null;
+      valStr = rEl
+        ? `${(s.rotation ?? 0).toFixed(1)}° on ${rEl}`
+        : `${(s.rotation ?? 0).toFixed(1)}° @ (${c.x},${c.y})`;
     } else if (s.action === "type_text") {
       cls = "t-name";
       typeStr = "type";
@@ -1266,38 +1367,43 @@ function renderSteps() {
       typeStr = "launch";
       valStr = s.app_name ?? s.bundle_id ?? "";
     } else if (s.action === "verify_visible") {
-      cls = "t-name";
-      typeStr = "assert visible";
       const t = s.target;
+      cls = (t && t.type !== "coordinate") ? qualityClass(t) : "t-coord";
+      typeStr = "assert visible";
       valStr = t && t.type !== "coordinate" ? `${t.type}: ${t.value}` : `(${s.coords?.x},${s.coords?.y})`;
     } else if (s.action === "verify_not_visible") {
-      cls = "t-name";
-      typeStr = "assert not visible";
       const t = s.target;
+      cls = (t && t.type !== "coordinate") ? qualityClass(t) : "t-coord";
+      typeStr = "assert not visible";
       valStr = t && t.type !== "coordinate" ? `${t.type}: ${t.value}` : `(${s.coords?.x},${s.coords?.y})`;
     } else if (s.action === "verify_get_text") {
-      cls = "t-name";
-      typeStr = "assert text";
       const t = s.target;
+      cls = (t && t.type !== "coordinate") ? qualityClass(t) : "t-coord";
+      typeStr = "assert text";
       valStr = `"${s.expected_text ?? ""}" — ${t && t.type !== "coordinate" ? `${t.type}: ${t.value}` : "coord"}`;
     } else if (s.action === "verify_screenshot_gt") {
-      cls = "t-gesture";
-      typeStr = "screenshot GT";
-      valStr = s.screenshot_name ?? "";
-    } else if (s.action === "verify_screenshot_diff") {
-      cls = "t-gesture";
-      const phase = s.phase ?? "before";
-      typeStr = phase === "after" ? "scr diff after" : "scr diff before";
       const t = s.target;
-      valStr = t && t.type !== "coordinate" ? `${t.type}: ${t.value}` : `(${s.coords?.x},${s.coords?.y})`;
+      cls = (t && t.type !== "coordinate") ? qualityClass(t) : "t-coord";
+      typeStr = "screenshot GT";
+      const elInfo = t && t.type !== "coordinate" ? ` — ${t.type}: ${t.value}` : "";
+      valStr = (s.screenshot_name ?? "") + elInfo;
+    } else if (s.action === "verify_screenshot_diff") {
+      const t = s.target;
+      cls = (t && t.type !== "coordinate") ? qualityClass(t) : "t-coord";
+      const phase = s.phase ?? "before";
+      const expected = s.expected_result;
+      const badge = expected === "same" ? " ✅" : expected === "different" ? " 🔄" : "";
+      typeStr = phase === "after" ? `scr diff after${badge}` : "scr diff before";
+      const elPart = t && t.type !== "coordinate" ? ` — ${t.type}: ${t.value}` : ` — (${s.coords?.x},${s.coords?.y})`;
+      valStr = (s.screenshot_name ?? "") + elPart;
     } else {
       const t = s.target;
       if (!t || t.type === "coordinate") {
         cls = "t-coord"; typeStr = s.action;
         valStr = t ? `(${t.x},${t.y})` : `(${c?.x},${c?.y})`;
       } else {
-        cls = typeClass(t.type);
-      const labelMap = { tap: "tap", double_tap: "2×tap", triple_tap: "3×tap", long_press: "long press", two_finger_tap: "2 finger tap", multi_finger_tap: `${s.fingers ?? 3} finger tap` };
+        cls = qualityClass(t);
+        const labelMap = { tap: "tap", double_tap: "2×tap", triple_tap: "3×tap", long_press: "long press", two_finger_tap: "2 finger tap", multi_finger_tap: `${s.fingers ?? 3} finger tap` };
         typeStr = `${labelMap[s.action] ?? s.action}: ${t.type}`;
         valStr = t.value;
       }
@@ -1316,6 +1422,19 @@ function typeClass(type) {
   if (type === "name") return "t-name";
   if (type === "coordinate") return "t-coord";
   return "t-xpath";
+}
+
+// Returns a CSS class based on selector_quality when available, else falls back to typeClass.
+function qualityClass(target) {
+  if (!target || target.type === "coordinate") return "t-coord";
+  const q = target.selector_quality;
+  if (q === "id")           return "q-id";
+  if (q === "id_indexed")   return "q-id-indexed";
+  if (q === "id_eq_label")  return "q-id-eq-label";
+  if (q === "label_only")   return "q-label-only";
+  if (q === "xpath_only")   return "q-xpath-only";
+  // Fallback for steps recorded before this feature
+  return typeClass(target.type);
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────

@@ -41,7 +41,11 @@ The `<canvas>` element overlays the device screen image.
 - Draw gesture arcs/paths on canvas **before** sending to backend
 - Clear canvas after the gesture is sent
 - Pinch preview: two circles + line between them
-- Swipe/drag preview: arrow path
+- Swipe/scroll/drag preview: arrow path
+- **Swipe and scroll gestures are snapped to cardinal directions (0°/90°/180°/270°) in `pointermove` preview and in `onSwipe`/`onScroll` before sending** — use `snapCardinal()` helper
+- Drag mode is free-angle (no snapping)
+- **Pinch/rotate mode hover**: yellow element highlight is shown while hovering before the overlay is placed (`!pgst`); also shown while hovering over `pgstSvg` without dragging a dot (`activeDotIdx === null`); cleared on `pointerdown` (placement) and `pointerleave`
+- **Pinch `duration`**: recorded from `pointerdown` on a side dot to `pointerup`; sent in the payload as `duration` (ms, min 100); used to derive `velocity` in codegen
 
 ## Adding a New Gesture Button
 
@@ -56,7 +60,10 @@ The `<canvas>` element overlays the device screen image.
 - Steps are displayed in `#stepList` as `<div class="step-item">`
 - Each item shows: action icon + description + timestamp
 - DELETE calls `DELETE /api/steps` to clear all steps
-- Export calls `POST /api/export` with `{ "case_name": "<name>" }` and triggers a file download
+- Export calls `POST /api/export` with `{ "case_name": "<name>" }` — **no browser download**; backend writes files to disk and returns `saved_paths`
+- On success, `#exportResultModal` opens to show the saved file paths; dismiss with ✕ or clicking backdrop
+- The backend appends a timestamp (`_YYYYMMDD_HHMMSS`) to the case name, marker, and function name automatically
+- Export creates a **timestamped subfolder** inside `export/` (e.g. `export/MyTest_20260512_143022/`) containing three files: `.py`, `.json`, `.html` (selector quality report); the pytest/tests/ copy is written flat as before
 
 ## CSS Rules
 

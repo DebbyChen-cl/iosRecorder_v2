@@ -29,10 +29,16 @@ def build_options() -> XCUITestOptions:
     options.full_reset           = caps.get("appium:fullReset", False)
     options.new_command_timeout  = caps.get("appium:newCommandTimeout", 120)
 
-    # Pass any remaining capabilities that XCUITestOptions doesn't expose as
-    # a first-class property via the generic set_capability interface.
+    # Pass any remaining appium: capabilities that XCUITestOptions doesn't expose
+    # as a first-class property via the generic set_capability interface.
+    # (e.g. wdaLocalPort, skipServerInstallation, useNewWDA, showXcodeLog, …)
+    _first_class = {
+        "appium:automationName", "appium:udid", "appium:deviceName",
+        "appium:bundleId", "appium:xcodeOrgId", "appium:xcodeSigningId",
+        "appium:noReset", "appium:fullReset", "appium:newCommandTimeout",
+    }
     for key, value in caps.items():
-        if key.startswith("appium:wda"):
+        if key.startswith("appium:") and key not in _first_class:
             options.set_capability(key, value)
 
     return options

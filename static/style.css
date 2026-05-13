@@ -46,6 +46,18 @@ body {
   white-space: nowrap;
 }
 
+.version-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1px 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .conn-bar { display: flex; align-items: center; gap: 7px; flex: 1; }
 
 .conn-bar input {
@@ -233,13 +245,6 @@ button {
   filter: saturate(0.2);
 }
 
-.chk-label {
-  display: flex; align-items: center; gap: 7px;
-  color: var(--muted); cursor: pointer; user-select: none;
-  font-size: 15px;
-}
-.chk-label:hover { color: var(--text); }
-
 /* Steps */
 .steps-card {
   flex: 1;
@@ -278,10 +283,22 @@ button {
   border-left: 3px solid var(--border);
   flex-shrink: 0;
 }
-.step.t-acc  { border-left-color: var(--accent); }
-.step.t-name { border-left-color: var(--success); }
+/* Legacy type-based colours (steps without selector_quality) */
+.step.t-acc   { border-left-color: var(--accent); }
+.step.t-name  { border-left-color: var(--success); }
 .step.t-coord { border-left-color: var(--warn); }
 .step.t-xpath { border-left-color: var(--muted); }
+
+/* Selector-quality colours (steps with selector_quality field) */
+.step.q-id          { border-left-color: var(--border); }    /* grey   — has proper ID, no warning */
+.step.q-id-indexed  { border-left-color: #f1c40f; }          /* yellow — id ends with -N (fragile index) */
+.step.q-id-eq-label { border-left-color: var(--accent); }    /* blue   — id==label (mild concern) */
+.step.q-label-only  { border-left-color: var(--warn); }      /* orange — label only */
+.step.q-xpath-only  { border-left-color: var(--danger); }    /* red    — xpath only */
+
+/* Right-border gesture-type indicator — applied alongside a quality class */
+.step.is-gesture { border-right: 3px solid #ff79c6; }        /* pink  — swipe / drag */
+.step.is-scroll  { border-right: 3px solid var(--success); } /* green — scroll */
 
 .step-n    { font-size: 13px; color: var(--muted); }
 .step-type { font-size: 13px; color: var(--muted); font-family: monospace; }
@@ -332,6 +349,62 @@ button {
 
 /* Step color for gesture (swipe/drag) actions */
 .step.t-gesture { border-left-color: #ff79c6; }
+
+/* ── Selector quality info button + popup ────────────────────────────────── */
+.info-btn {
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 13px;
+  width: 20px; height: 20px;
+  padding: 0;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.1s, border-color 0.1s;
+}
+.info-btn:hover { color: var(--text); border-color: var(--text); }
+
+.info-popup {
+  position: absolute;
+  right: 13px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0,0,0,.6);
+  min-width: 260px;
+  font-size: 13px;
+}
+.info-popup-title {
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.info-popup-item {
+  display: flex; align-items: center; gap: 9px;
+  margin-bottom: 7px;
+  color: var(--muted);
+}
+.info-popup-item:last-child { margin-bottom: 0; }
+.info-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.info-dot.q-id          { background: var(--border); }
+.info-dot.q-id-indexed  { background: #f1c40f; }
+.info-dot.q-id-eq-label { background: var(--accent); }
+.info-dot.q-label-only  { background: var(--warn); }
+.info-dot.q-xpath-only  { background: var(--danger); }
+.info-dot.q-coord       { background: var(--muted); }
+.info-dot.q-gesture     { background: #ff79c6; }
+.info-dot.q-scroll      { background: var(--success); }
 
 /* Finger sidebar (left of screen) */
 .finger-sidebar {
@@ -552,7 +625,7 @@ button {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
-  width: min(360px, 90vw);
+  width: min(640px, 90vw);
   max-height: 70vh;
   display: flex;
   flex-direction: column;

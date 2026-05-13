@@ -156,21 +156,24 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
 
     # ── pinch ─────────────────────────────────────────────────────────────────
     if action == "pinch":
-        scale = round(step.get("scale", 0.5), 3)
+        scale    = round(step.get("scale", 0.5), 3)
+        duration = step.get("duration", 500)  # ms
+        # velocity = how fast the scale changes (scale-factor/sec), min 0.1
+        velocity = round(max(0.1, abs(scale - 1.0) / (duration / 1000)), 3)
         if has_el:
             by, val = _locator(t)
             return (f"[Action] Pinch {val} scale={scale}",
-                    [f"actions.pinch(actions.find_element({by}, '{val}'), scale={scale})"])
+                    [f"actions.pinch(actions.find_element({by}, '{_q(val)}'), scale={scale}, velocity={velocity})"])
         return (f"[Action] Pinch at ({c.get('x')},{c.get('y')}) scale={scale}",
                 [f"# pinch at ({c.get('x')},{c.get('y')}) scale={scale} — no element matched"])
 
     # ── rotate ────────────────────────────────────────────────────────────────
     if action == "rotate":
-        rad = round(step.get("rotation", 0) * math.pi / 180, 4)
+        deg = round(step.get("rotation", 0), 1)
         if has_el:
             by, val = _locator(t)
-            return (f"[Action] Rotate {val} {round(step.get('rotation', 0), 1)}°",
-                    [f"actions.rotate(actions.find_element({by}, '{val}'), rotation={rad})"])
+            return (f"[Action] Rotate {val} {deg}°",
+                    [f"actions.rotate(actions.find_element({by}, '{_q(val)}'), rotation={deg})"])
         return (f"[Action] Rotate at ({c.get('x')},{c.get('y')})",
                 [f"# rotate at ({c.get('x')},{c.get('y')}) — no element matched"])
 
@@ -203,24 +206,45 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
 
     # ── swipe ─────────────────────────────────────────────────────────────────
     if action == "swipe":
-        st = step.get("swipe_target")
-        if st and st.get("type") != "coordinate":
-            by, val = _locator(st)
-            direction = step.get("direction", "up")
-            return (f"[Action] Swipe until {val}",
-                    [f"actions.swipe_until({by}, '{val}', direction='{direction}')"])
         dur = step.get("duration", 400)
         x1, y1 = int(c.get("x1", 0)), int(c.get("y1", 0))
         x2, y2 = int(c.get("x2", 0)), int(c.get("y2", 0))
         direction = step.get("direction", _swipe_direction(x2 - x1, y2 - y1))
+        sst = step.get("start_target")
+        if sst and sst.get("type") != "coordinate":
+            sst_by, sst_val = _by(sst["type"]), _q(sst["value"])
+            pct = sst.get("offset_pct", {"x": 50.0, "y": 50.0})
+            px, py = pct["x"], pct["y"]
+            raw_dist = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+            velocity = round(max(50.0, min(5000.0, raw_dist * 1000 / dur)), 1) if dur > 0 else 500.0
+            dist_arg = round(raw_dist, 1)
+            return (f"[Action] Swipe {direction} on {sst_val}",
+                    [f"actions.swipe_on_element({sst_by}, '{sst_val}', '{direction}', velocity={velocity}, from_pct_x={px}, from_pct_y={py}, distance_pts={dist_arg})"])
         return (f"[Action] Swipe {direction}",
-                [f"actions.swipe({x1}, {y1}, {x2}, {y2}, duration={dur})"])
+                [f"# swipe {direction} at ({x1},{y1})→({x2},{y2}) — no element matched"])
 
     # ── drag ──────────────────────────────────────────────────────────────────
     if action == "drag":
         dur = round(step.get("duration", 1000) / 1000, 2)
         x1, y1 = int(c.get("x1", 0)), int(c.get("y1", 0))
         x2, y2 = int(c.get("x2", 0)), int(c.get("y2", 0))
+        st = step.get("start_target")
+        et = step.get("end_target")
+        has_start = st and st.get("type") != "coordinate"
+        has_end   = et and et.get("type") != "coordinate"
+        if has_start and has_end:
+            s_by, s_val = _by(st["type"]), _q(st["value"])
+            e_by, e_val = _by(et["type"]), _q(et["value"])
+            sp = st.get("offset_pct", {"x": 50.0, "y": 50.0})
+            ep = et.get("offset_pct", {"x": 50.0, "y": 50.0})
+            sx, sy = sp["x"], sp["y"]
+            ex, ey = ep["x"], ep["y"]
+            return (f"[Action] Drag {s_val} ({sx}%,{sy}%) → {e_val} ({ex}%,{ey}%)",
+                    [f"actions.drag_within_elements({s_by}, '{s_val}', {sx}, {sy}, {e_by}, '{e_val}', {ex}, {ey}, duration={dur})"])
+        if has_start:
+            sp = st.get("offset_pct", {"x": 50.0, "y": 50.0})
+            return (f"[Action] Drag {_q(st['value'])} ({sp['x']}%,{sp['y']}%) → ({x2},{y2})",
+                    [f"actions.drag_coordinates({x1}, {y1}, {x2}, {y2}, duration={dur})"])
         return (f"[Action] Drag ({x1},{y1}) → ({x2},{y2})",
                 [f"actions.drag_coordinates({x1}, {y1}, {x2}, {y2}, duration={dur})"])
 
@@ -251,7 +275,7 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
         if has_el:
             by, val = _locator(t)
             return (f"[Verify] {val} is visible",
-                    [f"actions.verify_visible({by}, '{val}')"])
+                    [f"actions.verify_visible({by}, '{_q(val)}')"])
         return (f"[Verify] element visible at ({c.get('x')},{c.get('y')})",
                 [f"# verify_visible at ({c.get('x')},{c.get('y')}) — no element matched"])
 
@@ -260,7 +284,7 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
         if has_el:
             by, val = _locator(t)
             return (f"[Verify] {val} is not visible",
-                    [f"actions.verify_not_visible({by}, '{val}')"])
+                    [f"actions.verify_not_visible({by}, '{_q(val)}')"])
         return (f"[Verify] element not visible at ({c.get('x')},{c.get('y')})",
                 [f"# verify_not_visible at ({c.get('x')},{c.get('y')}) — no element matched"])
 
@@ -277,18 +301,30 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
     # ── screenshot ground truth ───────────────────────────────────────────────
     if action == "verify_screenshot_gt":
         name = _q(step.get("screenshot_name", "screenshot"))
-        return (f"[Verify] Save screenshot GT '{name}'",
-                [f"actions.screenshot_gt('{name}')"])
+        if has_el:
+            by, val = _locator(t)
+            return (f"[Verify] Capture '{name}' for GT comparison",
+                    [f"actions.capture_for_gt('{name}', {by}, '{val}', threshold=0.95)"])
+        return (f"[Verify] Capture '{name}' for GT comparison",
+                [f"actions.capture_for_gt('{name}', threshold=0.95)"])
 
     # ── screenshot diff ───────────────────────────────────────────────────────
     if action == "verify_screenshot_diff":
         name = _q(step.get("screenshot_name", "screenshot"))
         phase = step.get("phase", "before")
-        if phase == "before":
-            return (f"[Verify] Screenshot diff — save before state",
-                    [f"actions.screenshot_gt('{name}')  # save before-state GT"])
-        return (f"[Verify] Screenshot diff — compare against GT",
-                [f"actions.screenshot_diff('{name}')"])
+        expected = step.get("expected_result", "same")  # only present on phase=="after"
+        if has_el:
+            by, val = _locator(t)
+            if phase == "after":
+                return (f"[Verify] Capture '{name}' {phase} screenshot",
+                        [f"actions.capture_for_preview('{name}', '{phase}', {by}, '{val}', expected_result='{expected}', threshold=0.95)"])
+            return (f"[Verify] Capture '{name}' {phase} screenshot",
+                    [f"actions.capture_for_preview('{name}', '{phase}', {by}, '{val}')"])
+        if phase == "after":
+            return (f"[Verify] Capture '{name}' {phase} screenshot",
+                    [f"actions.capture_for_preview('{name}', '{phase}', expected_result='{expected}', threshold=0.95)"])
+        return (f"[Verify] Capture '{name}' {phase} screenshot",
+                [f"actions.capture_for_preview('{name}', '{phase}')"])
 
     return (f"[Action] {action}",
             [f"# [unknown action: {action}]"])
@@ -308,14 +344,25 @@ def generate_script(steps: List[dict], case_name: str = "") -> str:
     """
     Convert a list of recorded step dicts into a complete pytest test file
     using DriverActions methods, each wrapped in a reportportal step context.
+
+    Screenshot steps (verify_screenshot_gt / verify_screenshot_diff) only
+    capture images inline.  A single ``run_screenshot_comparisons()`` call is
+    appended at the end of the test to evaluate ALL captures together (AND
+    logic — every comparison runs, all failures reported at once).
     """
     header = generate_header(case_name)
     body_lines: list[str] = []
+    _screenshot_actions = {"verify_screenshot_gt", "verify_screenshot_diff"}
+    has_screenshots = any(s.get("action") in _screenshot_actions for s in steps)
     for s in steps:
         label, code_lines = _action_call(s)
         safe_label = label.replace("\\", "\\\\").replace('"', '\\"')
         body_lines.append(f'    with step("{safe_label}"):')
         for line in code_lines:
             body_lines.append(f"        {line}")
+    if has_screenshots:
+        body_lines.append('    with step("[Verify] Screenshot comparisons"):')
+        body_lines.append("        actions.run_screenshot_comparisons(threshold=0.95)")
+    body_lines.append("    assert True")
 
     return header + "\n".join(body_lines) + "\n"

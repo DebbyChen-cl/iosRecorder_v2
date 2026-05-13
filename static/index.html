@@ -11,6 +11,7 @@
 
   <header class="header">
     <span class="logo">iOS Recorder</span>
+    <span id="versionBadge" class="version-badge"></span>
     <div class="conn-bar">
       <input id="urlInput" type="text" placeholder="http://192.168.x.x:8100" spellcheck="false" />
       <button id="connectBtn">Connect</button>
@@ -135,7 +136,6 @@
         </div>
         <div class="screen-wrap" id="screenWrap">
           <img id="screenImg" alt="" />
-          <canvas id="overlay"></canvas>
           <svg id="gestureSvg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible"></svg>
           <svg id="pgstSvg"    style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:10"></svg>
           <svg id="verifySvg"  style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:20"></svg>
@@ -183,16 +183,26 @@
             <button class="btn-sm" id="clearBtn" disabled>Clear</button>
             <button class="btn-sm" id="exportBtn" disabled>Export</button>
           </div>
-          <label class="chk-label">
-            <input type="checkbox" id="overlayChk" />
-            Show element overlay
-          </label>
         </div>
       </div>
 
-      <div class="card steps-card">
+      <div class="card steps-card" style="position:relative">
         <div class="card-hd">
           Steps <span class="badge" id="stepCount">0</span>
+          <button class="info-btn" id="stepsInfoBtn" title="Selector colour legend">ℹ</button>
+        </div>
+        <div class="info-popup" id="stepsInfoPopup" style="display:none;top:38px">
+          <div class="info-popup-title">← Left border: Selector Quality</div>
+          <div class="info-popup-item"><span class="info-dot q-id"></span>Has ID (id ≠ label) — most stable</div>
+          <div class="info-popup-item"><span class="info-dot q-id-indexed"></span>ID ends with -N (e.g. Cell-3) — index may change</div>
+          <div class="info-popup-item"><span class="info-dot q-id-eq-label"></span>ID = Label — may be fragile</div>
+          <div class="info-popup-item"><span class="info-dot q-label-only"></span>Label only — fragile if text changes</div>
+          <div class="info-popup-item"><span class="info-dot q-xpath-only"></span>XPath only — most fragile</div>
+          <div class="info-popup-item"><span class="info-dot q-coord"></span>Coordinate only — no element matched</div>
+          <div style="height:1px;background:var(--border);margin:8px 0"></div>
+          <div class="info-popup-title">→ Right border: Gesture Type</div>
+          <div class="info-popup-item"><span class="info-dot q-gesture"></span>Swipe / Drag / Pinch / Rotate</div>
+          <div class="info-popup-item"><span class="info-dot q-scroll"></span>Scroll</div>
         </div>
         <div class="steps-body" id="stepsList">
           <div class="empty">No steps recorded yet</div>
@@ -240,6 +250,22 @@
   </div>
 </div>
 
+<!-- ── Verify: Screenshot Diff expected-result dialog ───────────────────── -->
+<div id="verifyDiffExpectedModal" class="modal-backdrop" style="display:none">
+  <div class="modal-box" style="max-width:320px">
+    <div class="modal-header">
+      <span class="modal-title">🔀 Expected Result</span>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:12px;color:var(--muted);text-align:center">Should the before/after screenshots look…</div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn-rec" id="diffExpectedSame"   style="flex:1">✅ The Same</button>
+        <button class="btn-sm"  id="diffExpectedDiff"   style="flex:1">🔄 Not The Same</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ── App Picker Modal ──────────────────────────────────────────────────── -->
 <div id="appPickerModal" class="modal-backdrop" style="display:none">
   <div class="modal-box">
@@ -249,6 +275,20 @@
     </div>
     <div class="modal-list" id="appPickerList">
       <!-- populated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ── Export Result Modal ─────────────────────────────────────────────── -->
+<div id="exportResultModal" class="modal-backdrop" style="display:none">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">✅ Export Complete</span>
+      <button class="modal-close" id="exportResultClose">✕</button>
+    </div>
+    <div style="padding:16px;min-width:0;overflow-x:hidden;">
+      <p style="margin:0 0 10px;color:var(--text-dim);font-size:13px;">Files saved to:</p>
+      <ul id="exportResultPaths" style="margin:0;padding:0 0 0 18px;line-height:2;max-width:100%;box-sizing:border-box;"></ul>
     </div>
   </div>
 </div>

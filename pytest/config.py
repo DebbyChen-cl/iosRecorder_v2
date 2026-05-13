@@ -22,10 +22,12 @@ IOS_CAPABILITIES = {
     "appium:noReset": True,            # keep app state between sessions
     "appium:fullReset": False,
     "appium:newCommandTimeout": 120,   # seconds before Appium kills idle session
-    "appium:wdaLocalPort": 8200,           # avoid port conflict with recorder (8100)
-    "appium:wdaLaunchTimeout": 120000,     # ms to wait for WDA to start
+    # ── WDA is managed externally (started by Xcode or start.sh iproxy) ──
+    # Setting webDriverAgentUrl tells Appium to connect to the already-running WDA
+    # and skip ALL lifecycle management: no install, no launch, and critically
+    # NO wda.quit() on driver.quit() — so WDA stays alive after pytest finishes.
+    "appium:webDriverAgentUrl": "http://localhost:8100",
     "appium:wdaConnectionTimeout": 240000,
-    # ── Keep WDA alive so recorder can resume after pytest ──
-    "appium:useNewWDA": False,             # don't kill the running WDA process
-    "appium:skipServerInstallation": True, # don't reinstall WDA (use already-running instance)
+    "appium:useNewWDA": False,             # don't replace the running WDA process
+    "appium:skipServerInstallation": True, # don't reinstall WDA
 }

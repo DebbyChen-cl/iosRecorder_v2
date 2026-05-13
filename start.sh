@@ -63,4 +63,5 @@ echo "Installing dependencies..."
 python3 -m pip install -r requirements.txt -q
 
 echo "Starting iOS Recorder on http://localhost:8888"
-python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8888 --reload
+# Only watch app/ and static/ for reloads — writing to pytest/tests/ or export/ must NOT restart the server
+python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8888 --reload --reload-dir app --reload-dir static

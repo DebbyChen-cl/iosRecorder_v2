@@ -1,4 +1,5 @@
 [
   { "name": "Safari",       "bundle_id": "com.apple.mobilesafari" },
-  { "name": "Settings",     "bundle_id": "com.apple.Preferences" }
+  { "name": "Settings",     "bundle_id": "com.apple.Preferences" },
+  { "name": "PhotoDirector", "bundle_id": "com.cyberlink.photodirector" }
 ]

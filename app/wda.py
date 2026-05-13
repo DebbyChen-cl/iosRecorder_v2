@@ -36,6 +36,9 @@ class WDAClient:
         self._client: Optional[httpx.AsyncClient] = None
         self._session_id: Optional[str] = None
         self._session_lock = asyncio.Lock()
+        self._source_task: Optional[asyncio.Task] = None
+        self._action_in_progress = False
+        self._last_screen_size: dict = {"width": 390, "height": 844}
 
     async def connect(self, base_url: Optional[str] = None):
         if base_url:
@@ -58,8 +61,39 @@ class WDAClient:
             await self._client.aclose()
             self._client = None
 
+    async def _adopt_session(self) -> bool:
+        """Reconnect to an existing WDA session without ever creating a new one.
+
+        Safe to call while Appium/pytest owns WDA — will never POST /session,
+        so it cannot invalidate an externally-owned session.  Returns True only
+        when an existing session was found and stored.
+        """
+        async with self._session_lock:
+            if self._session_id:
+                return True
+            try:
+                resp = await self._client.get(f"{self.base_url}/sessions", timeout=5.0)
+                if resp.status_code == 200:
+                    sessions = resp.json().get("value", [])
+                    if sessions:
+                        sid = sessions[0].get("id") or sessions[0].get("sessionId")
+                        if sid:
+                            self._session_id = sid
+                            logger.info(f"WDA heartbeat adopted session: {sid}")
+                            return True
+            except Exception as e:
+                logger.debug(f"WDA heartbeat GET /sessions failed: {e!r}")
+            return False  # Never POST /session — avoids killing an Appium session
+
     async def _ensure_session(self) -> bool:
-        """Use an existing WDA session if available, otherwise create one."""
+        """Use an existing WDA session if available, otherwise create one.
+
+        Intentionally tries POST /session even when GET /sessions fails — WDA
+        can return ReadError during startup/load but still accept a new session.
+        This makes the recorder resilient to transient WDA instability.
+        The heartbeat uses _adopt_session() instead (never creates) to avoid
+        interfering with an Appium-owned session during pytest runs.
+        """
         async with self._session_lock:
             if self._session_id:
                 return True
@@ -75,9 +109,9 @@ class WDAClient:
                             logger.info(f"WDA reusing existing session: {sid}")
                             return True
             except Exception as e:
-                logger.debug(f"WDA GET /sessions failed: {e!r}")
+                logger.debug(f"WDA GET /sessions failed: {e!r} — will try POST /session")
             try:
-                # No existing session — create a new one
+                # No existing session (or GET failed) — create a new one
                 resp = await self._client.post(
                     f"{self.base_url}/session",
                     json={"capabilities": {"alwaysMatch": {}}},
@@ -105,32 +139,48 @@ class WDAClient:
         ]))
 
     async def _actions(self, actions: list, timeout: float = 5.0) -> bool:
-        """Run W3C pointer actions, auto-recreate session on failure."""
-        if not self._session_id:
-            await self._ensure_session()
-        if not self._session_id:
-            return False
-        payload = {"actions": actions}
+        """Run W3C pointer actions, auto-recreate session on failure.
+
+        Cancels any in-flight source fetch first so WDA can process
+        the gesture immediately (WDA handles requests serially).
+        """
+        # Cancel in-flight source fetch to free up WDA
+        if self._source_task is not None and not self._source_task.done():
+            self._source_task.cancel()
+            self._source_task = None
+            logger.debug("Cancelled in-flight source fetch for gesture priority")
+        self._action_in_progress = True
         try:
-            resp = await self._client.post(
-                f"{self.base_url}/session/{self._session_id}/actions",
-                json=payload,
-                timeout=timeout,
-            )
-            if resp.status_code == 200:
-                return True
-            if resp.status_code in (404, 500):
-                self._session_id = None
-                if await self._ensure_session():
-                    resp = await self._client.post(
-                        f"{self.base_url}/session/{self._session_id}/actions",
-                        json=payload,
-                        timeout=timeout,
-                    )
-                    return resp.status_code == 200
-        except Exception as e:
-            logger.error(f"Actions failed: {e}")
-        return False
+            if not self._session_id:
+                await self._ensure_session()
+            if not self._session_id:
+                return False
+            payload = {"actions": actions}
+            try:
+                resp = await self._client.post(
+                    f"{self.base_url}/session/{self._session_id}/actions",
+                    json=payload,
+                    timeout=timeout,
+                )
+                if resp.status_code == 200:
+                    return True
+                if resp.status_code in (404, 500):
+                    self._session_id = None
+                    # Use adopt-only on gesture retry — never POST /session here,
+                    # as Appium may own WDA and a POST would kill its session.
+                    # The heartbeat will recreate a session when it is safe to do so.
+                    if await self._adopt_session():
+                        resp = await self._client.post(
+                            f"{self.base_url}/session/{self._session_id}/actions",
+                            json=payload,
+                            timeout=timeout,
+                        )
+                        return resp.status_code == 200
+            except Exception as e:
+                logger.error(f"Actions failed: {e!r}")
+            return False
+        finally:
+            self._action_in_progress = False
 
     def _touch_actions(self, steps: list) -> list:
         return [{
@@ -263,38 +313,53 @@ class WDAClient:
         ], timeout=duration_ms / 1000 + 4)
 
     async def rotate(self, x: float, y: float, rotation_deg: float, spread: int = 80, duration_ms: int = 600) -> bool:
-        """Two-finger rotation around (x, y). rotation_deg > 0 = clockwise."""
+        """Two-finger rotation around (x, y). rotation_deg > 0 = clockwise.
+
+        Fingers move along an arc (not a straight chord) so that the iOS
+        gesture recogniser samples the correct rotation at every point.
+        For large angles (≥ 30°) a single straight-line move under-reports
+        the rotation because the fingers converge near the centre.
+        """
         xi, yi = int(x), int(y)
         r = spread
         start = math.radians(45)
-        end = start + math.radians(rotation_deg)
+        total = math.radians(rotation_deg)
+
+        # Number of arc steps: 1 per 15°, capped so each step ≥ 40 ms
+        # Fewer steps = smaller W3C payload = faster WDA processing
+        steps = max(4, int(abs(rotation_deg) / 15))
+        step_dur = max(40, duration_ms // steps)
+        steps = duration_ms // step_dur          # recompute to fill exactly duration_ms
+        remainder = duration_ms - step_dur * steps
 
         def pt(angle: float):
-            return xi + int(r * math.cos(angle)), yi + int(r * math.sin(angle))
+            return round(xi + r * math.cos(angle)), round(yi + r * math.sin(angle))
 
-        f1s, f1e = pt(start + math.pi), pt(end + math.pi)
-        f2s, f2e = pt(start), pt(end)
+        def arc_actions(finger_offset: float) -> list:
+            """Build W3C action list for one finger along the arc."""
+            a0 = start + finger_offset
+            p0 = pt(a0)
+            acts = [
+                {"type": "pointerMove", "duration": 0,        "x": p0[0], "y": p0[1]},
+                {"type": "pointerDown", "button": 0},
+            ]
+            for i in range(1, steps + 1):
+                a = a0 + total * i / steps
+                p = pt(a)
+                dur = step_dur + (remainder if i == steps else 0)
+                acts.append({"type": "pointerMove", "duration": dur, "x": p[0], "y": p[1]})
+            # Brief pause at final position so iOS reads the end angle before lift-off
+            acts.append({"type": "pause", "duration": 40})
+            acts.append({"type": "pointerUp", "button": 0})
+            return acts
+
         return await self._actions([
-            {
-                "type": "pointer", "id": "finger1",
-                "parameters": {"pointerType": "touch"},
-                "actions": [
-                    {"type": "pointerMove", "duration": 0, "x": f1s[0], "y": f1s[1]},
-                    {"type": "pointerDown", "button": 0},
-                    {"type": "pointerMove", "duration": duration_ms, "x": f1e[0], "y": f1e[1]},
-                    {"type": "pointerUp", "button": 0},
-                ],
-            },
-            {
-                "type": "pointer", "id": "finger2",
-                "parameters": {"pointerType": "touch"},
-                "actions": [
-                    {"type": "pointerMove", "duration": 0, "x": f2s[0], "y": f2s[1]},
-                    {"type": "pointerDown", "button": 0},
-                    {"type": "pointerMove", "duration": duration_ms, "x": f2e[0], "y": f2e[1]},
-                    {"type": "pointerUp", "button": 0},
-                ],
-            },
+            {"type": "pointer", "id": "finger1",
+             "parameters": {"pointerType": "touch"},
+             "actions": arc_actions(math.pi)},
+            {"type": "pointer", "id": "finger2",
+             "parameters": {"pointerType": "touch"},
+             "actions": arc_actions(0)},
         ], timeout=duration_ms / 1000 + 4)
 
     async def swipe(self, x1: float, y1: float, x2: float, y2: float, duration_ms: int = 400) -> bool:
@@ -321,10 +386,35 @@ class WDAClient:
         )
 
     async def get_source(self) -> Optional[ET.Element]:
+        """Fetch page source, coalescing concurrent calls.
+
+        If a get_source request is already in-flight to WDA, subsequent
+        callers piggyback on the same request instead of queuing a new
+        one.  Skips entirely if a gesture action is in progress (WDA is
+        serial — source fetch would queue behind the gesture).
+        """
+        # Don't start source requests while a gesture is executing
+        if self._action_in_progress:
+            return None
+        if self._source_task is not None and not self._source_task.done():
+            try:
+                return await self._source_task
+            except (Exception, asyncio.CancelledError):
+                return None
+        self._source_task = asyncio.create_task(self._get_source_impl())
+        try:
+            return await self._source_task
+        except (Exception, asyncio.CancelledError):
+            return None
+
+    async def _get_source_impl(self) -> Optional[ET.Element]:
         if not self._client:
             return None
         if not self._session_id:
-            await self._ensure_session()
+            # Use adopt-only — never POST /session here.
+            # If Appium is mid-test, posting would kill its session.
+            # The heartbeat or the next gesture call will recreate when safe.
+            await self._adopt_session()
         if not self._session_id:
             return None
         for attempt in range(2):
@@ -353,7 +443,10 @@ class WDAClient:
 
     async def get_screen_size(self) -> dict:
         if not self._client:
-            return {"width": 390, "height": 844}
+            return self._last_screen_size
+        # Skip WDA call while a gesture is executing (WDA is serial)
+        if self._action_in_progress:
+            return self._last_screen_size
         if self._session_id:
             try:
                 resp = await self._client.get(
@@ -362,18 +455,91 @@ class WDAClient:
                 )
                 val = resp.json().get("value", {})
                 if val.get("width"):
-                    return {"width": val["width"], "height": val["height"]}
+                    self._last_screen_size = {"width": val["width"], "height": val["height"]}
+                    return self._last_screen_size
             except Exception:
                 pass
-        return {"width": 390, "height": 844}
+        return self._last_screen_size
 
     async def is_alive(self) -> bool:
         if not self._client:
             return False
+        # Skip WDA call while a gesture is executing (WDA is serial)
+        if self._action_in_progress:
+            return True
         try:
             resp = await self._client.get(f"{self.base_url}/status", timeout=3.0)
             return resp.status_code == 200
         except Exception:
+            return False
+
+    async def ping_session(self) -> bool:
+        """Validate the WDA session and recover it if lost.
+
+        Called every 5 s by the background heartbeat.
+        Rules:
+          - GET /sessions succeeds and returns sessions → adopt (never disrupt)
+          - GET /sessions succeeds and returns EMPTY list → safe to POST (no Appium)
+          - GET /sessions throws / non-200 → do nothing (Appium might be busy)
+        This prevents the heartbeat from ever killing an Appium-owned session.
+        """
+        if not self._client or self._action_in_progress:
+            return bool(self._session_id)
+        # Check WDA process reachability
+        try:
+            alive_resp = await self._client.get(f"{self.base_url}/status", timeout=3.0)
+            if alive_resp.status_code != 200:
+                return False
+        except Exception:
+            return False
+        # Validate the cached session ID
+        if self._session_id:
+            try:
+                resp = await self._client.get(
+                    f"{self.base_url}/session/{self._session_id}",
+                    timeout=3.0,
+                )
+                if resp.status_code == 200:
+                    return True
+                logger.info("WDA session lost — will adopt or recreate")
+                self._session_id = None
+            except Exception:
+                return bool(self._session_id)
+        # No valid session — decide whether to adopt or create
+        async with self._session_lock:
+            if self._session_id:  # re-check after acquiring lock
+                return True
+            try:
+                resp = await self._client.get(f"{self.base_url}/sessions", timeout=5.0)
+            except Exception as e:
+                logger.debug(f"WDA heartbeat GET /sessions failed: {e!r} — skip")
+                return False  # unknown state; don't risk POSTing
+            if resp.status_code != 200:
+                return False
+            sessions = resp.json().get("value", [])
+            if sessions:
+                # Someone (Appium/pytest) owns WDA — adopt without disrupting
+                sid = sessions[0].get("id") or sessions[0].get("sessionId")
+                if sid:
+                    self._session_id = sid
+                    logger.info(f"WDA heartbeat adopted session: {sid}")
+                    return True
+                return False
+            # Definitively empty list → no one owns WDA → safe to create
+            try:
+                r = await self._client.post(
+                    f"{self.base_url}/session",
+                    json={"capabilities": {"alwaysMatch": {}}},
+                    timeout=5.0,
+                )
+                data = r.json()
+                sid = data.get("sessionId") or data.get("value", {}).get("sessionId")
+                if sid:
+                    self._session_id = sid
+                    logger.info(f"WDA heartbeat created session: {sid}")
+                    return True
+            except Exception as e:
+                logger.warning(f"WDA heartbeat create session failed: {e!r}")
             return False
 
     async def press_home(self) -> bool:
@@ -391,21 +557,52 @@ class WDAClient:
             return False
 
     async def launch_app(self, bundle_id: str) -> bool:
-        """Activate (bring to foreground) an app by bundle ID."""
+        """Launch an app by bundle ID. Tries cold-launch first; falls back to activate."""
         if not self._session_id:
             await self._ensure_session()
         if not self._session_id or not self._client:
             return False
+        # Try cold launch first (works even if app is not running)
+        try:
+            resp = await self._client.post(
+                f"{self.base_url}/session/{self._session_id}/wda/apps/launch",
+                json={"bundleId": bundle_id},
+                timeout=15.0,
+            )
+            if resp.status_code in (200, 204):
+                return True
+            logger.warning(f"launch_app cold-launch {resp.status_code}: {resp.text[:300]}, falling back to activate")
+        except Exception as e:
+            logger.debug(f"launch_app cold-launch failed ({e}), falling back to activate")
+        # Fallback: activate (bring to foreground if already running)
         try:
             resp = await self._client.post(
                 f"{self.base_url}/session/{self._session_id}/wda/apps/activate",
                 json={"bundleId": bundle_id},
                 timeout=10.0,
             )
-            return resp.status_code in (200, 204)
-        except Exception as e:
-            logger.error(f"launch_app failed: {e}")
+            if resp.status_code in (200, 204):
+                return True
+            logger.error(f"launch_app activate fallback {resp.status_code}: {resp.text[:300]}")
             return False
+        except Exception as e:
+            logger.error(f"launch_app activate fallback failed: {e}")
+            return False
+
+    async def get_screenshot(self) -> Optional[str]:
+        """Return the current screen as a base64-encoded PNG string, or None."""
+        if not self._client or not self._session_id:
+            return None
+        try:
+            resp = await self._client.get(
+                f"{self.base_url}/session/{self._session_id}/screenshot",
+                timeout=10.0,
+            )
+            if resp.status_code == 200:
+                return resp.json().get("value")
+        except Exception as e:
+            logger.warning(f"get_screenshot failed: {e!r}")
+        return None
 
     async def type_text(self, text: str) -> bool:
         """Type text into the currently focused element, word by word."""

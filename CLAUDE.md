@@ -53,7 +53,9 @@ iosRecorder_v2/
   "coords":    dict,            # x, y  (single point) or x1,y1,x2,y2 (gesture)
   "target":    dict | None,     # { "type": "accessibility id"|"name"|"xpath"|"coordinate",
                                 #   "value": str,
-                                #   "offset_pct": {"x": float, "y": float} }  ← optional
+                                #   "offset_pct": {"x": float, "y": float},   ← optional
+                                #   "selector_quality": "id"|"id_eq_label"|"label_only"|"xpath_only",  ← optional
+                                #   "bounds": {"x":int,"y":int,"w":int,"h":int} }  ← optional (device pts)
   "timestamp": str,
   # action-specific extras:
   "duration":  int,             # ms (long_press, swipe, drag)
@@ -69,14 +71,22 @@ iosRecorder_v2/
 ### Selector priority (app/selector.py)
 1. `accessibility id` — element `name` attribute (skip if starts with `0x`)
 2. `name` — element `label` attribute
-3. `xpath` with `@value` — only for `XCUIElementTypeTextField`, `XCUIElementTypeSecureTextField`, `XCUIElementTypeStaticText`
-4. `xpath` fallback — `//{tag}`
+3. `xpath` fallback — `//{tag}`
 
 ### Code generation output (app/codegen.py)
 - Every step → a `with step("..."):` block wrapping the `actions.*()` call
 - Labels: `[Action] ...` for gestures, `[Verify] ...` for assertions
 - Falls back to a `# comment` when no element matched (never crashes)
-- Test function name derived from case name via `_safe_name()` (alnum + underscore only)
+- Test function name and `@pytest.mark.name` derived from case name + timestamp suffix (`_YYYYMMDD_HHMMSS`) appended at export time
+
+### Export output (POST /api/export)
+- Backend appends timestamp to case name before generating code (e.g. `MyTest_20260508_143022`)
+- Writes `pytest/tests/test_<name>.py` — ready-to-run test file (flat, unchanged)
+- Creates a **timestamped subfolder** `export/<name>/` containing three files:
+  - `test_<name>.py` — pytest code
+  - `<name>.json` — full step list with locators, actions, coordinates
+  - `<name>.html` — selector quality report: shows every step whose selector is `id_indexed`, `id_eq_label`, `label_only`, `xpath_only`, or `coordinate`; each card shows a **pre-gesture screenshot** (captured before the action is sent to the device for every recorded step) with either a bounding-box rect overlay (element found) or a crosshair marker (coordinate-only)
+- UI shows `#exportResultModal` listing all saved paths; no browser download dialog
 
 ### DriverActions (pytest/driver/driver_actions.py)
 - Single class wrapping all iOS gestures
