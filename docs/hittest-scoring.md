@@ -6,8 +6,19 @@
 
 ## 概覽
 
-每次點擊時，`_collect(x, y)` 會收集所有包含該座標的元素，
-再由 `_score()` 為每個元素計算分數，**分數最小的元素勝出**（Python `min()`）。
+每次手勢時，`_collect(x, y)` 會收集所有包含該座標的元素（iOS UI 樹是嵌套的，父元素 rect 一定涵蓋所有子元素，因此同一個座標可能命中數十個元素）。
+
+**不同手勢走不同的評分路徑：**
+
+| 情境 | 函式 | 邏輯目標 |
+|------|------|---------|
+| Tap / Long Press / Drag | `hit_test()` → `_score()` | 找最具體的**葉節點**（Button、Image 等） |
+| Swipe（找滑動目標） | `hit_test_for_swipe()` → `_swipe_score()` | 找有識別符的容器，排除 generic wrapper |
+| Scroll（找滾動容器） | `find_scroll_container()` | 只從 `SCROLLABLE_TAGS` 或 `scrollable="true"` 裡挑**最內層**的 |
+
+每套函式的「容器優先 vs 葉節點優先」方向完全相反，因為手勢語意不同。
+
+所有評分函式都以 `min()` 取勝——**分數越小越優先**。
 
 ---
 
@@ -61,22 +72,29 @@
 
 ## Tap 評分公式（`_score`）
 
+用於 `hit_test()`，目標是找到最具體的**葉節點**。
+
 ```python
 (int(is_container), -int(has_stable_id), -int(is_interactive), area, -int(has_id), int(has_children))
 ```
 
-數值越小越優先（`min()` 取勝）。
+### 各欄位說明與設計原因
 
-### 各欄位說明
-
-| 優先順序 | 欄位 | 數值 | 說明 |
+| 順位 | 欄位 | 數值 | 設計原因 |
 |:---:|---|---|---|
-| 1 | `is_container` | 0 / 1 | **非容器優先**：CollectionView、ScrollView 等結構容器排最後 |
-| 2 | `-has_stable_id` | -1 / 0 | **穩定 ID 葉節點優先**：`quality == "id"` 或 `"id_eq_label"`，**且無子元素**才算；有子元素的容器（如 ViewController 根 View）不享有此加分 |
-| 3 | `-is_interactive` | -1 / 0 | **互動元素次優先**：Button、TextField 等（同 ID 品質下的加分） |
-| 4 | `area` | 浮點數 | **面積越小越具體**：像素面積 (width × height) |
-| 5 | `-has_id` | -1 / 0 | **有任何識別符優於純 xpath** |
-| 6 | `has_children` | 0 / 1 | **葉節點優先於有子元素的容器** |
+| 1 | `is_container` | 0 / 1 | **非容器優先**。`TAP_CONTAINER_TAGS`（ScrollView、CollectionView 等）是版面結構，不是點擊目標。這是最粗粒度的過濾，「根本不可能是目標」的應該最先被排到後面，不需要看後面任何條件。 |
+| 2 | `-has_stable_id` | -1 / 0 | **穩定 ID 葉節點優先**。`quality == "id"` 或 `"id_eq_label"` **且無子元素**才算。有穩定 accessibility id 的葉節點幾乎一定是開發者刻意命名的可操作元素，是最可靠的點擊目標。加上「無子元素」限制，是因為 ViewController 根 View 也常有穩定 ID（如 `"com.app.MyVC"`）但面積極大，若不排除有子元素的情況，這類大容器反而會搶走葉節點的優先權。容器過濾（第 1 位）必須先做，才輪到 ID 品質判斷。 |
+| 3 | `-is_interactive` | -1 / 0 | **互動元素次優先**。Button、TextField、Slider 等語意上就是「使用者能互動的東西」。在找不到穩定 ID 葉節點的情況下，這些比匿名的 Image 或 Other 更接近使用者意圖。穩定 ID 比「元素類型是 Button」更能代表精確意圖，所以排在第 2 位之後。 |
+| 4 | `area` | 浮點數 | **面積越小越具體**。iOS UI 樹是嵌套結構，子元素的 rect 一定在父元素之內，所以面積越小代表層次越深、越精確命中。面積只是幾何事實，沒有語意，所以排在三個語意條件之後，作為「語意相同時」的幾何 tiebreaker。 |
+| 5 | `-has_id` | -1 / 0 | **有識別符優於純 xpath**。到了這一步代表前四個條件都相同（如 cell 與裡面的 image 剛好同大）。有 `name` 或 `label` 至少能生成有意義的選擇器，不會退化成 `//XCUIElementTypeOther`。 |
+| 6 | `has_children` | 0 / 1 | **葉節點優先**。最後手段：以上全部相同時，無子元素的葉節點比中間層節點更「具體」，更接近實際被渲染的 UI 元件。 |
+
+**整體設計邏輯：**
+```
+排掉結構容器 → 找最精確命名的葉節點 → 找語意互動元素 → 找最小幾何元素 → 找有識別符的 → 找葉節點
+ (語意最粗)                                                                         (最後手段)
+```
+每一層都在上一層「無法區分」時才出場，避免讓幾何數字（面積）蓋過語意判斷。
 
 ---
 
@@ -142,11 +160,26 @@
 
 ## Swipe 評分公式（`_swipe_score`）
 
+用於 `hit_test_for_swipe()`。Swipe 的語意與 tap 相反——目標是「被滑動的容器」，不是最深的葉節點，因此走完全不同的評分路徑。
+
 ```python
 (-int(is_interactive), int(is_generic), area)
 ```
 
-Swipe 目標是「被滑動的容器」，邏輯與 tap 不同：
-1. 互動元素優先
-2. Generic 容器（Other、Application 等）降優先
-3. 面積最小者勝
+| 順位 | 欄位 | 設計原因 |
+|:---:|---|---|
+| 1 | `-is_interactive` | 若有互動元素（Button 等）在座標上，優先選它作為滑動起點，比匿名容器更精確 |
+| 2 | `is_generic` | 排除 `GENERIC_CONTAINER_TAGS`（Other、Application、Window）——這類元素是無語意的 wrapper，滑動時幾乎不會是真正的目標 |
+| 3 | `area` | 面積最小者勝，取最內層、最具體的容器 |
+
+---
+
+## Scroll 容器選取（`find_scroll_container`）
+
+用於 scroll 錄製，不走評分公式，而是**直接過濾**：
+
+1. 只保留 `SCROLLABLE_TAGS`（ScrollView、CollectionView、Table、WebView、TextView）
+2. 若找不到，退而找 `scrollable="true"` 屬性的元素（WDA 對非標準 scroll view 的標記）
+3. 從符合條件的元素中取**面積最小**（最內層）的一個
+
+這樣可確保 scroll 動作綁定到最精確的可滾動容器，而非外層的 Window 或 Application。
