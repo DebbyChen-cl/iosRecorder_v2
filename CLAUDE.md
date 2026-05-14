@@ -65,6 +65,10 @@ iosRecorder_v2/
   "bundle_id": str,             # launch_app
   "expected_text": str,         # verify_get_text
   "screenshot_name": str,       # verify_screenshot_*
+  "scroll_container": dict,     # tap/long_press/scroll: innermost scrollable container at the tap
+                                # coordinate (type, value, selector_quality, bounds); used by
+                                # codegen to pass container_by/container_value/container_w/container_h
+                                # to find_element() for auto-scroll fallback during playback
 }
 ```
 
@@ -93,6 +97,7 @@ iosRecorder_v2/
 - `@step(...)` decorator on every public method (ReportPortal integration)
 - `@wait_for_stable_hierarchy` on tap/drag/press methods (optional polling)
 - All multi-touch uses XCUITest `mobile:*` script APIs, not raw W3C Actions
+- `find_element(by, value, ..., container_by, container_value, container_w, container_h)` — when container params are provided and element is absent or < 50 % visible, calls `_find_with_scroll()` automatically. All `*_by_locator`, `*_within_element`, `verify_visible`, and `swipe_on_element` forward these params here, so scroll fallback applies uniformly to every action.
 
 ### Frontend ↔ Backend communication
 - **WebSocket** `/ws/tap` — low-latency tap events during live recording

@@ -58,14 +58,16 @@ def test_<safe_name>(actions: DriverActions):
 - `wait_for_invisible(by, value, timeout=30)` — wait until element disappears
 - `is_element_present(by, value, timeout=3)` — non-throwing boolean check
 
+- `find_element(by, value, timeout=DEFAULT_WAIT, container_by=None, container_value=None, container_w=0, container_h=0)` — wait for element; when container params are provided and element is absent or < 50 % visible, calls `_find_with_scroll()` automatically. All `*_by_locator`, `*_within_element`, `verify_visible`, and `swipe_on_element` forward these params here, so scroll fallback applies uniformly to every action.
+
 ### Tap Variants
 - `tap(element)` — tap a WebElement
-- `tap_by_locator(by, value)` — find + tap
+- `tap_by_locator(by, value, ..., container_by=None, container_value=None, container_w=0, container_h=0)` — find + tap; auto-scrolls when container params given
 - `tap_by_coordinates(x, y)` — tap at absolute screen points
-- `tap_within_element(by, value, pct_x, pct_y)` — tap at % offset within element
-- `double_tap(element)` / `double_tap_within_element(by, value, pct_x, pct_y)`
-- `triple_tap(element)` / `triple_tap_within_element(by, value, pct_x, pct_y)`
-- `long_press(element, duration=1.0)` / `long_press_within_element(by, value, pct_x, pct_y, duration=1.0)`
+- `tap_within_element(by, value, pct_x, pct_y, ..., container_by=None, container_value=None, container_w=0, container_h=0)` — tap at % offset within element; auto-scrolls when container params given
+- `double_tap(element)` / `double_tap_within_element(by, value, pct_x, pct_y, ..., container_by=None, ...)`
+- `triple_tap(element)` / `triple_tap_within_element(by, value, pct_x, pct_y, ..., container_by=None, ...)`
+- `long_press(element, duration=1.0)` / `long_press_within_element(by, value, pct_x, pct_y, duration=1.0, ..., container_by=None, ...)`
 - `two_finger_tap(element)`
 - `multi_finger_tap(element, fingers=3)`
 

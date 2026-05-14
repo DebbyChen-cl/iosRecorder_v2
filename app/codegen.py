@@ -9,7 +9,7 @@ Organized into three sections:
 """
 
 import math
-from typing import List
+from typing import List, Optional
 
 # ── 1. UI Setup ────────────────────────────────────────────────────────────────
 
@@ -64,6 +64,23 @@ def _locator(target: dict) -> tuple[str, str]:
     return _by(target["type"]), _q(target["value"])
 
 
+def _sc_kwargs(sc: Optional[dict]) -> str:
+    """Build container keyword argument string from a scroll_container dict.
+
+    Returns a string like:
+        ", container_by=AppiumBy.ACCESSIBILITY_ID, container_value='Foo', container_w=390, container_h=700"
+    or "" when no container info is available.
+    """
+    if not sc or sc.get("type") in ("coordinate", None) or not sc.get("value"):
+        return ""
+    sc_by  = _by(sc["type"])
+    sc_val = _q(sc["value"])
+    bounds = sc.get("bounds") or {}
+    cw = bounds.get("w", 0)
+    ch = bounds.get("h", 0)
+    return f", container_by={sc_by}, container_value='{sc_val}', container_w={cw}, container_h={ch}"
+
+
 # ── 3. Export ──────────────────────────────────────────────────────────────────
 
 def _action_call(step: dict) -> tuple[str, list[str]]:
@@ -81,13 +98,14 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
     if action == "tap":
         if has_el:
             by, val = _locator(t)
+            sc_kw = _sc_kwargs(step.get("scroll_container"))
             pct = t.get("offset_pct")
             if pct:
                 px, py = pct["x"], pct["y"]
                 return (f"[Action] Tap {val} at ({px}%, {py}%)",
-                        [f"actions.tap_within_element({by}, '{val}', {px}, {py})"])
+                        [f"actions.tap_within_element({by}, '{val}', {px}, {py}{sc_kw})"])
             return (f"[Action] Tap {val}",
-                    [f"actions.tap_by_locator({by}, '{val}')"])
+                    [f"actions.tap_by_locator({by}, '{val}'{sc_kw})"])
         x, y = int(c.get("x", 0)), int(c.get("y", 0))
         return (f"[Action] Tap at ({x}, {y})",
                 [f"actions.tap_by_coordinates({x}, {y})"])
@@ -96,13 +114,14 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
     if action == "double_tap":
         if has_el:
             by, val = _locator(t)
+            sc_kw = _sc_kwargs(step.get("scroll_container"))
             pct = t.get("offset_pct")
             if pct:
                 px, py = pct["x"], pct["y"]
                 return (f"[Action] Double tap {val} at ({px}%, {py}%)",
-                        [f"actions.double_tap_within_element({by}, '{val}', {px}, {py})"])
+                        [f"actions.double_tap_within_element({by}, '{val}', {px}, {py}{sc_kw})"])
             return (f"[Action] Double tap {val}",
-                    [f"actions.double_tap(actions.find_element({by}, '{val}')"])
+                    [f"actions.double_tap(actions.find_element({by}, '{val}'{sc_kw}))"])
         return (f"[Action] Double tap at ({c.get('x')},{c.get('y')})",
                 [f"# double_tap at ({c.get('x')},{c.get('y')}) — no element matched"])
 
@@ -110,13 +129,14 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
     if action == "triple_tap":
         if has_el:
             by, val = _locator(t)
+            sc_kw = _sc_kwargs(step.get("scroll_container"))
             pct = t.get("offset_pct")
             if pct:
                 px, py = pct["x"], pct["y"]
                 return (f"[Action] Triple tap {val} at ({px}%, {py}%)",
-                        [f"actions.triple_tap_within_element({by}, '{val}', {px}, {py})"])
+                        [f"actions.triple_tap_within_element({by}, '{val}', {px}, {py}{sc_kw})"])
             return (f"[Action] Triple tap {val}",
-                    [f"actions.triple_tap(actions.find_element({by}, '{val}'))"])
+                    [f"actions.triple_tap(actions.find_element({by}, '{val}'{sc_kw}))"])
         return (f"[Action] Triple tap at ({c.get('x')},{c.get('y')})",
                 [f"# triple_tap at ({c.get('x')},{c.get('y')}) — no element matched"])
 
@@ -125,13 +145,14 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
         dur = round(step.get("duration", 1000) / 1000, 2)
         if has_el:
             by, val = _locator(t)
+            sc_kw = _sc_kwargs(step.get("scroll_container"))
             pct = t.get("offset_pct")
             if pct:
                 px, py = pct["x"], pct["y"]
                 return (f"[Action] Long press {val} at ({px}%, {py}%)",
-                        [f"actions.long_press_within_element({by}, '{val}', {px}, {py}, duration={dur})"])
+                        [f"actions.long_press_within_element({by}, '{val}', {px}, {py}, duration={dur}{sc_kw})"])
             return (f"[Action] Long press {val}",
-                    [f"actions.long_press(actions.find_element({by}, '{val}'), duration={dur})"])
+                    [f"actions.long_press(actions.find_element({by}, '{val}'{sc_kw}), duration={dur})"])
         return (f"[Action] Long press at ({c.get('x')},{c.get('y')})",
                 [f"# long_press at ({c.get('x')},{c.get('y')}) — no element matched"])
 
@@ -281,8 +302,9 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
     if action == "verify_visible":
         if has_el:
             by, val = _locator(t)
+            sc_kw = _sc_kwargs(step.get("scroll_container"))
             return (f"[Verify] {val} is visible",
-                    [f"actions.verify_visible({by}, '{_q(val)}')"])
+                    [f"actions.verify_visible({by}, '{_q(val)}'{sc_kw})"])
         return (f"[Verify] element visible at ({c.get('x')},{c.get('y')})",
                 [f"# verify_visible at ({c.get('x')},{c.get('y')}) — no element matched"])
 

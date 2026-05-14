@@ -85,7 +85,9 @@ def test_<safe_name>(actions: DriverActions):
   "direction":        str,    # swipe: cardinal direction stored at record time by _record_move
   "velocity":         float,  # swipe: px/s stored at record time (max(50, min(5000, dist*1000/dur)))
   "fingers":          int,    # multi_finger_tap
-  "scroll_container": dict,   # scroll: element to scroll within (captured from starting coordinate)
+  "scroll_container": dict,   # tap/long_press/scroll: innermost scrollable container at the tap coordinate
+                              #   (recorded automatically; used by tap_with_scroll for scroll-fallback)
+                              # scroll: also used to identify the container for scroll_until()
   "scroll_offsets":   dict,   # scroll: gesture fractions relative to scroll_container rect
     # {
     #   "start_x_pct": float,  # 0.0–1.0, start x as fraction of container width

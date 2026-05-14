@@ -136,8 +136,31 @@ class DriverActions:
         by: str,
         value: str,
         timeout: int = DEFAULT_WAIT,
+        container_by: Optional[str] = None,
+        container_value: Optional[str] = None,
+        container_w: int = 0,
+        container_h: int = 0,
     ) -> WebElement:
-        """Wait until an element is *present* in the DOM and return it."""
+        """Wait until an element is present; auto-scroll within container when not immediately visible.
+
+        When container_by / container_value are provided and the element is absent or
+        less than 50 % on-screen after a quick wait, _find_with_scroll() is called to
+        probe the container axis, rewind to start, and scroll forward until the element
+        is fully in view.  All other methods that take (by, value) forward these params
+        here, so scroll fallback applies uniformly to every action.
+        """
+        if container_by and container_value:
+            try:
+                el = WebDriverWait(self.driver, min(5, timeout)).until(
+                    EC.presence_of_element_located((by, value))
+                )
+                if self._visible_fraction(el) >= 0.5:
+                    return el
+            except TimeoutException:
+                pass
+            return self._find_with_scroll(
+                by, value, container_by, container_value, container_w, container_h
+            )
         return WebDriverWait(self.driver, timeout).until(
             EC.presence_of_element_located((by, value)),
             message=f"Element not found: ({by}, {value!r})",
@@ -163,11 +186,14 @@ class DriverActions:
         by: str,
         value: str,
         timeout: int = DEFAULT_WAIT,
+        container_by: Optional[str] = None,
+        container_value: Optional[str] = None,
+        container_w: int = 0,
+        container_h: int = 0,
     ) -> WebElement:
-        """Wait until an element is present (XCUITest compatible)."""
-        return WebDriverWait(self.driver, timeout).until(
-            EC.presence_of_element_located((by, value)),
-            message=f"Element not found: ({by}, {value!r})",
+        """Wait until an element is present (XCUITest compatible). Forwards to find_element."""
+        return self.find_element(
+            by, value, timeout, container_by, container_value, container_w, container_h
         )
 
     def wait_for_invisible(
@@ -199,9 +225,13 @@ class DriverActions:
         element.click()
 
     @step("Tap by locator")
-    def tap_by_locator(self, by: str, value: str, timeout: int = DEFAULT_WAIT) -> None:
+    def tap_by_locator(
+        self, by: str, value: str, timeout: int = DEFAULT_WAIT,
+        container_by: Optional[str] = None, container_value: Optional[str] = None,
+        container_w: int = 0, container_h: int = 0,
+    ) -> None:
         """Find an element then tap it."""
-        self.tap(self.wait_for_visible(by, value, timeout))
+        self.tap(self.wait_for_visible(by, value, timeout, container_by, container_value, container_w, container_h))
 
     @step("Tap at coordinates")
     def tap_by_coordinates(self, x: int, y: int) -> None:
@@ -238,27 +268,167 @@ class DriverActions:
         )
 
     @step("Tap within element")
-    def tap_within_element(self, by: str, value: str, pct_x: float, pct_y: float, timeout: int = DEFAULT_WAIT) -> None:
+    def tap_within_element(
+        self, by: str, value: str, pct_x: float, pct_y: float, timeout: int = DEFAULT_WAIT,
+        container_by: Optional[str] = None, container_value: Optional[str] = None,
+        container_w: int = 0, container_h: int = 0,
+    ) -> None:
         """Find element and tap at (pct_x%, pct_y%) within its bounds."""
-        el = self.wait_for_visible(by, value, timeout)
+        el = self.wait_for_visible(by, value, timeout, container_by, container_value, container_w, container_h)
         tx, ty = self._coord_at_pct(el, pct_x, pct_y)
         self.driver.execute_script("mobile: tap", {"x": tx, "y": ty})
 
+    # ── private scroll helpers (not wrapped by stability decorator) ─────────
+
+    def _scroll_container_once(
+        self,
+        container_by: str,
+        container_value: str,
+        direction: str,
+        velocity: int = 300,
+    ) -> None:
+        """One drag gesture inside the container.
+
+        Direction convention (same as scroll_until / dragFromToWithVelocity):
+          "up"    = finger moves UP    → reveals content at bottom / end of list
+          "down"  = finger moves DOWN  → reveals content at top    / start of list
+          "left"  = finger moves LEFT  → reveals content at right  / end of horiz. list
+          "right" = finger moves RIGHT → reveals content at left   / start of horiz. list
+        """
+        container = self.find_element(container_by, container_value)
+        rect = container.rect
+        rx, ry, rw, rh = rect["x"], rect["y"], rect["width"], rect["height"]
+        cx, cy = rx + rw / 2, ry + rh / 2
+        h_off = rw * 0.35
+        v_off = rh * 0.35
+        coords = {
+            "up":    (cx, cy + v_off, cx, cy - v_off),
+            "down":  (cx, cy - v_off, cx, cy + v_off),
+            "left":  (cx + h_off, cy, cx - h_off, cy),
+            "right": (cx - h_off, cy, cx + h_off, cy),
+        }
+        if direction not in coords:
+            raise ValueError(f"Unknown scroll direction: {direction!r}")
+        sx, sy, ex, ey = coords[direction]
+        self.driver.execute_script(
+            "mobile: dragFromToWithVelocity",
+            {
+                "fromX": sx, "fromY": sy,
+                "toX":   ex, "toY":   ey,
+                "velocity": velocity,
+                "pressDuration": 0.05,
+                "holdDuration":  0.05,
+            },
+        )
+        logger.debug("_scroll_container_once: direction=%s", direction)
+
+    def _find_with_scroll(
+        self,
+        by: str,
+        value: str,
+        container_by: str,
+        container_value: str,
+        container_w: int = 0,
+        container_h: int = 0,
+        max_scrolls: int = 20,
+    ) -> WebElement:
+        """Probe container scroll axis, rewind to start, then scroll forward until
+        the element is ≥ 50 % visible.  Raises NoSuchElementException if not found.
+
+        Direction convention:
+          container_w > container_h  → try horizontal first, then vertical
+          container_w <= container_h → try vertical first, then horizontal
+          rewind = "down" / "right"  (scroll toward list start)
+          forward = "up" / "left"    (scroll toward list end)
+        """
+        _AXIS_DIRS = {
+            "vertical":   ("down", "up"),
+            "horizontal": ("right", "left"),
+        }
+        if (container_w or 0) > (container_h or 0):
+            probe_order = [
+                ("left",  "horizontal"),
+                ("right", "horizontal"),
+                ("up",    "vertical"),
+                ("down",  "vertical"),
+            ]
+        else:
+            probe_order = [
+                ("up",    "vertical"),
+                ("down",  "vertical"),
+                ("left",  "horizontal"),
+                ("right", "horizontal"),
+            ]
+
+        rewind_dir: Optional[str] = None
+        forward_dir: Optional[str] = None
+        for probe, axis in probe_order:
+            before = self.driver.page_source
+            self._scroll_container_once(container_by, container_value, probe)
+            after = self.driver.page_source
+            if after != before:
+                rewind_dir, forward_dir = _AXIS_DIRS[axis]
+                logger.info("_find_with_scroll: scrollable on %s axis (probe=%s)", axis, probe)
+                break
+
+        if forward_dir is None:
+            raise NoSuchElementException(
+                f"Element ({by}, {value!r}) not found and container "
+                f"({container_by}, {container_value!r}) does not scroll."
+            )
+
+        # Rewind to start
+        prev = self.driver.page_source
+        for _ in range(max_scrolls):
+            self._scroll_container_once(container_by, container_value, rewind_dir)
+            curr = self.driver.page_source
+            if curr == prev:
+                break
+            prev = curr
+        logger.info("_find_with_scroll: rewound to start (direction=%s)", rewind_dir)
+
+        # Scroll forward until element ≥ 50 % visible
+        for attempt in range(max_scrolls):
+            if self.is_element_present(by, value, timeout=2):
+                el = WebDriverWait(self.driver, 2).until(
+                    EC.presence_of_element_located((by, value))
+                )
+                if self._visible_fraction(el) >= 0.5:
+                    logger.info(
+                        "_find_with_scroll: found (%s, %r) after %d scrolls",
+                        by, value, attempt,
+                    )
+                    return el
+            self._scroll_container_once(container_by, container_value, forward_dir)
+
+        raise NoSuchElementException(
+            f"Element ({by}, {value!r}) not found after {max_scrolls} scrolls "
+            f"in container ({container_by}, {container_value!r})."
+        )
+
     @step("Double tap within element")
-    def double_tap_within_element(self, by: str, value: str, pct_x: float, pct_y: float, timeout: int = DEFAULT_WAIT) -> None:
+    def double_tap_within_element(
+        self, by: str, value: str, pct_x: float, pct_y: float, timeout: int = DEFAULT_WAIT,
+        container_by: Optional[str] = None, container_value: Optional[str] = None,
+        container_w: int = 0, container_h: int = 0,
+    ) -> None:
         """Find element and double-tap at (pct_x%, pct_y%) within its bounds."""
-        el = self.wait_for_visible(by, value, timeout)
+        el = self.wait_for_visible(by, value, timeout, container_by, container_value, container_w, container_h)
         tx, ty = self._coord_at_pct(el, pct_x, pct_y)
         self.driver.execute_script("mobile: doubleTap", {"x": tx, "y": ty})
 
     @step("Triple tap within element")
-    def triple_tap_within_element(self, by: str, value: str, pct_x: float, pct_y: float, timeout: int = DEFAULT_WAIT) -> None:
+    def triple_tap_within_element(
+        self, by: str, value: str, pct_x: float, pct_y: float, timeout: int = DEFAULT_WAIT,
+        container_by: Optional[str] = None, container_value: Optional[str] = None,
+        container_w: int = 0, container_h: int = 0,
+    ) -> None:
         """Find element and triple-tap at (pct_x%, pct_y%) within its bounds."""
         from selenium.webdriver.common.action_chains import ActionChains
         from selenium.webdriver.common.actions.action_builder import ActionBuilder
         from selenium.webdriver.common.actions import interaction
         from selenium.webdriver.common.actions.pointer_input import PointerInput
-        el = self.wait_for_visible(by, value, timeout)
+        el = self.wait_for_visible(by, value, timeout, container_by, container_value, container_w, container_h)
         tx, ty = self._coord_at_pct(el, pct_x, pct_y)
         ac = ActionChains(self.driver)
         ac.w3c_actions = ActionBuilder(self.driver, mouse=PointerInput(interaction.POINTER_TOUCH, "touch"))
@@ -273,9 +443,14 @@ class DriverActions:
         ac.perform()
 
     @step("Long press within element")
-    def long_press_within_element(self, by: str, value: str, pct_x: float, pct_y: float, duration: float = 1.0, timeout: int = DEFAULT_WAIT) -> None:
+    def long_press_within_element(
+        self, by: str, value: str, pct_x: float, pct_y: float, duration: float = 1.0,
+        timeout: int = DEFAULT_WAIT,
+        container_by: Optional[str] = None, container_value: Optional[str] = None,
+        container_w: int = 0, container_h: int = 0,
+    ) -> None:
         """Find element and long-press at (pct_x%, pct_y%) within its bounds."""
-        el = self.wait_for_visible(by, value, timeout)
+        el = self.wait_for_visible(by, value, timeout, container_by, container_value, container_w, container_h)
         tx, ty = self._coord_at_pct(el, pct_x, pct_y)
         self.driver.execute_script("mobile: touchAndHold", {"x": tx, "y": ty, "duration": duration})
 
@@ -349,6 +524,10 @@ class DriverActions:
         from_pct_x: float = 50.0,
         from_pct_y: float = 50.0,
         distance_pts: Optional[float] = None,
+        container_by: Optional[str] = None,
+        container_value: Optional[str] = None,
+        container_w: int = 0,
+        container_h: int = 0,
     ) -> None:
         """
         Swipe in *direction* starting from a percentage offset within an element.
@@ -360,7 +539,7 @@ class DriverActions:
         *distance_pts* is the exact swipe distance in logical points from the
         original recording. When omitted, falls back to 40 % of element dimension.
         """
-        element = self.find_element(by, value)
+        element = self.find_element(by, value, container_by=container_by, container_value=container_value, container_w=container_w, container_h=container_h)
         rect = element.rect  # {x, y, width, height}
 
         start_x = rect["x"] + rect["width"]  * from_pct_x / 100
@@ -739,6 +918,10 @@ class DriverActions:
         value: str,
         timeout: int = 5,
         msg: str = "",
+        container_by: Optional[str] = None,
+        container_value: Optional[str] = None,
+        container_w: int = 0,
+        container_h: int = 0,
     ) -> WebElement:
         """
         Assert that the element is visible on screen.
@@ -746,8 +929,8 @@ class DriverActions:
         Raises AssertionError if not visible within *timeout* seconds.
         """
         try:
-            element = self.wait_for_visible(by, value, timeout)
-        except TimeoutException:
+            element = self.wait_for_visible(by, value, timeout, container_by, container_value, container_w, container_h)
+        except (TimeoutException, NoSuchElementException):
             label = msg or f"({by}, {value!r})"
             raise AssertionError(f"verify_visible FAILED – element not visible: {label}")
         return element

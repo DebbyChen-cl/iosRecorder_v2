@@ -536,6 +536,18 @@ async def _record_point(action: str, x: float, y: float, snapshot=None, pre_scre
     if root is not None:
         el = hit_test(x, y, root)
         step["target"] = _build_target(x, y, el) if el is not None else {"type": "coordinate", "x": x, "y": y}
+        container_el = find_scroll_container(x, y, root)
+        if container_el is not None:
+            sc_type, sc_val = build_scroll_container_selector(container_el, root)
+            r = _el_rect(container_el)
+            sc_entry: dict = {
+                "type": sc_type,
+                "value": sc_val,
+                "selector_quality": get_selector_quality(container_el),
+            }
+            if r:
+                sc_entry["bounds"] = {"x": int(r[0]), "y": int(r[1]), "w": int(r[2]), "h": int(r[3])}
+            step["scroll_container"] = sc_entry
     else:
         step["target"] = {"type": "coordinate", "x": x, "y": y}
     if pre_screenshot:
@@ -553,6 +565,18 @@ async def _record_long_press(x: float, y: float, duration: int, snapshot=None, p
     if root is not None:
         el = hit_test(x, y, root)
         step["target"] = _build_target(x, y, el) if el is not None else {"type": "coordinate", "x": x, "y": y}
+        container_el = find_scroll_container(x, y, root)
+        if container_el is not None:
+            sc_type, sc_val = build_scroll_container_selector(container_el, root)
+            r = _el_rect(container_el)
+            sc_entry: dict = {
+                "type": sc_type,
+                "value": sc_val,
+                "selector_quality": get_selector_quality(container_el),
+            }
+            if r:
+                sc_entry["bounds"] = {"x": int(r[0]), "y": int(r[1]), "w": int(r[2]), "h": int(r[3])}
+            step["scroll_container"] = sc_entry
     else:
         step["target"] = {"type": "coordinate", "x": x, "y": y}
     if pre_screenshot:
