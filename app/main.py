@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import json
 import logging
 import time
@@ -52,6 +53,7 @@ _cache: dict = {"root": None, "ts": 0.0}
 CACHE_TTL = 0.5
 _steps: List[dict] = []
 _last_tap_target: Optional[dict] = None
+_latest_mjpeg_frame_b64: Optional[str] = None
 _WARN_QUALITIES = frozenset({"id_indexed", "id_eq_label", "label_only", "xpath_only"})
 
 
@@ -59,6 +61,7 @@ _WARN_QUALITIES = frozenset({"id_indexed", "id_eq_label", "label_only", "xpath_o
 async def lifespan(app: FastAPI):
     asyncio.create_task(wda.connect())
     asyncio.create_task(_wda_heartbeat())
+    asyncio.create_task(_mjpeg_frame_reader())
     yield
     await wda.close()
 
@@ -76,6 +79,77 @@ async def _wda_heartbeat():
             await wda.ping_session()
         except Exception as exc:
             logger.debug("WDA heartbeat error: %r", exc)
+
+
+async def _mjpeg_frame_reader():
+    """Background task: maintain a private MJPEG connection and cache the latest frame.
+
+    Decoupled from the browser-facing stream proxy so the cache is always
+    fresh regardless of whether the UI is consuming /api/stream.  Uses both
+    Content-Length (fast path) and boundary scanning (fallback) so it works
+    with all WDA MJPEG variants.
+    """
+    global _latest_mjpeg_frame_b64
+    BOUNDARY = b"--BoundaryString"
+
+    while True:
+        # Wait until wda.connect() has set the MJPEG URL
+        while not wda.mjpeg_url:
+            await asyncio.sleep(0.5)
+        url = wda.mjpeg_url
+        try:
+            async with httpx.AsyncClient() as c:
+                async with c.stream("GET", url, timeout=None) as r:
+                    buf = b""
+                    async for chunk in r.aiter_bytes(8192):
+                        buf += chunk
+                        # Safety cap: trim to next boundary if buffer balloons
+                        if len(buf) > 2 * 1024 * 1024:
+                            bi = buf.find(BOUNDARY, 1)
+                            buf = buf[bi:] if bi != -1 else b""
+                            continue
+                        # Drain all complete frames from the buffer
+                        while True:
+                            b_start = buf.find(BOUNDARY)
+                            if b_start == -1:
+                                break
+                            h_end = buf.find(b"\r\n\r\n", b_start)
+                            if h_end == -1:
+                                buf = buf[b_start:]
+                                break
+                            frame_data_start = h_end + 4
+                            # Try Content-Length for exact frame boundary
+                            cl = None
+                            for line in buf[b_start:h_end].split(b"\r\n"):
+                                if line.lower().startswith(b"content-length:"):
+                                    try:
+                                        cl = int(line.split(b":", 1)[1].strip())
+                                    except ValueError:
+                                        pass
+                                    break
+                            if cl is not None:
+                                if len(buf) < frame_data_start + cl:
+                                    buf = buf[b_start:]
+                                    break
+                                _latest_mjpeg_frame_b64 = base64.b64encode(
+                                    buf[frame_data_start:frame_data_start + cl]
+                                ).decode("ascii")
+                                buf = buf[frame_data_start + cl:]
+                            else:
+                                # No Content-Length: use next boundary as end marker
+                                next_b = buf.find(BOUNDARY, b_start + len(BOUNDARY))
+                                if next_b == -1:
+                                    buf = buf[b_start:]
+                                    break
+                                frame_bytes = buf[frame_data_start:next_b].rstrip(b"\r\n")
+                                if frame_bytes:
+                                    _latest_mjpeg_frame_b64 = base64.b64encode(frame_bytes).decode("ascii")
+                                buf = buf[next_b:]
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            logger.debug(f"MJPEG frame reader disconnected: {e!r}")
+        await asyncio.sleep(1.0)
 
 
 app = FastAPI(title="iOS Recorder", lifespan=lifespan)
@@ -506,20 +580,21 @@ def _build_target(x: float, y: float, el) -> dict:
 
 
 async def _take_pre_gesture_screenshot() -> Optional[str]:
-    """Capture the current screen state BEFORE the gesture fires.
+    """Return a pre-gesture screenshot as base64.
 
-    Cancels any in-flight source-tree fetch and temporarily blocks new
-    ones so WDA processes the screenshot request immediately (WDA
-    handles HTTP requests serially — a queued source fetch would delay
-    the screenshot by 1-5 s, during which the UI may settle into a
-    different state).
+    Fast path: use the latest frame already cached by the MJPEG proxy
+    (zero extra WDA calls).  Falls back to a direct WDA screenshot when
+    the MJPEG stream hasn't delivered a frame yet (e.g. on first action
+    after startup).
     """
-    # Cancel any concurrent get_source() to free up WDA
+    if _latest_mjpeg_frame_b64:
+        logger.debug("Pre-gesture screenshot: using cached MJPEG frame")
+        return _latest_mjpeg_frame_b64
+    # Fallback: ask WDA directly (cancels in-flight source fetch first)
     if wda._source_task is not None and not wda._source_task.done():
         wda._source_task.cancel()
         wda._source_task = None
         logger.debug("Cancelled in-flight source fetch for screenshot priority")
-    # Block new source requests while capturing
     prev_flag = wda._action_in_progress
     wda._action_in_progress = True
     try:
@@ -1291,12 +1366,13 @@ def _generate_html_report(steps: list, case_name: str) -> str:
             ss_size = s.get("pre_screenshot_size", {})
             sw = ss_size.get("width", 390)
             sh = ss_size.get("height", 844)
+            img_fmt = "jpeg" if (pre_ss or "").startswith("/9j/") else "png"
 
             # Screenshot with bounding box / crosshair overlay
             if pre_ss and bounds:
                 bx, by, bw, bh = bounds["x"], bounds["y"], bounds["w"], bounds["h"]
                 img_html = f"""<div class="img-wrap">
-  <img src="data:image/png;base64,{pre_ss}" style="display:block;max-width:100%;height:auto">
+  <img src="data:image/{img_fmt};base64,{pre_ss}" style="display:block;max-width:100%;height:auto">
   <svg style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"
        viewBox="0 0 {sw} {sh}" preserveAspectRatio="none">
     <rect x="{bx}" y="{by}" width="{bw}" height="{bh}"
@@ -1307,7 +1383,7 @@ def _generate_html_report(steps: list, case_name: str) -> str:
                 cx_val = int(primary.get("x") or s.get("coords", {}).get("x", sw // 2))
                 cy_val = int(primary.get("y") or s.get("coords", {}).get("y", sh // 2))
                 img_html = f"""<div class="img-wrap">
-  <img src="data:image/png;base64,{pre_ss}" style="display:block;max-width:100%;height:auto">
+  <img src="data:image/{img_fmt};base64,{pre_ss}" style="display:block;max-width:100%;height:auto">
   <svg style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"
        viewBox="0 0 {sw} {sh}" preserveAspectRatio="none">
     <circle cx="{cx_val}" cy="{cy_val}" r="20" fill="{color}33" stroke="{color}" stroke-width="3"/>
@@ -1316,7 +1392,7 @@ def _generate_html_report(steps: list, case_name: str) -> str:
   </svg>
 </div>"""
             elif pre_ss:
-                img_html = f'<div class="img-wrap"><img src="data:image/png;base64,{pre_ss}" style="display:block;max-width:100%;height:auto"></div>'
+                img_html = f'<div class="img-wrap"><img src="data:image/{img_fmt};base64,{pre_ss}" style="display:block;max-width:100%;height:auto"></div>'
             else:
                 img_html = '<p class="no-img">No pre-gesture screenshot available — re-record to capture</p>'
 
