@@ -333,7 +333,7 @@ async def api_drag(req: DragReq):
 async def record_tap(req: Coords):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    asyncio.create_task(_record_point("tap", req.x, req.y, snapshot, pre_screenshot=pre_ss))
+    await _record_point("tap", req.x, req.y, snapshot, pre_screenshot=pre_ss)
     return {"ok": True}
 
 
@@ -341,7 +341,7 @@ async def record_tap(req: Coords):
 async def record_double_tap(req: Coords):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    asyncio.create_task(_record_point("double_tap", req.x, req.y, snapshot, pre_screenshot=pre_ss))
+    await _record_point("double_tap", req.x, req.y, snapshot, pre_screenshot=pre_ss)
     return {"ok": True}
 
 
@@ -349,7 +349,7 @@ async def record_double_tap(req: Coords):
 async def record_triple_tap(req: Coords):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    asyncio.create_task(_record_point("triple_tap", req.x, req.y, snapshot, pre_screenshot=pre_ss))
+    await _record_point("triple_tap", req.x, req.y, snapshot, pre_screenshot=pre_ss)
     return {"ok": True}
 
 
@@ -357,7 +357,7 @@ async def record_triple_tap(req: Coords):
 async def record_long_press(req: LongPressReq):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    asyncio.create_task(_record_long_press(req.x, req.y, req.duration, snapshot, pre_screenshot=pre_ss))
+    await _record_long_press(req.x, req.y, req.duration, snapshot, pre_screenshot=pre_ss)
     return {"ok": True}
 
 
@@ -365,7 +365,7 @@ async def record_long_press(req: LongPressReq):
 async def record_two_finger_tap(req: Coords):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    asyncio.create_task(_record_point("two_finger_tap", req.x, req.y, snapshot, pre_screenshot=pre_ss))
+    await _record_point("two_finger_tap", req.x, req.y, snapshot, pre_screenshot=pre_ss)
     return {"ok": True}
 
 
@@ -373,7 +373,7 @@ async def record_two_finger_tap(req: Coords):
 async def record_multi_finger_tap(req: MultiFingerTapReq):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    asyncio.create_task(_record_multi_finger_tap(req.x, req.y, req.fingers, snapshot, pre_screenshot=pre_ss))
+    await _record_multi_finger_tap(req.x, req.y, req.fingers, snapshot, pre_screenshot=pre_ss)
     return {"ok": True}
 
 
@@ -381,7 +381,7 @@ async def record_multi_finger_tap(req: MultiFingerTapReq):
 async def record_pinch(req: PinchReq):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    asyncio.create_task(_record_pinch(req.x, req.y, req.scale, req.spread, duration=req.duration, snapshot=snapshot, pre_screenshot=pre_ss))
+    await _record_pinch(req.x, req.y, req.scale, req.spread, duration=req.duration, snapshot=snapshot, pre_screenshot=pre_ss)
     return {"ok": True}
 
 
@@ -389,32 +389,32 @@ async def record_pinch(req: PinchReq):
 async def record_rotate(req: RotateReq):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    asyncio.create_task(_record_rotate(req.x, req.y, req.rotation, req.spread, snapshot, pre_screenshot=pre_ss))
+    await _record_rotate(req.x, req.y, req.rotation, req.spread, snapshot, pre_screenshot=pre_ss)
     return {"ok": True}
 
 
 @app.post("/api/record/type_text")
 async def record_type_text(req: TypeTextReq):
     snapshot = _cache.get("root")
-    asyncio.create_task(_record_type_text(req.text, req.target_x, req.target_y, snapshot))
+    await _record_type_text(req.text, req.target_x, req.target_y, snapshot)
     return {"ok": True}
 
 
 @app.post("/api/record/home")
 async def record_home():
-    asyncio.create_task(_record_simple("home"))
+    await _record_simple("home")
     return {"ok": True}
 
 
 @app.post("/api/record/launch_app")
 async def record_launch_app(req: LaunchAppReq):
-    asyncio.create_task(_record_launch_app(req.bundle_id))
+    await _record_launch_app(req.bundle_id)
     return {"ok": True}
 
 
 @app.post("/api/record/terminate_app")
 async def record_terminate_app(req: LaunchAppReq):
-    asyncio.create_task(_record_terminate_app(req.bundle_id))
+    await _record_terminate_app(req.bundle_id)
     return {"ok": True}
 
 
@@ -422,28 +422,28 @@ async def record_terminate_app(req: LaunchAppReq):
 async def record_verify_visible(req: VerifyVisibleReq):
     snapshot = _cache.get("root") if req.not_visible else None
     pre_ss = await _take_pre_gesture_screenshot()
-    asyncio.create_task(_record_verify_visible(req.target_x, req.target_y, req.not_visible, snapshot, pre_screenshot=pre_ss))
+    await _record_verify_visible(req.target_x, req.target_y, req.not_visible, snapshot, pre_screenshot=pre_ss)
     return {"ok": True}
 
 
 @app.post("/api/record/verify_get_text")
 async def record_verify_get_text(req: VerifyGetTextReq):
     pre_ss = await _take_pre_gesture_screenshot()
-    asyncio.create_task(_record_verify_get_text(req.target_x, req.target_y, req.expected_text, pre_screenshot=pre_ss))
+    await _record_verify_get_text(req.target_x, req.target_y, req.expected_text, pre_screenshot=pre_ss)
     return {"ok": True}
 
 
 @app.post("/api/record/verify_screenshot_gt")
 async def record_verify_screenshot_gt(req: VerifyScreenshotGtReq):
     pre_ss = await _take_pre_gesture_screenshot()
-    asyncio.create_task(_record_verify_screenshot_gt(req.target_x, req.target_y, req.screenshot_name, req.bounds, pre_screenshot=pre_ss))
+    await _record_verify_screenshot_gt(req.target_x, req.target_y, req.screenshot_name, req.bounds, pre_screenshot=pre_ss)
     return {"ok": True}
 
 
 @app.post("/api/record/verify_screenshot_diff")
 async def record_verify_screenshot_diff(req: VerifyScreenshotDiffReq):
     pre_ss = await _take_pre_gesture_screenshot()
-    asyncio.create_task(_record_verify_screenshot_diff(req.target_x, req.target_y, req.bounds, req.phase, req.expected_result, pre_screenshot=pre_ss))
+    await _record_verify_screenshot_diff(req.target_x, req.target_y, req.bounds, req.phase, req.expected_result, pre_screenshot=pre_ss)
     return {"ok": True}
 
 
@@ -451,19 +451,19 @@ async def record_verify_screenshot_diff(req: VerifyScreenshotDiffReq):
 async def record_scroll(req: ScrollReq):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    asyncio.create_task(_record_scroll(req.x1, req.y1, req.x2, req.y2, req.duration, snapshot=snapshot, pre_screenshot=pre_ss))
+    await _record_scroll(req.x1, req.y1, req.x2, req.y2, req.duration, snapshot=snapshot, pre_screenshot=pre_ss)
     return {"ok": True}
 
 
 @app.post("/api/record/scroll_target")
 async def record_scroll_target(req: Coords):
-    asyncio.create_task(_record_scroll_target(req.x, req.y))
+    await _record_scroll_target(req.x, req.y)
     return {"ok": True}
 
 
 @app.post("/api/record/swipe_target")
 async def record_swipe_target(req: Coords):
-    asyncio.create_task(_record_swipe_target(req.x, req.y))
+    await _record_swipe_target(req.x, req.y)
     return {"ok": True}
 
 
@@ -471,7 +471,7 @@ async def record_swipe_target(req: Coords):
 async def record_swipe(req: SwipeReq):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    asyncio.create_task(_record_move("swipe", req.x1, req.y1, req.x2, req.y2, req.duration, snapshot=snapshot, pre_screenshot=pre_ss))
+    await _record_move("swipe", req.x1, req.y1, req.x2, req.y2, req.duration, snapshot=snapshot, pre_screenshot=pre_ss)
     return {"ok": True}
 
 
@@ -479,7 +479,7 @@ async def record_swipe(req: SwipeReq):
 async def record_drag(req: DragReq):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    asyncio.create_task(_record_drag(req.x1, req.y1, req.x2, req.y2, req.duration, snapshot=snapshot, pre_screenshot=pre_ss))
+    await _record_drag(req.x1, req.y1, req.x2, req.y2, req.duration, snapshot=snapshot, pre_screenshot=pre_ss)
     return {"ok": True}
 
 
