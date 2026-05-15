@@ -287,6 +287,10 @@ def serialize(root: ET.Element) -> List[dict]:
 
 
 def _ser(el: ET.Element, out: List[dict]):
+    # Post-order: children before parent so the frontend hit-test encounters
+    # leaf (small) elements first and parents last.
+    for child in el:
+        _ser(child, out)
     r = _rect(el)
     if r and r[2] > 0 and r[3] > 0:
         a = el.attrib
@@ -299,5 +303,3 @@ def _ser(el: ET.Element, out: List[dict]):
                 "rect": {"x": r[0], "y": r[1], "w": r[2], "h": r[3]},
             }
         )
-    for child in el:
-        _ser(child, out)

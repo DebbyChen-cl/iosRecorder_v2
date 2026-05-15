@@ -2,7 +2,9 @@ import asyncio
 import base64
 import json
 import logging
+import os
 import time
+import xml.etree.ElementTree as ET
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import List, Optional
@@ -50,11 +52,13 @@ def _load_apps() -> List[dict]:
 
 wda = WDAClient(_load_wda_url())
 _cache: dict = {"root": None, "ts": 0.0}
-CACHE_TTL = 0.5
 _steps: List[dict] = []
 _last_tap_target: Optional[dict] = None
 _latest_mjpeg_frame_b64: Optional[str] = None
 _WARN_QUALITIES = frozenset({"id_indexed", "id_eq_label", "label_only", "xpath_only"})
+
+_UNIT_TEST_MODE = os.environ.get("RECORDER_UNIT_TEST") == "1"
+_unit_test_entries: List[dict] = []
 
 
 @asynccontextmanager
@@ -62,8 +66,42 @@ async def lifespan(app: FastAPI):
     asyncio.create_task(wda.connect())
     asyncio.create_task(_wda_heartbeat())
     asyncio.create_task(_mjpeg_frame_reader())
+    asyncio.create_task(_hierarchy_loop())
     yield
     await wda.close()
+
+
+async def _hierarchy_loop():
+    """Background: keep hierarchy cache always fresh.
+
+    - On gesture: cancel stale source fetch, drop cache, re-fetch immediately after.
+    - On idle: re-fetch as soon as each fetch completes (no gaps).
+    """
+    while True:
+        try:
+            if wda._action_in_progress:
+                if wda._source_task is not None and not wda._source_task.done():
+                    wda._source_task.cancel()
+                    wda._source_task = None
+                _cache["root"] = None
+                _cache["ts"] = 0.0
+                while wda._action_in_progress:
+                    await asyncio.sleep(0.02)
+                # No settle sleep — wda.get_source() takes 1–2 s, far longer than
+                # any iOS page-transition animation (~0.3 s), so the hierarchy is
+                # always stable by the time WDA returns.
+
+            root = await wda.get_source()
+            if root is not None:
+                _cache["root"] = root
+                _cache["ts"] = time.time()
+            elif not wda._action_in_progress:
+                await asyncio.sleep(0.5)  # WDA error — brief pause before retry
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            logger.debug(f"Hierarchy loop: {e!r}")
+            await asyncio.sleep(0.5)
 
 
 async def _wda_heartbeat():
@@ -373,20 +411,26 @@ async def api_apps():
 
 @app.get("/api/element_info")
 async def api_element_info(x: float, y: float):
-    """Return selector + text + bounds of the topmost element at (x, y)."""
-    root = await _cached_tree(force=True)
+    """Return selector + text + bounds of the topmost element at (x, y).
+
+    Non-blocking: reads _cache directly so the response is instant.
+    Returns cache_ready=False when the hierarchy hasn't loaded yet (e.g.
+    right after a page navigation) so the frontend can show a loading
+    crosshair and retry instead of waiting up to 2 s for WDA.
+    """
+    root = _cache.get("root")
     if root is None:
-        return {"found": False}
+        return {"found": False, "cache_ready": False}
     from .hittest import _rect
     el = hit_test(x, y, root)
     if el is None:
-        return {"found": False}
+        return {"found": False, "cache_ready": True}
     sel_type, sel_val = build_selector(el)
     a = el.attrib
     text = a.get("value", "") or a.get("label", "") or a.get("name", "")
     r = _rect(el)
     bounds = {"x": r[0], "y": r[1], "w": r[2], "h": r[3]} if r else None
-    return {"found": True, "type": sel_type, "value": sel_val, "text": text, "bounds": bounds}
+    return {"found": True, "cache_ready": True, "type": sel_type, "value": sel_val, "text": text, "bounds": bounds}
 
 
 @app.post("/api/swipe")
@@ -604,6 +648,16 @@ async def _take_pre_gesture_screenshot() -> Optional[str]:
         wda._action_in_progress = prev_flag
 
 
+def _unit_test_capture(input_params: dict, step: dict, root=None):
+    if not _UNIT_TEST_MODE:
+        return
+    _unit_test_entries.append({
+        "input": input_params,
+        "output": {k: v for k, v in step.items() if k not in _STRIP_STEP_KEYS},
+        "hierarchy_xml": ET.tostring(root, encoding="unicode") if root is not None else None,
+    })
+
+
 async def _record_point(action: str, x: float, y: float, snapshot=None, pre_screenshot: Optional[str] = None):
     global _last_tap_target
     root = snapshot if snapshot is not None else (_cache.get("root") or await _cached_tree())
@@ -631,6 +685,7 @@ async def _record_point(action: str, x: float, y: float, snapshot=None, pre_scre
     if action == "tap":
         _last_tap_target = step["target"]
     _steps.append(step)
+    _unit_test_capture({"action": action, "x": x, "y": y}, step, root)
     logger.info(f"Recorded {action}: {step.get('target')}")
 
 
@@ -658,6 +713,7 @@ async def _record_long_press(x: float, y: float, duration: int, snapshot=None, p
         step["pre_screenshot"] = pre_screenshot
         step["pre_screenshot_size"] = dict(wda._last_screen_size)
     _steps.append(step)
+    _unit_test_capture({"action": "long_press", "x": x, "y": y, "duration": duration}, step, root)
     logger.info(f"Recorded long_press: {step.get('target')}")
 
 
@@ -673,6 +729,7 @@ async def _record_multi_finger_tap(x: float, y: float, fingers: int, snapshot=No
         step["pre_screenshot"] = pre_screenshot
         step["pre_screenshot_size"] = dict(wda._last_screen_size)
     _steps.append(step)
+    _unit_test_capture({"action": "multi_finger_tap", "x": x, "y": y, "fingers": fingers}, step, root)
     logger.info(f"Recorded multi_finger_tap({fingers}): {step.get('target')}")
 
 
@@ -696,6 +753,7 @@ async def _record_pinch(x: float, y: float, scale: float, spread: int, duration:
         step["pre_screenshot"] = pre_screenshot
         step["pre_screenshot_size"] = dict(wda._last_screen_size)
     _steps.append(step)
+    _unit_test_capture({"action": "pinch", "x": x, "y": y, "scale": scale, "duration": duration}, step, root)
     logger.info(f"Recorded pinch (scale={scale:.2f}): {step.get('target')}")
 
 
@@ -719,6 +777,7 @@ async def _record_rotate(x: float, y: float, rotation: float, spread: int, snaps
         step["pre_screenshot"] = pre_screenshot
         step["pre_screenshot_size"] = dict(wda._last_screen_size)
     _steps.append(step)
+    _unit_test_capture({"action": "rotate", "x": x, "y": y, "rotation": rotation}, step, root)
     logger.info(f"Recorded rotate ({rotation:.1f}°): {step.get('target')}")
 
 
@@ -755,12 +814,16 @@ async def _record_scroll(x1: float, y1: float, x2: float, y2: float, duration: i
         step["pre_screenshot"] = pre_screenshot
         step["pre_screenshot_size"] = dict(wda._last_screen_size)
     _steps.append(step)
+    _unit_test_capture({"action": "scroll", "x1": x1, "y1": y1, "x2": x2, "y2": y2, "duration": duration}, step, root)
     logger.info(f"Recorded scroll: ({x1},{y1}) → ({x2},{y2}), container={scroll_container}")
 
 
-async def _record_scroll_target(x: float, y: float):
-    await asyncio.sleep(0.1)
-    root = await _cached_tree()
+async def _record_scroll_target(x: float, y: float, snapshot=None):
+    # Use the snapshot captured before the tap started.  The old approach
+    # (asyncio.sleep(0.1) + _cached_tree()) was racy: wda.tap() sets
+    # _action_in_progress=True which clears the cache and causes get_source()
+    # to return None, leaving scroll_target as a coordinate type.
+    root = snapshot or _cache.get("root")
 
     # Build scroll_target value
     scroll_target: dict
@@ -831,12 +894,14 @@ async def _record_type_text(text: str, tx: Optional[float], ty: Optional[float],
         else:
             step["target"] = {"type": "coordinate", "x": tx, "y": ty}
     _steps.append(step)
+    _unit_test_capture({"action": "type_text", "text": text, "target_x": tx, "target_y": ty}, step, snapshot if snapshot is not None else _cache.get("root"))
     logger.info(f"Recorded type_text: {text!r}")
 
 
 async def _record_simple(action: str):
     step: dict = {"action": action, "timestamp": time.time()}
     _steps.append(step)
+    _unit_test_capture({"action": action}, step, None)
     logger.info(f"Recorded {action}")
 
 
@@ -845,6 +910,7 @@ async def _record_launch_app(bundle_id: str):
     name = next((a["name"] for a in apps if a["bundle_id"] == bundle_id), bundle_id)
     step: dict = {"action": "launch_app", "bundle_id": bundle_id, "app_name": name, "timestamp": time.time()}
     _steps.append(step)
+    _unit_test_capture({"action": "launch_app", "bundle_id": bundle_id}, step, None)
     logger.info(f"Recorded launch_app: {bundle_id}")
 
 
@@ -853,6 +919,7 @@ async def _record_terminate_app(bundle_id: str):
     name = next((a["name"] for a in apps if a["bundle_id"] == bundle_id), bundle_id)
     step: dict = {"action": "terminate_app", "bundle_id": bundle_id, "app_name": name, "timestamp": time.time()}
     _steps.append(step)
+    _unit_test_capture({"action": "terminate_app", "bundle_id": bundle_id}, step, None)
     logger.info(f"Recorded terminate_app: {bundle_id}")
 
 
@@ -889,6 +956,7 @@ async def _record_verify_visible(tx: float, ty: float, not_visible: bool, snapsh
         step["pre_screenshot"] = pre_screenshot
         step["pre_screenshot_size"] = dict(wda._last_screen_size)
     _steps.append(step)
+    _unit_test_capture({"action": action, "target_x": tx, "target_y": ty, "not_visible": not_visible}, step, snapshot if snapshot is not None else _cache.get("root"))
     logger.info(f"Recorded {action}")
 
 
@@ -912,6 +980,7 @@ async def _record_verify_get_text(tx: float, ty: float, expected_text: str, pre_
         step["pre_screenshot"] = pre_screenshot
         step["pre_screenshot_size"] = dict(wda._last_screen_size)
     _steps.append(step)
+    _unit_test_capture({"action": "verify_get_text", "target_x": tx, "target_y": ty, "expected_text": expected_text}, step, root)
     logger.info(f"Recorded verify_get_text: {expected_text!r}")
 
 
@@ -933,6 +1002,7 @@ async def _record_verify_screenshot_gt(tx: float, ty: float, screenshot_name: st
         step["pre_screenshot"] = pre_screenshot
         step["pre_screenshot_size"] = dict(wda._last_screen_size)
     _steps.append(step)
+    _unit_test_capture({"action": "verify_screenshot_gt", "target_x": tx, "target_y": ty, "screenshot_name": screenshot_name}, step, root)
     logger.info(f"Recorded verify_screenshot_gt: {screenshot_name}")
 
 
@@ -956,6 +1026,7 @@ async def _record_verify_screenshot_diff(tx: float, ty: float, bounds: dict, pha
         step["pre_screenshot"] = pre_screenshot
         step["pre_screenshot_size"] = dict(wda._last_screen_size)
     _steps.append(step)
+    _unit_test_capture({"action": "verify_screenshot_diff", "target_x": tx, "target_y": ty, "phase": phase}, step, root)
     logger.info(f"Recorded verify_screenshot_diff ({phase}, expected={expected_result})")
 
 
@@ -988,6 +1059,7 @@ async def _record_move(action: str, x1: float, y1: float, x2: float, y2: float, 
         step["pre_screenshot"] = pre_screenshot
         step["pre_screenshot_size"] = dict(wda._last_screen_size)
     _steps.append(step)
+    _unit_test_capture({"action": action, "x1": x1, "y1": y1, "x2": x2, "y2": y2, "duration": duration}, step, root)
     logger.info(f"Recorded {action}: {step.get('start_target', step['coords'])}")
 
 
@@ -1016,22 +1088,20 @@ async def _record_drag(x1: float, y1: float, x2: float, y2: float, duration: int
         step["pre_screenshot"] = pre_screenshot
         step["pre_screenshot_size"] = dict(wda._last_screen_size)
     _steps.append(step)
+    _unit_test_capture({"action": "drag", "x1": x1, "y1": y1, "x2": x2, "y2": y2, "duration": duration}, step, root)
     logger.info(f"Recorded drag: {step.get('start_target')} → {step.get('end_target')}")
 
 
-async def _cached_tree(force: bool = False):
-    now = time.time()
-    if not force and _cache["root"] and now - _cache["ts"] < CACHE_TTL:
-        return _cache["root"]
-    # Even with force, skip re-fetch if cache is very recent — avoids
-    # saturating WDA with back-to-back source requests that block
-    # gesture commands (tap, rotate, etc.).
-    if force and _cache["root"] and now - _cache["ts"] < 4.0:
+async def _cached_tree():
+    """Return the cached hierarchy. _hierarchy_loop keeps it continuously fresh.
+    Falls back to a direct fetch only when the cache is empty (startup/reconnect).
+    """
+    if _cache.get("root") is not None:
         return _cache["root"]
     root = await wda.get_source()
     if root is not None:
         _cache["root"] = root
-        _cache["ts"] = now
+        _cache["ts"] = time.time()
     return _cache.get("root")
 
 
@@ -1051,6 +1121,7 @@ async def clear_steps():
     global _last_tap_target
     _steps.clear()
     _last_tap_target = None
+    _unit_test_entries.clear()
     return {"ok": True}
 
 
@@ -1066,7 +1137,7 @@ async def delete_step(index: int):
 
 @app.get("/api/tree")
 async def get_tree():
-    root = await _cached_tree(force=True)
+    root = await _cached_tree()
     if root is None:
         return JSONResponse({"error": "Cannot reach WDA"}, status_code=503)
     return {"elements": serialize(root)}
@@ -1202,7 +1273,8 @@ async def ws_handler(ws: WebSocket):
 
             elif t == "update_scroll_target":
                 x, y = float(data["x"]), float(data["y"])
-                asyncio.create_task(_record_scroll_target(x, y))
+                snap = _cache.get("root")  # capture before the tap starts (avoids race with _action_in_progress)
+                asyncio.create_task(_record_scroll_target(x, y, snap))
 
             elif t == "swipe":
                 x1, y1, x2, y2 = float(data["x1"]), float(data["y1"]), float(data["x2"]), float(data["y2"])
@@ -1309,6 +1381,7 @@ async def ws_handler(ws: WebSocket):
 _PROJECT_ROOT   = Path(__file__).parent.parent
 _EXPORT_DIR     = _PROJECT_ROOT / "export"
 _PYTEST_TESTS   = _PROJECT_ROOT / "pytest" / "tests"
+_FIXTURES_DIR   = _PROJECT_ROOT / "test_unittest" / "fixtures"
 
 class ExportReq(BaseModel):
     case_name: str = ""
@@ -1515,6 +1588,55 @@ async def export_script(req: ExportReq):
             f"export/{safe}/{html_filename}",
         ],
     })
+
+
+# ── Unit Test Capture ──────────────────────────────────────────────────────────
+
+class UnitTestSaveReq(BaseModel):
+    case_name: str = "capture"
+
+
+@app.get("/api/unit_test/status")
+async def unit_test_status():
+    return {"enabled": _UNIT_TEST_MODE, "entry_count": len(_unit_test_entries)}
+
+
+@app.post("/api/unit_test/save")
+async def unit_test_save(req: UnitTestSaveReq):
+    ts = time.strftime("%Y%m%d_%H%M%S")
+    safe = "".join(c if c.isalnum() or c == "_" else "_" for c in req.case_name).strip("_") or "capture"
+    _FIXTURES_DIR.mkdir(parents=True, exist_ok=True)
+
+    capture_file = _FIXTURES_DIR / f"capture_{safe}_{ts}.json"
+    steps_clean = [{k: v for k, v in s.items() if k not in _STRIP_STEP_KEYS} for s in _steps]
+    payload = {
+        "captured_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "case_name": req.case_name,
+        "entries": _unit_test_entries,
+        "steps": steps_clean,
+        "codegen_output": generate_script(steps_clean, req.case_name) if steps_clean else "",
+    }
+    capture_file.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    # Save first available hierarchy XML as a standalone fixture file
+    xml_file = None
+    for entry in _unit_test_entries:
+        if entry.get("hierarchy_xml"):
+            xml_file = _FIXTURES_DIR / f"hierarchy_{safe}_{ts}.xml"
+            xml_file.write_text(entry["hierarchy_xml"], encoding="utf-8")
+            break
+
+    saved = [str(capture_file.relative_to(_PROJECT_ROOT))]
+    if xml_file:
+        saved.append(str(xml_file.relative_to(_PROJECT_ROOT)))
+    logger.info(f"Unit test capture saved: {capture_file.name} ({len(_unit_test_entries)} entries)")
+    return {"ok": True, "saved_paths": saved, "entry_count": len(_unit_test_entries)}
+
+
+@app.delete("/api/unit_test/entries")
+async def unit_test_clear_entries():
+    _unit_test_entries.clear()
+    return {"ok": True}
 
 
 # ── Static frontend ────────────────────────────────────────────────────────────

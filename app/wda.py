@@ -419,14 +419,18 @@ class WDAClient:
             return None
         for attempt in range(2):
             try:
+                t0 = asyncio.get_event_loop().time()
                 resp = await self._client.get(
-                    f"{self.base_url}/session/{self._session_id}/source", timeout=8.0
+                    f"{self.base_url}/session/{self._session_id}/source",
+                    timeout=8.0,
                 )
+                elapsed = asyncio.get_event_loop().time() - t0
                 if resp.status_code in (404, 500):
                     self._session_id = None
                     return None
                 data = resp.json()
                 xml_text = data.get("value", resp.text)
+                logger.info(f"WDA source: {elapsed:.2f}s  {len(xml_text):,} chars")
                 return _parse_xml(xml_text)
             except (httpx.ReadError, httpx.RemoteProtocolError) as e:
                 if attempt == 0:

@@ -369,6 +369,62 @@ def _swipe_direction(dx: float, dy: float) -> str:
     return "down" if dy < 0 else "up"
 
 
+def _scroll_needs_target(scroll_step: dict) -> bool:
+    """Return True if this scroll step has no usable element-based scroll_target."""
+    st = scroll_step.get("scroll_target")
+    return not st or st.get("type") == "coordinate"
+
+
+def _merge_scroll_tap(steps: List[dict]) -> List[dict]:
+    """Merge consecutive scroll steps followed by a tap into scroll_until + tap.
+
+    The server-side _record_scroll_target consolidates multiple scrolls and sets
+    scroll_target before export.  If that failed (race condition: the tap action
+    clears the WDA cache before _record_scroll_target can fetch the tree), the
+    scroll steps will have no usable scroll_target.  This function repairs the
+    pattern at codegen time by using the following tap's target as scroll_target.
+
+    When the server already set a valid scroll_target, this function is a no-op
+    for that group (it preserves the existing scroll_target unchanged).
+    """
+    out: list[dict] = []
+    i = 0
+    while i < len(steps):
+        s = steps[i]
+        if s.get("action") != "scroll":
+            out.append(s)
+            i += 1
+            continue
+
+        # Collect consecutive scroll steps
+        run: list[dict] = [s]
+        j = i + 1
+        while j < len(steps) and steps[j].get("action") == "scroll":
+            run.append(steps[j])
+            j += 1
+
+        # Check if the next step is a tap-type action with a valid element target
+        tap_s = steps[j] if j < len(steps) else None
+        if tap_s and tap_s.get("action") in ("tap", "double_tap", "triple_tap", "long_press"):
+            tap_t = tap_s.get("target")
+            if tap_t and tap_t.get("type") != "coordinate":
+                # Use the last scroll step (has most recent offsets / container)
+                last_scroll = dict(run[-1])
+                # Patch scroll_target only when it is absent or coordinate-only
+                if _scroll_needs_target(last_scroll):
+                    last_scroll["scroll_target"] = tap_t
+                out.append(last_scroll)
+                out.append(tap_s)
+                i = j + 1
+                continue
+
+        # No merge possible — emit the scroll run unchanged
+        out.extend(run)
+        i = j
+
+    return out
+
+
 def generate_script(steps: List[dict], case_name: str = "") -> str:
     """
     Convert a list of recorded step dicts into a complete pytest test file
@@ -379,6 +435,7 @@ def generate_script(steps: List[dict], case_name: str = "") -> str:
     appended at the end of the test to evaluate ALL captures together (AND
     logic — every comparison runs, all failures reported at once).
     """
+    steps = _merge_scroll_tap(steps)
     header = generate_header(case_name)
     body_lines: list[str] = []
     _screenshot_actions = {"verify_screenshot_gt", "verify_screenshot_diff"}

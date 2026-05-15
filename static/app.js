@@ -77,6 +77,9 @@ const verifyGtClose         = document.getElementById("verifyGtClose");
 const verifyGtCancel        = document.getElementById("verifyGtCancel");
 const verifyGtConfirm       = document.getElementById("verifyGtConfirm");
 const hoverBboxRect         = document.getElementById("hoverBboxRect");
+const hoverLoadingMark      = document.getElementById("hoverLoadingMark");
+const hoverLoadingH         = document.getElementById("hoverLoadingH");
+const hoverLoadingV         = document.getElementById("hoverLoadingV");
 
 // ── Boot ───────────────────────────────────────────────────────────────────────
 window.addEventListener("load", async () => {
@@ -933,34 +936,81 @@ function clearVerifyBbox() {
 }
 
 // ── Hover element highlight ──────────────────────────────────────────────────
-let _hoverLastKey = null;
-let _hoverRafId   = null;
+// Uses backend /api/element_info (same hit_test logic as recording) so the
+// highlighted element always matches what will actually be recorded.
+// While the hierarchy cache is warming up after a page navigation
+// (cache_ready=false), a pulsing crosshair is shown immediately at the cursor
+// position and the fetch is retried every 250 ms until the cache is ready.
+let _hoverLastKey    = null;
+let _hoverRafId      = null;
+let _hoverTimer      = null;
+let _hoverRetryTimer = null;
+let _hoverCoord      = null;
 
 function updateHoverHighlight(fx, fy) {
-  if (!_treeElements.length) { clearHoverHighlight(); return; }
   const { x, y } = toDevice(fx, fy);
-  const el = _clientHitTest(x, y);
-  const key = el ? `${el.rect.x},${el.rect.y},${el.rect.w},${el.rect.h}` : null;
-  if (key === _hoverLastKey) return; // same element — skip SVG write
-  _hoverLastKey = key;
+  const coordKey = `${x},${y}`;
+  if (coordKey === _hoverCoord) return;
+  _hoverCoord = coordKey;
+
+  clearTimeout(_hoverTimer);
+  clearTimeout(_hoverRetryTimer);
+  _showHoverLoading(fx, fy);
+  _hoverTimer = setTimeout(() => _fetchHoverAt(x, y, fx, fy, coordKey), 60);
+}
+
+async function _fetchHoverAt(x, y, fx, fy, coordKey) {
+  if (coordKey !== _hoverCoord) return;
+  let info = null;
+  try { info = await api("GET", `/api/element_info?x=${x}&y=${y}`); } catch (_) {}
+  if (coordKey !== _hoverCoord) return;
+
+  if (info?.cache_ready === false) {
+    // Hierarchy still loading — keep crosshair, retry shortly
+    _hoverRetryTimer = setTimeout(() => _fetchHoverAt(x, y, fx, fy, coordKey), 250);
+    return;
+  }
+  if (!info?.found || !info.bounds) { clearHoverHighlight(); return; }
+  const b = info.bounds;
+  if (!b.w || !b.h) { clearHoverHighlight(); return; }
+  const rectKey = `${b.x},${b.y},${b.w},${b.h}`;
   cancelAnimationFrame(_hoverRafId);
   _hoverRafId = requestAnimationFrame(() => {
-    if (!el) { hoverBboxRect.setAttribute("visibility", "hidden"); return; }
+    _hideHoverLoading();
+    if (rectKey === _hoverLastKey) return;
+    _hoverLastKey = rectKey;
     const r  = clickLayer.getBoundingClientRect();
     const sx = r.width  / deviceW;
     const sy = r.height / deviceH;
-    hoverBboxRect.setAttribute("x",          el.rect.x * sx);
-    hoverBboxRect.setAttribute("y",          el.rect.y * sy);
-    hoverBboxRect.setAttribute("width",      el.rect.w * sx);
-    hoverBboxRect.setAttribute("height",     el.rect.h * sy);
+    hoverBboxRect.setAttribute("x",          b.x * sx);
+    hoverBboxRect.setAttribute("y",          b.y * sy);
+    hoverBboxRect.setAttribute("width",      b.w * sx);
+    hoverBboxRect.setAttribute("height",     b.h * sy);
     hoverBboxRect.setAttribute("visibility", "visible");
   });
 }
 
+function _showHoverLoading(fx, fy) {
+  const sz = 10;
+  hoverLoadingH.setAttribute("x1", fx - sz); hoverLoadingH.setAttribute("y1", fy);
+  hoverLoadingH.setAttribute("x2", fx + sz); hoverLoadingH.setAttribute("y2", fy);
+  hoverLoadingV.setAttribute("x1", fx);       hoverLoadingV.setAttribute("y1", fy - sz);
+  hoverLoadingV.setAttribute("x2", fx);       hoverLoadingV.setAttribute("y2", fy + sz);
+  hoverLoadingMark.setAttribute("visibility", "visible");
+}
+
+function _hideHoverLoading() {
+  hoverLoadingMark.setAttribute("visibility", "hidden");
+}
+
 function clearHoverHighlight() {
+  _hoverCoord   = null;
   _hoverLastKey = null;
+  clearTimeout(_hoverTimer);
+  clearTimeout(_hoverRetryTimer);
   cancelAnimationFrame(_hoverRafId);
   hoverBboxRect.setAttribute("visibility", "hidden");
+  _hideHoverLoading();
 }
 
 clickLayer.addEventListener("pointerleave", clearHoverHighlight);
@@ -968,20 +1018,18 @@ clickLayer.addEventListener("pointerleave", clearHoverHighlight);
 let _hoverBboxTimer = null;
 let _hoverBboxLast  = null; // "x,y" to skip identical positions
 
-// Client-side hit-test using cached tree elements (same scoring as backend: smallest area, interactive first)
+// Client-side hit-test: smallest bounding area wins.
+// _treeElements is in post-order (children before parents), so on equal area
+// the child is already `best` and the strict < never replaces it with the parent.
 function _clientHitTest(dx, dy) {
-  // dx/dy are device coords
   const candidates = _treeElements.filter(el => {
     const r = el.rect;
     return r && dx >= r.x && dx <= r.x + r.w && dy >= r.y && dy <= r.y + r.h;
   });
   if (!candidates.length) return null;
-  // score: smallest area wins
-  return candidates.reduce((best, el) => {
-    const area = el.rect.w * el.rect.h;
-    const bestArea = best.rect.w * best.rect.h;
-    return area < bestArea ? el : best;
-  });
+  return candidates.reduce((best, el) =>
+    el.rect.w * el.rect.h < best.rect.w * best.rect.h ? el : best
+  );
 }
 
 function hoverVerifyBbox(fx, fy) {

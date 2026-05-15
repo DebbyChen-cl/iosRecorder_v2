@@ -799,3 +799,10 @@ button {
   white-space: nowrap;
 }
 .verify-done-btn:hover { background: #16a34a; }
+
+/* Hover loading crosshair — pulses while hierarchy cache is warming up */
+#hoverLoadingMark { animation: hover-loading-pulse 0.6s ease-in-out infinite alternate; }
+@keyframes hover-loading-pulse {
+  from { opacity: 0.3; }
+  to   { opacity: 0.85; }
+}
