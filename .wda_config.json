@@ -1,1 +1,11 @@
-{"wda_url": "http://localhost:8100"}
+{
+  "wda_url": "http://localhost:8100",
+  "hierarchy_polling": {
+    "fast_interval_ms": 0,
+    "slow_interval_ms": 5000,
+    "idle_interval_ms": 10000,
+    "stable_threshold": 3,
+    "idle_threshold": 5,
+    "ignored_attributes": ["value", "x", "y", "width", "height", "frame"]
+  }
+}

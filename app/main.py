@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import hashlib
 import json
 import logging
 import os
@@ -51,6 +52,40 @@ def _load_apps() -> List[dict]:
         return []
 
 
+_HIERARCHY_POLL_DEFAULTS: dict = {
+    "fast_interval_ms": 0,
+    "slow_interval_ms": 2000,
+    "idle_interval_ms": 5000,
+    "stable_threshold": 5,
+    "idle_threshold": 10,
+    "ignored_attributes": ["value", "x", "y", "width", "height", "frame"],
+}
+
+
+def _load_hierarchy_poll_config() -> dict:
+    try:
+        raw = json.loads(_CONFIG_FILE.read_text())
+        cfg = {**_HIERARCHY_POLL_DEFAULTS, **raw.get("hierarchy_polling", {})}
+        if not isinstance(cfg["ignored_attributes"], list):
+            cfg["ignored_attributes"] = list(_HIERARCHY_POLL_DEFAULTS["ignored_attributes"])
+        return cfg
+    except Exception:
+        return dict(_HIERARCHY_POLL_DEFAULTS)
+
+
+def _structural_hash(root: ET.Element, ignored: frozenset) -> str:
+    """Hash only structural attributes (tag, name, label, enabled, visible) across all elements.
+
+    Ignores dynamic attrs (value, frame coords, etc.) so cosmetic animation changes
+    don't prevent the loop from settling into SLOW/IDLE state.
+    """
+    parts: list = []
+    for el in root.iter():
+        attrs = sorted((k, v) for k, v in el.attrib.items() if k not in ignored)
+        parts.append(f"{el.tag}|{attrs}")
+    return hashlib.md5("\n".join(parts).encode(), usedforsecurity=False).hexdigest()
+
+
 wda = WDAClient(_load_wda_url())
 _cache: dict = {"root": None, "ts": 0.0}
 _steps: List[dict] = []
@@ -72,12 +107,47 @@ async def lifespan(app: FastAPI):
     await wda.close()
 
 
-async def _hierarchy_loop():
-    """Background: keep hierarchy cache always fresh.
+async def _interruptible_sleep(seconds: float):
+    """Sleep for up to `seconds`, but return early if a gesture starts."""
+    deadline = time.time() + seconds
+    while time.time() < deadline:
+        if wda._action_in_progress:
+            return
+        await asyncio.sleep(min(0.1, deadline - time.time()))
 
-    - On gesture: cancel stale source fetch, drop cache, re-fetch immediately after.
-    - On idle: re-fetch as soon as each fetch completes (no gaps).
+
+async def _hierarchy_loop():
+    """Background: adaptive-interval hierarchy fetcher with 3-state machine.
+
+    States
+    ------
+    FAST  fetch returns → fetch again immediately (no sleep)
+    SLOW  fetch returns → sleep slow_interval_ms before next fetch
+    IDLE  fetch returns → sleep idle_interval_ms before next fetch
+
+    Transitions
+    -----------
+    gesture detected          → state=FAST, stable_count=0, last_hash=None
+    hash changed after fetch  → state=FAST, stable_count=0
+    hash same, count >= stable_threshold → FAST→SLOW
+    hash same, count >= idle_threshold   → SLOW→IDLE
+
+    All thresholds and intervals are read from .wda_config.json under
+    the "hierarchy_polling" key (see _HIERARCHY_POLL_DEFAULTS).
     """
+    cfg          = _load_hierarchy_poll_config()
+    fast_s       = cfg["fast_interval_ms"]  / 1000.0
+    slow_s       = cfg["slow_interval_ms"]  / 1000.0
+    idle_s       = cfg["idle_interval_ms"]  / 1000.0
+    stable_n     = cfg["stable_threshold"]
+    idle_n       = cfg["idle_threshold"]
+    ignored      = frozenset(cfg["ignored_attributes"])
+
+    state        = "FAST"
+    stable_count = 0
+    last_hash: Optional[str] = None
+    _prev_state  = ""
+
     while True:
         try:
             if wda._action_in_progress:
@@ -88,16 +158,52 @@ async def _hierarchy_loop():
                 _cache["ts"] = 0.0
                 while wda._action_in_progress:
                     await asyncio.sleep(0.02)
-                # No settle sleep — wda.get_source() takes 1–2 s, far longer than
-                # any iOS page-transition animation (~0.3 s), so the hierarchy is
-                # always stable by the time WDA returns.
+                # Reset to FAST so page transitions after a gesture are captured quickly.
+                state        = "FAST"
+                stable_count = 0
+                last_hash    = None
+                print(f"[hierarchy] {time.strftime('%H:%M:%S')} gesture done → FAST (reset)", flush=True)
+                _prev_state  = "FAST"
 
+            t_fetch_start = time.time()
             root = await wda.get_source()
+            fetch_ms = (time.time() - t_fetch_start) * 1000
+
             if root is not None:
                 _cache["root"] = root
                 _cache["ts"] = time.time()
+
+                h = _structural_hash(root, ignored)
+                hash_changed = (h != last_hash and last_hash is not None)
+                if h == last_hash:
+                    stable_count += 1
+                else:
+                    stable_count = 0
+                    state = "FAST"
+                last_hash = h
+
+                if state == "FAST" and stable_count >= stable_n:
+                    state = "SLOW"
+                if state == "SLOW" and stable_count >= idle_n:
+                    state = "IDLE"
+
+                sleep_s = idle_s if state == "IDLE" else slow_s if state == "SLOW" else fast_s
+                changed_marker = " *** HASH CHANGED" if hash_changed else ""
+                state_marker   = f" → {state}" if state != _prev_state else ""
+                print(
+                    f"[hierarchy] {time.strftime('%H:%M:%S')}  fetch={fetch_ms:6.0f}ms"
+                    f"  state={state}{state_marker}  stable={stable_count}"
+                    f"  sleep={sleep_s*1000:.0f}ms{changed_marker}",
+                    flush=True,
+                )
+                _prev_state = state
+
+                await _interruptible_sleep(
+                    idle_s if state == "IDLE" else slow_s if state == "SLOW" else fast_s
+                )
             elif not wda._action_in_progress:
-                await asyncio.sleep(0.5)  # WDA error — brief pause before retry
+                print(f"[hierarchy] {time.strftime('%H:%M:%S')}  WDA error — retry in 500ms", flush=True)
+                await _interruptible_sleep(0.5)  # WDA error — brief pause before retry
         except asyncio.CancelledError:
             break
         except Exception as e:
