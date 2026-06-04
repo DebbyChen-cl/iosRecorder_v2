@@ -1,0 +1,37 @@
+{
+  "step_000_t1": {
+    "action": "swipe",
+    "coords": {
+      "x1": 262.0,
+      "y1": 466.0,
+      "x2": 86.0,
+      "y2": 466.0
+    }
+  },
+  "step_000_t2": {
+    "type": "accessibility id",
+    "value": "LauncherTrendyCell-2"
+  },
+  "step_000_t3": {
+    "action": "swipe",
+    "coords": {
+      "x1": 262.0,
+      "y1": 466.0,
+      "x2": 86.0,
+      "y2": 466.0
+    },
+    "duration": 912,
+    "direction": "left",
+    "velocity": 193.0,
+    "start_target": {
+      "type": "accessibility id",
+      "value": "LauncherTrendyCell-2",
+      "selector_quality": "id_indexed"
+    }
+  },
+  "step_000_t4": {
+    "quality": "id_indexed",
+    "is_problematic": true
+  },
+  "step_000_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Swipe left on LauncherTrendyCell-2\"):\n        actions.swipe_on_element(AppiumBy.ACCESSIBILITY_ID, 'LauncherTrendyCell-2', 'left', velocity=193.0, from_pct_x=50.0, from_pct_y=50.0, distance_pts=176.0)\n    assert True\n"
+}

@@ -1,0 +1,162 @@
+{
+  "step_000_t1": {
+    "action": "tap",
+    "coords": {
+      "x": 137.0,
+      "y": 511.0
+    }
+  },
+  "step_001_t1": {
+    "action": "tap",
+    "coords": {
+      "x": 137.0,
+      "y": 183.0
+    }
+  },
+  "step_002_t1": {
+    "action": "type_text"
+  },
+  "step_003_t1": {
+    "action": "tap",
+    "coords": {
+      "x": 297.0,
+      "y": 337.0
+    }
+  },
+  "step_000_t2": {
+    "type": "accessibility id",
+    "value": "btn_text_sub_menu_n"
+  },
+  "step_001_t2": {
+    "type": "xpath",
+    "value": "//XCUIElementTypeImage"
+  },
+  "step_002_t2": {
+    "type": "xpath",
+    "value": "//XCUIElementTypeImage"
+  },
+  "step_003_t2": {
+    "type": "accessibility id",
+    "value": "applyButton"
+  },
+  "step_000_t3": {
+    "action": "tap",
+    "coords": {
+      "x": 137.0,
+      "y": 511.0
+    },
+    "target": {
+      "type": "accessibility id",
+      "value": "btn_text_sub_menu_n",
+      "selector_quality": "id",
+      "xpath": "//XCUIElementTypeImage[@name='btn_text_sub_menu_n']",
+      "offset_pct": {
+        "x": 76.0,
+        "y": 64.0
+      },
+      "bounds": {
+        "x": 118,
+        "y": 495,
+        "w": 25,
+        "h": 25
+      }
+    },
+    "scroll_container": {
+      "type": "accessibility id",
+      "value": "effectMenuCollectionViewPresenterCollectionView",
+      "selector_quality": "id",
+      "bounds": {
+        "x": 98,
+        "y": 483,
+        "w": 124,
+        "h": 65
+      }
+    }
+  },
+  "step_001_t3": {
+    "action": "tap",
+    "coords": {
+      "x": 137.0,
+      "y": 183.0
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeImage",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeImage",
+      "offset_pct": {
+        "x": 38.1,
+        "y": 50.8
+      },
+      "bounds": {
+        "x": 63,
+        "y": 152,
+        "w": 194,
+        "h": 61
+      }
+    }
+  },
+  "step_002_t3": {
+    "action": "type_text",
+    "text": "Text Test",
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeImage",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeImage",
+      "offset_pct": {
+        "x": 38.1,
+        "y": 50.8
+      },
+      "bounds": {
+        "x": 63,
+        "y": 152,
+        "w": 194,
+        "h": 61
+      }
+    }
+  },
+  "step_003_t3": {
+    "action": "tap",
+    "coords": {
+      "x": 297.0,
+      "y": 337.0
+    },
+    "target": {
+      "type": "accessibility id",
+      "value": "applyButton",
+      "selector_quality": "id",
+      "xpath": "//XCUIElementTypeButton[@name='applyButton']",
+      "offset_pct": {
+        "x": 39.4,
+        "y": 50.0
+      },
+      "bounds": {
+        "x": 284,
+        "y": 320,
+        "w": 33,
+        "h": 34
+      }
+    }
+  },
+  "step_000_t4": {
+    "quality": "id",
+    "is_problematic": false
+  },
+  "step_001_t4": {
+    "quality": "xpath_only",
+    "is_problematic": true
+  },
+  "step_002_t4": {
+    "quality": "xpath_only",
+    "is_problematic": true
+  },
+  "step_003_t4": {
+    "quality": "id",
+    "is_problematic": false
+  },
+  "step_000_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap btn_text_sub_menu_n at (76.0%, 64.0%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_text_sub_menu_n', 76.0, 64.0, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='effectMenuCollectionViewPresenterCollectionView', container_w=124, container_h=65)\n    assert True\n",
+  "step_001_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap //XCUIElementTypeImage at (38.1%, 50.8%)\"):\n        actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeImage', 38.1, 50.8)\n    assert True\n",
+  "step_002_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Type 'Text Test' into //XCUIElementTypeImage\"):\n        actions.type_text_by_locator(AppiumBy.XPATH, '//XCUIElementTypeImage', 'Text Test')\n    assert True\n",
+  "step_003_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap applyButton at (39.4%, 50.0%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'applyButton', 39.4, 50.0)\n    assert True\n"
+}

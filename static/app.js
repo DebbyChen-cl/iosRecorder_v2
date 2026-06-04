@@ -1,6 +1,8 @@
 "use strict";
 
 // ── State ──────────────────────────────────────────────────────────────────────
+let unitTestMode = false;
+let unitTestEntryCount = 0;
 let wdaUrl = "http://localhost:8100";
 let deviceW = 390, deviceH = 844;
 let isRecording = false;
@@ -80,6 +82,13 @@ const hoverBboxRect         = document.getElementById("hoverBboxRect");
 const hoverLoadingMark      = document.getElementById("hoverLoadingMark");
 const hoverLoadingH         = document.getElementById("hoverLoadingH");
 const hoverLoadingV         = document.getElementById("hoverLoadingV");
+const unitTestBadge         = document.getElementById("unitTestBadge");
+const unitTestPanel         = document.getElementById("unitTestPanel");
+const exportUnitTestBtn     = document.getElementById("exportUnitTestBtn");
+const unitTestCountEl       = document.getElementById("unitTestCount");
+const unitTestResultModal   = document.getElementById("unitTestResultModal");
+const unitTestResultClose   = document.getElementById("unitTestResultClose");
+const unitTestResultPaths   = document.getElementById("unitTestResultPaths");
 
 // ── Boot ───────────────────────────────────────────────────────────────────────
 window.addEventListener("load", async () => {
@@ -88,9 +97,19 @@ window.addEventListener("load", async () => {
   // Show version badge
   const ver = await api("GET", "/api/version").catch(() => null);
   if (ver?.version && versionBadge) versionBadge.textContent = `v${ver.version}`;
+  // Unit test capture mode
+  const utStatus = await api("GET", "/api/unit_test/status").catch(() => null);
+  if (utStatus?.enabled) {
+    unitTestMode = true;
+    unitTestBadge.style.display = "";
+    unitTestPanel.style.display = "";
+    unitTestEntryCount = utStatus.entry_count;
+    _updateUnitTestCount();
+  }
   await checkStatus();
   setInterval(checkStatus, 2000);
   setInterval(pollSteps, 800);
+  if (unitTestMode) setInterval(pollUnitTestStatus, 1500);
   // Keep element tree warm for instant hover hit-test
   setInterval(async () => {
     const data = await api("GET", "/api/tree").catch(() => null);
@@ -1070,10 +1089,11 @@ async function handleVerifyTargetPick(fx, fy) {
 
   verifyTarget = {
     x, y,
-    type:   info.found ? info.type   : "coordinate",
-    value:  info.found ? info.value  : null,
-    text:   info.found ? info.text   : "",
-    bounds: info.found ? info.bounds : null,
+    type:             info.found ? info.type             : "coordinate",
+    value:            info.found ? info.value            : null,
+    text:             info.found ? info.text             : "",
+    bounds:           info.found ? info.bounds           : null,
+    selector_quality: info.found ? info.selector_quality : null,
   };
 
   switch (verifyMode) {
@@ -1129,7 +1149,13 @@ verifyDoneBtn.addEventListener("click", () => {
   if (!verifyTarget) { exitVerifyMode(); return; }
   const { x, y, bounds } = verifyTarget;
   if (verifyMode === "not_visible") {
-    sendVerify("verify_visible", { target_x: x, target_y: y, not_visible: true });
+    sendVerify("verify_visible", {
+      target_x: x, target_y: y, not_visible: true,
+      target_type:             verifyTarget.type,
+      target_value:            verifyTarget.value,
+      target_bounds:           verifyTarget.bounds,
+      target_selector_quality: verifyTarget.selector_quality,
+    });
   }
   exitVerifyMode();
 });
@@ -1293,6 +1319,40 @@ function showGestureTrail(x1, y1, x2, y2) {
   setTimeout(() => svg.remove(), 800);
 }
 
+// ── Unit Test Capture ──────────────────────────────────────────────────────────
+async function pollUnitTestStatus() {
+  const data = await api("GET", "/api/unit_test/status").catch(() => null);
+  if (!data) return;
+  unitTestEntryCount = data.entry_count;
+  _updateUnitTestCount();
+  _updateUnitTestBtn();
+}
+
+function _updateUnitTestCount() {
+  unitTestCountEl.textContent = `${unitTestEntryCount} entr${unitTestEntryCount === 1 ? "y" : "ies"} captured`;
+}
+
+function _updateUnitTestBtn() {
+  const hasName = caseNameInput.value.trim().length > 0;
+  exportUnitTestBtn.disabled = !hasName || unitTestEntryCount === 0;
+}
+
+unitTestResultClose.addEventListener("click", () => { unitTestResultModal.style.display = "none"; });
+unitTestResultModal.addEventListener("click", e => { if (e.target === unitTestResultModal) unitTestResultModal.style.display = "none"; });
+
+exportUnitTestBtn.addEventListener("click", async () => {
+  const caseName = caseNameInput.value.trim();
+  const data = await api("POST", "/api/unit_test/save", { case_name: caseName }).catch(() => null);
+  if (!data?.ok) return;
+  unitTestResultPaths.innerHTML = (data.saved_paths || [])
+    .map(p => `<li style="font-family:monospace;font-size:13px;word-break:break-all;">${p}</li>`)
+    .join("");
+  unitTestResultModal.style.display = "flex";
+  unitTestEntryCount = 0;
+  _updateUnitTestCount();
+  _updateUnitTestBtn();
+});
+
 // ── Case name gate ─────────────────────────────────────────────────────────────
 function updateActionBtns() {
   const hasName = caseNameInput.value.trim().length > 0;
@@ -1302,6 +1362,7 @@ function updateActionBtns() {
     if (hasName) btn.removeAttribute("title");
     else btn.title = hint;
   });
+  if (unitTestMode) _updateUnitTestBtn();
 }
 caseNameInput.addEventListener("input", updateActionBtns);
 
@@ -1316,6 +1377,11 @@ clearBtn.addEventListener("click", async () => {
   await api("DELETE", "/api/steps");
   steps = [];
   renderSteps();
+  if (unitTestMode) {
+    unitTestEntryCount = 0;
+    _updateUnitTestCount();
+    _updateUnitTestBtn();
+  }
 });
 
 // ── Export result modal ───────────────────────────────────────────────────────

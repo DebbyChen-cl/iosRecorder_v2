@@ -1,0 +1,92 @@
+{
+  "step_000_t1": {
+    "action": "two_finger_tap",
+    "coords": {
+      "x": 97.0,
+      "y": 295.0
+    }
+  },
+  "step_001_t1": {
+    "action": "multi_finger_tap",
+    "coords": {
+      "x": 19.0,
+      "y": 55.0
+    }
+  },
+  "step_000_t2": {
+    "type": "accessibility id",
+    "value": "Edit"
+  },
+  "step_001_t2": {
+    "type": "accessibility id",
+    "value": "btnBack"
+  },
+  "step_000_t3": {
+    "action": "two_finger_tap",
+    "coords": {
+      "x": 97.0,
+      "y": 295.0
+    },
+    "target": {
+      "type": "accessibility id",
+      "value": "Edit",
+      "selector_quality": "id_eq_label",
+      "xpath": "//XCUIElementTypeStaticText[@name='Edit']",
+      "offset_pct": {
+        "x": 32.1,
+        "y": 47.4
+      },
+      "bounds": {
+        "x": 88,
+        "y": 286,
+        "w": 28,
+        "h": 19
+      }
+    },
+    "scroll_container": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"LauncherProViewController\"]/XCUIElementTypeScrollView",
+      "selector_quality": "xpath_only",
+      "bounds": {
+        "x": 0,
+        "y": 84,
+        "w": 320,
+        "h": 539
+      }
+    }
+  },
+  "step_001_t3": {
+    "action": "multi_finger_tap",
+    "coords": {
+      "x": 19.0,
+      "y": 55.0
+    },
+    "fingers": 3,
+    "target": {
+      "type": "accessibility id",
+      "value": "btnBack",
+      "selector_quality": "id",
+      "xpath": "//XCUIElementTypeButton[@name='btnBack']",
+      "offset_pct": {
+        "x": 40.0,
+        "y": 46.7
+      },
+      "bounds": {
+        "x": 7,
+        "y": 41,
+        "w": 30,
+        "h": 30
+      }
+    }
+  },
+  "step_000_t4": {
+    "quality": "id_eq_label",
+    "is_problematic": true
+  },
+  "step_001_t4": {
+    "quality": "id",
+    "is_problematic": false
+  },
+  "step_000_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Two finger tap Edit\"):\n        actions.two_finger_tap(actions.find_element(AppiumBy.ACCESSIBILITY_ID, 'Edit'))\n    assert True\n",
+  "step_001_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] 3-finger tap btnBack\"):\n        actions.multi_finger_tap(actions.find_element(AppiumBy.ACCESSIBILITY_ID, 'btnBack'), fingers=3)\n    assert True\n"
+}

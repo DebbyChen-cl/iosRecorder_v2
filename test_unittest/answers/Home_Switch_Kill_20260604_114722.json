@@ -1,0 +1,27 @@
+{
+  "step_000_t1": {
+    "action": "home"
+  },
+  "step_001_t1": {
+    "action": "launch_app"
+  },
+  "step_002_t1": {
+    "action": "terminate_app"
+  },
+  "step_000_t3": {
+    "action": "home"
+  },
+  "step_001_t3": {
+    "action": "launch_app",
+    "bundle_id": "com.cyberlink.photodirector",
+    "app_name": "PhotoDirector"
+  },
+  "step_002_t3": {
+    "action": "terminate_app",
+    "bundle_id": "com.cyberlink.photodirector",
+    "app_name": "PhotoDirector"
+  },
+  "step_000_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Press Home button\"):\n        actions.press_home()\n    assert True\n",
+  "step_001_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Launch PhotoDirector\"):\n        actions.launch_app('com.cyberlink.photodirector')\n    assert True\n",
+  "step_002_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Terminate PhotoDirector\"):\n        actions.terminate_app('com.cyberlink.photodirector')\n    assert True\n"
+}

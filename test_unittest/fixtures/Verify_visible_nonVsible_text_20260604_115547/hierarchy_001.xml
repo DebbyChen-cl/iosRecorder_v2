@@ -1,0 +1,169 @@
+<XCUIElementTypeApplication type="XCUIElementTypeApplication" name="PhotoDirector" label="PhotoDirector" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="" processId="740" bundleId="com.cyberlink.photodirector">
+  <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="" />
+    </XCUIElementTypeOther>
+    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="1" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+            <XCUIElementTypeOther type="XCUIElementTypeOther" name="photodirector.SettingPageViewController" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="38" index="0" traits="" />
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="38" width="320" height="39" index="1" traits="">
+                <XCUIElementTypeButton type="XCUIElementTypeButton" name="btnBack" label="ic back n" enabled="true" visible="true" accessible="true" x="8" y="40" width="21" height="35" index="0" traits="Button" />
+                <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Setting" name="Setting" label="Setting" enabled="true" visible="true" accessible="true" x="0" y="49" width="320" height="17" index="1" traits="StaticText" />
+              </XCUIElementTypeOther>
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="77" width="320" height="616" index="2" traits="" />
+              <XCUIElementTypeScrollView type="XCUIElementTypeScrollView" enabled="true" visible="true" accessible="false" x="0" y="87" width="320" height="577" index="3" traits="">
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="87" width="320" height="554" index="0" traits="">
+                  <XCUIElementTypeCollectionView type="XCUIElementTypeCollectionView" enabled="true" visible="true" accessible="false" x="0" y="87" width="320" height="521" index="0" traits="">
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="-16" y="-954" width="352" height="1214" index="0" traits="" />
+                    <XCUIElementTypeCell type="XCUIElementTypeCell" name="SettingPageCollectionViewHeader-0" enabled="true" visible="true" accessible="false" x="16" y="87" width="288" height="23" index="1" traits="">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="16" y="87" width="288" height="23" index="0" traits="" />
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="87" width="288" height="23" index="1" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="General Setting" name="General Setting" label="General Setting" enabled="true" visible="true" accessible="true" x="20" y="87" width="82" height="14" index="0" traits="StaticText" />
+                      </XCUIElementTypeOther>
+                    </XCUIElementTypeCell>
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="SettingPageGeneralCell-1" label="Image Quality Setting" enabled="true" visible="true" accessible="true" x="16" y="110" width="288" height="44" index="2" traits="Image">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="110" width="288" height="44" index="0" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="110" width="288" height="44" index="0" traits="" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="52" y="110" width="216" height="44" index="1" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Image Quality Setting" name="Image Quality Setting" label="Image Quality Setting" enabled="true" visible="true" accessible="false" x="68" y="123" width="139" height="18" index="0" traits="StaticText" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeImage type="XCUIElementTypeImage" name="ic_crown_solid_yellow" enabled="true" visible="true" accessible="false" x="33" y="125" width="18" height="14" index="2" traits="Image" />
+                      <XCUIElementTypeImage type="XCUIElementTypeImage" name="ic_chevron_right" enabled="true" visible="true" accessible="false" x="266" y="120" width="24" height="24" index="3" traits="Image" />
+                    </XCUIElementTypeImage>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="153" width="288" height="2" index="3" traits="" />
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="SettingPageGeneralCell-2" label="Camera Settings" enabled="true" visible="true" accessible="true" x="16" y="154" width="288" height="44" index="4" traits="Image">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="154" width="288" height="44" index="0" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="154" width="288" height="44" index="0" traits="" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="154" width="252" height="44" index="1" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Camera Settings" name="Camera Settings" label="Camera Settings" enabled="true" visible="true" accessible="false" x="31" y="167" width="109" height="18" index="0" traits="StaticText" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeImage type="XCUIElementTypeImage" name="ic_chevron_right" enabled="true" visible="true" accessible="false" x="266" y="164" width="24" height="24" index="2" traits="Image" />
+                    </XCUIElementTypeImage>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="197" width="288" height="2" index="5" traits="" />
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="SettingPageGeneralCell-3" label="Appearance" enabled="true" visible="true" accessible="true" x="16" y="198" width="288" height="44" index="6" traits="Image">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="198" width="288" height="44" index="0" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="198" width="288" height="44" index="0" traits="" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="198" width="252" height="44" index="1" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Appearance" name="Appearance" label="Appearance" enabled="true" visible="true" accessible="false" x="32" y="211" width="78" height="18" index="0" traits="StaticText" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeImage type="XCUIElementTypeImage" name="ic_chevron_right" enabled="true" visible="true" accessible="false" x="266" y="208" width="24" height="24" index="2" traits="Image" />
+                    </XCUIElementTypeImage>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="-16" y="259" width="352" height="86" index="7" traits="" />
+                    <XCUIElementTypeCell type="XCUIElementTypeCell" name="SettingPageCollectionViewHeader-0" enabled="true" visible="true" accessible="false" x="16" y="259" width="288" height="24" index="8" traits="">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="16" y="259" width="288" height="24" index="0" traits="" />
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="259" width="288" height="24" index="1" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Personal" name="Personal" label="Personal" enabled="true" visible="true" accessible="true" x="20" y="259" width="46" height="14" index="0" traits="StaticText" />
+                      </XCUIElementTypeOther>
+                    </XCUIElementTypeCell>
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="SettingPageLoginCell-1" label="Sign in" enabled="true" visible="true" accessible="true" x="16" y="282" width="288" height="45" index="9" traits="Image">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="282" width="288" height="45" index="0" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="282" width="288" height="45" index="0" traits="" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="52" y="282" width="216" height="45" index="1" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Sign in" name="Sign in" label="Sign in" enabled="true" visible="true" accessible="false" x="68" y="296" width="44" height="18" index="0" traits="StaticText" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeImage type="XCUIElementTypeImage" name="ic_account_circle" enabled="true" visible="true" accessible="false" x="30" y="292" width="24" height="25" index="2" traits="Image" />
+                      <XCUIElementTypeImage type="XCUIElementTypeImage" name="ic_chevron_right" enabled="true" visible="true" accessible="false" x="266" y="292" width="24" height="25" index="3" traits="Image" />
+                    </XCUIElementTypeImage>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="-16" y="344" width="352" height="1304" index="10" traits="" />
+                    <XCUIElementTypeCell type="XCUIElementTypeCell" name="SettingPageCollectionViewHeader-0" enabled="true" visible="true" accessible="false" x="16" y="344" width="288" height="24" index="11" traits="">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="16" y="344" width="288" height="24" index="0" traits="" />
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="344" width="288" height="24" index="1" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Help Center" name="Help Center" label="Help Center" enabled="true" visible="true" accessible="true" x="20" y="344" width="63" height="14" index="0" traits="StaticText" />
+                      </XCUIElementTypeOther>
+                    </XCUIElementTypeCell>
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="SettingPageHelpCenterCell-1" label="About" enabled="true" visible="true" accessible="true" x="16" y="367" width="288" height="45" index="12" traits="Image">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="367" width="288" height="45" index="0" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="367" width="288" height="45" index="0" traits="" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="367" width="252" height="45" index="1" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="About" name="About" label="About" enabled="true" visible="true" accessible="false" x="32" y="381" width="39" height="17" index="0" traits="StaticText" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeImage type="XCUIElementTypeImage" name="ic_chevron_right" enabled="true" visible="true" accessible="false" x="266" y="377" width="24" height="25" index="2" traits="Image" />
+                    </XCUIElementTypeImage>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="411" width="288" height="1" index="13" traits="" />
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="SettingPageHelpCenterCell-2" label="FAQ" enabled="true" visible="true" accessible="true" x="16" y="411" width="288" height="45" index="14" traits="Image">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="411" width="288" height="45" index="0" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="411" width="288" height="45" index="0" traits="" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="411" width="252" height="45" index="1" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="FAQ" name="FAQ" label="FAQ" enabled="true" visible="true" accessible="false" x="32" y="425" width="27" height="17" index="0" traits="StaticText" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeImage type="XCUIElementTypeImage" name="ic_chevron_right" enabled="true" visible="true" accessible="false" x="266" y="421" width="24" height="25" index="2" traits="Image" />
+                    </XCUIElementTypeImage>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="455" width="288" height="1" index="15" traits="" />
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="SettingPageHelpCenterCell-3" label="Send Feedback" enabled="true" visible="true" accessible="true" x="16" y="455" width="288" height="45" index="16" traits="Image">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="455" width="288" height="45" index="0" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="455" width="288" height="45" index="0" traits="" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="455" width="252" height="45" index="1" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Send Feedback" name="Send Feedback" label="Send Feedback" enabled="true" visible="true" accessible="false" x="31" y="469" width="102" height="17" index="0" traits="StaticText" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeImage type="XCUIElementTypeImage" name="ic_chevron_right" enabled="true" visible="true" accessible="false" x="266" y="465" width="24" height="25" index="2" traits="Image" />
+                    </XCUIElementTypeImage>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="499" width="288" height="1" index="17" traits="" />
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="SettingPageHelpCenterCell-4" label="What are credits?" enabled="true" visible="true" accessible="true" x="16" y="499" width="288" height="45" index="18" traits="Image">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="499" width="288" height="45" index="0" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="499" width="288" height="45" index="0" traits="" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="499" width="252" height="45" index="1" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="What are credits?" name="What are credits?" label="What are credits?" enabled="true" visible="true" accessible="false" x="32" y="513" width="114" height="17" index="0" traits="StaticText" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeImage type="XCUIElementTypeImage" name="ic_chevron_right" enabled="true" visible="true" accessible="false" x="266" y="509" width="24" height="25" index="2" traits="Image" />
+                    </XCUIElementTypeImage>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="543" width="288" height="1" index="19" traits="" />
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="SettingPageHelpCenterCell-5" label="PhotoDirector for PC/Mac" enabled="true" visible="true" accessible="true" x="16" y="543" width="288" height="45" index="20" traits="Image">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="543" width="288" height="45" index="0" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="543" width="288" height="45" index="0" traits="" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="543" width="252" height="45" index="1" traits="">
+                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="PhotoDirector for PC/Mac" name="PhotoDirector for PC/Mac" label="PhotoDirector for PC/Mac" enabled="true" visible="true" accessible="false" x="32" y="557" width="166" height="17" index="0" traits="StaticText" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeImage type="XCUIElementTypeImage" name="ic_chevron_right" enabled="true" visible="true" accessible="false" x="266" y="553" width="24" height="25" index="2" traits="Image" />
+                    </XCUIElementTypeImage>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 1 page" label="Vertical scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="287" y="87" width="30" height="521" index="21" traits="Adjustable">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="314" y="90" width="3" height="288" index="0" traits="" />
+                    </XCUIElementTypeOther>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="0" y="574" width="320" height="31" index="22" traits="Adjustable">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="3" y="601" width="311" height="4" index="0" traits="" />
+                    </XCUIElementTypeOther>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 1 page" label="Vertical scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="287" y="87" width="30" height="521" index="23" traits="Adjustable">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="314" y="90" width="3" height="288" index="0" traits="" />
+                    </XCUIElementTypeOther>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="0" y="574" width="320" height="31" index="24" traits="Adjustable">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="3" y="601" width="311" height="4" index="0" traits="" />
+                    </XCUIElementTypeOther>
+                  </XCUIElementTypeCollectionView>
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="607" width="320" height="34" index="1" traits="">
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="107" y="607" width="106" height="34" index="0" traits="">
+                      <XCUIElementTypeButton type="XCUIElementTypeButton" name="igButton" label="ic IG n" enabled="true" visible="true" accessible="true" x="107" y="607" width="34" height="34" index="0" traits="Button" />
+                      <XCUIElementTypeButton type="XCUIElementTypeButton" name="youtubeButton" label="ic U2 n" enabled="true" visible="true" accessible="true" x="179" y="607" width="34" height="34" index="1" traits="Button" />
+                    </XCUIElementTypeOther>
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeOther>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 1 page" label="Vertical scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="287" y="87" width="30" height="577" index="1" traits="Adjustable">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="314" y="113" width="3" height="548" index="0" traits="" />
+                </XCUIElementTypeOther>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="0" y="631" width="320" height="30" index="2" traits="Adjustable">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="3" y="658" width="314" height="3" index="0" traits="" />
+                </XCUIElementTypeOther>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 1 page" label="Vertical scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="287" y="87" width="30" height="577" index="3" traits="Adjustable">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="314" y="113" width="3" height="548" index="0" traits="" />
+                </XCUIElementTypeOther>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="0" y="631" width="320" height="30" index="4" traits="Adjustable">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="3" y="658" width="314" height="3" index="0" traits="" />
+                </XCUIElementTypeOther>
+              </XCUIElementTypeScrollView>
+            </XCUIElementTypeOther>
+          </XCUIElementTypeOther>
+        </XCUIElementTypeOther>
+      </XCUIElementTypeOther>
+    </XCUIElementTypeOther>
+  </XCUIElementTypeWindow>
+</XCUIElementTypeApplication>

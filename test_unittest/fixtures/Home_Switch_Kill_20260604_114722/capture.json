@@ -1,0 +1,61 @@
+{
+  "captured_at": "2026-06-04T11:47:22",
+  "case_name": "Home_Switch_Kill",
+  "entries": [
+    {
+      "input": {
+        "action": "home"
+      },
+      "output": {
+        "action": "home",
+        "timestamp": 1780544825.564298
+      },
+      "hierarchy_file": null
+    },
+    {
+      "input": {
+        "action": "launch_app",
+        "bundle_id": "com.cyberlink.photodirector"
+      },
+      "output": {
+        "action": "launch_app",
+        "bundle_id": "com.cyberlink.photodirector",
+        "app_name": "PhotoDirector",
+        "timestamp": 1780544830.277063
+      },
+      "hierarchy_file": null
+    },
+    {
+      "input": {
+        "action": "terminate_app",
+        "bundle_id": "com.cyberlink.photodirector"
+      },
+      "output": {
+        "action": "terminate_app",
+        "bundle_id": "com.cyberlink.photodirector",
+        "app_name": "PhotoDirector",
+        "timestamp": 1780544837.9967208
+      },
+      "hierarchy_file": null
+    }
+  ],
+  "steps": [
+    {
+      "action": "home",
+      "timestamp": 1780544825.564298
+    },
+    {
+      "action": "launch_app",
+      "bundle_id": "com.cyberlink.photodirector",
+      "app_name": "PhotoDirector",
+      "timestamp": 1780544830.277063
+    },
+    {
+      "action": "terminate_app",
+      "bundle_id": "com.cyberlink.photodirector",
+      "app_name": "PhotoDirector",
+      "timestamp": 1780544837.9967208
+    }
+  ],
+  "codegen_output": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"Home_Switch_Kill\")\ndef test_Home_Switch_Kill(actions: DriverActions):\n    with step(\"[Action] Press Home button\"):\n        actions.press_home()\n    with step(\"[Action] Launch PhotoDirector\"):\n        actions.launch_app('com.cyberlink.photodirector')\n    with step(\"[Action] Terminate PhotoDirector\"):\n        actions.terminate_app('com.cyberlink.photodirector')\n    assert True\n"
+}

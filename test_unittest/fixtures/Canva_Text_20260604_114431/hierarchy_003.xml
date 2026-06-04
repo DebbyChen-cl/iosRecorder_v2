@@ -1,0 +1,289 @@
+<XCUIElementTypeApplication type="XCUIElementTypeApplication" name="PhotoDirector" label="PhotoDirector" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="" processId="647" bundleId="com.cyberlink.photodirector">
+  <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="" />
+    </XCUIElementTypeOther>
+    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="1" traits="" />
+    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="2" traits="" />
+    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="3" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" name="photodirector.AddImageViewController" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+            <XCUIElementTypeImage type="XCUIElementTypeImage" name="AppLogo" enabled="true" visible="false" accessible="false" x="112" y="228" width="96" height="96" index="0" traits="Image" />
+            <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Looks Perfect!" name="Looks Perfect!" label="Looks Perfect!" enabled="true" visible="false" accessible="true" x="32" y="334" width="256" height="25" index="1" traits="StaticText" />
+            <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Join PhotoDirector Premium to unlock the current effect." name="Join PhotoDirector Premium to unlock the current effect." label="Join PhotoDirector Premium to unlock the current effect." enabled="true" visible="false" accessible="true" x="64" y="369" width="192" height="33" index="2" traits="StaticText" />
+          </XCUIElementTypeOther>
+          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="1" traits="">
+            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="38" index="0" traits="" />
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="38" width="320" height="289" index="1" traits="">
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="38" width="320" height="289" index="0" traits="" />
+                <XCUIElementTypeImage type="XCUIElementTypeImage" enabled="true" visible="false" accessible="false" x="15" y="38" width="290" height="289" index="1" traits="Image">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="47" y="137" width="226" height="91" index="0" traits="">
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="63" y="152" width="194" height="61" index="0" traits="">
+                      <XCUIElementTypeImage type="XCUIElementTypeImage" enabled="true" visible="false" accessible="false" x="63" y="152" width="194" height="61" index="0" traits="Image" />
+                    </XCUIElementTypeOther>
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeImage>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="15" y="38" width="290" height="289" index="2" traits="" />
+              </XCUIElementTypeOther>
+              <XCUIElementTypeButton type="XCUIElementTypeButton" name="maskButton" label="btn eraser n" enabled="true" visible="false" accessible="true" x="7" y="289" width="30" height="31" index="2" traits="Button" />
+              <XCUIElementTypeButton type="XCUIElementTypeButton" name="layerButton" label="btn layer n" enabled="true" visible="false" accessible="true" x="283" y="289" width="30" height="31" index="3" traits="Button" />
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="326" width="320" height="302" index="4" traits="">
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="326" width="320" height="302" index="0" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="326" width="320" height="302" index="0" traits="">
+                    <XCUIElementTypeButton type="XCUIElementTypeButton" name="leaveButton" enabled="true" visible="false" accessible="true" x="283" y="326" width="30" height="31" index="0" traits="Button">
+                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="false" accessible="false" x="283" y="326" width="0" height="1" index="0" traits="StaticText" />
+                    </XCUIElementTypeButton>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="143" y="340" width="34" height="4" index="1" traits="" />
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="356" width="320" height="34" index="2" traits="">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="356" width="320" height="34" index="0" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="67" y="356" width="186" height="34" index="0" traits="">
+                          <XCUIElementTypeButton type="XCUIElementTypeButton" name="NonScrollableMenuView-0" label="Preset" enabled="true" visible="false" accessible="true" x="74" y="356" width="51" height="34" index="0" traits="Button">
+                            <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Preset" name="Preset" label="Preset" enabled="true" visible="false" accessible="false" x="82" y="366" width="35" height="15" index="0" traits="StaticText" />
+                          </XCUIElementTypeButton>
+                          <XCUIElementTypeButton type="XCUIElementTypeButton" name="NonScrollableMenuView-1" label="Font" enabled="true" visible="false" accessible="true" x="138" y="356" width="51" height="34" index="1" traits="Button">
+                            <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Font" name="Font" label="Font" enabled="true" visible="false" accessible="false" x="151" y="366" width="25" height="15" index="0" traits="StaticText" />
+                          </XCUIElementTypeButton>
+                          <XCUIElementTypeButton type="XCUIElementTypeButton" name="NonScrollableMenuView-2" label="Style" enabled="true" visible="false" accessible="true" x="202" y="356" width="51" height="34" index="2" traits="Button">
+                            <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Style" name="Style" label="Style" enabled="true" visible="false" accessible="false" x="214" y="366" width="28" height="15" index="0" traits="StaticText" />
+                          </XCUIElementTypeButton>
+                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="82" y="382" width="35" height="3" index="3" traits="" />
+                        </XCUIElementTypeOther>
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="389" width="320" height="2" index="1" traits="" />
+                      </XCUIElementTypeOther>
+                    </XCUIElementTypeOther>
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="389" width="320" height="240" index="3" traits="">
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="389" width="320" height="240" index="0" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="389" width="320" height="34" index="0" traits="">
+                          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="389" width="320" height="34" index="0" traits="">
+                            <XCUIElementTypeCollectionView type="XCUIElementTypeCollectionView" name="titleCollectionViewCollectionView" enabled="true" visible="false" accessible="false" x="0" y="389" width="320" height="34" index="0" traits="">
+                              <XCUIElementTypeCell type="XCUIElementTypeCell" name="category_textstyle_favorite" enabled="true" visible="false" accessible="false" x="0" y="392" width="81" height="28" index="0" traits="">
+                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="392" width="81" height="28" index="0" traits="">
+                                  <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Favorites" name="Favorites" label="Favorites" enabled="true" visible="false" accessible="true" x="3" y="392" width="75" height="28" index="0" traits="StaticText" />
+                                </XCUIElementTypeOther>
+                              </XCUIElementTypeCell>
+                              <XCUIElementTypeCell type="XCUIElementTypeCell" name="category_textstyle_trending_selected" enabled="true" visible="false" accessible="false" x="90" y="392" width="80" height="28" index="1" traits="">
+                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="90" y="392" width="80" height="28" index="0" traits="">
+                                  <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Trending" name="Trending" label="Trending" enabled="true" visible="false" accessible="true" x="93" y="392" width="74" height="28" index="0" traits="StaticText" />
+                                </XCUIElementTypeOther>
+                              </XCUIElementTypeCell>
+                              <XCUIElementTypeCell type="XCUIElementTypeCell" name="category_textstyle_background" enabled="true" visible="true" accessible="false" x="179" y="392" width="96" height="28" index="2" traits="">
+                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="179" y="392" width="96" height="28" index="0" traits="">
+                                  <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Background" name="Background" label="Background" enabled="true" visible="true" accessible="true" x="182" y="392" width="90" height="28" index="0" traits="StaticText" />
+                                </XCUIElementTypeOther>
+                              </XCUIElementTypeCell>
+                              <XCUIElementTypeCell type="XCUIElementTypeCell" name="category_textstyle_colorful" enabled="true" visible="false" accessible="false" x="285" y="392" width="75" height="28" index="3" traits="">
+                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="285" y="392" width="75" height="28" index="0" traits="">
+                                  <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Colorful" name="Colorful" label="Colorful" enabled="true" visible="false" accessible="true" x="288" y="392" width="69" height="28" index="0" traits="StaticText" />
+                                </XCUIElementTypeOther>
+                              </XCUIElementTypeCell>
+                              <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 2 pages" label="Vertical scroll bar, 2 pages" enabled="true" visible="false" accessible="false" x="287" y="389" width="30" height="34" index="4" traits="Adjustable">
+                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="314" y="350" width="3" height="37" index="0" traits="" />
+                              </XCUIElementTypeOther>
+                              <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 2 pages" label="Vertical scroll bar, 2 pages" enabled="true" visible="false" accessible="false" x="287" y="389" width="30" height="34" index="5" traits="Adjustable">
+                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="314" y="350" width="3" height="37" index="0" traits="" />
+                              </XCUIElementTypeOther>
+                            </XCUIElementTypeCollectionView>
+                          </XCUIElementTypeOther>
+                        </XCUIElementTypeOther>
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="422" width="320" height="207" index="1" traits="">
+                          <XCUIElementTypeScrollView type="XCUIElementTypeScrollView" enabled="true" visible="false" accessible="false" x="0" y="422" width="320" height="206" index="0" traits="">
+                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="422" width="320" height="207" index="0" traits="">
+                              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="422" width="320" height="206" index="0" traits="">
+                                <XCUIElementTypeCollectionView type="XCUIElementTypeCollectionView" name="presetCollectionView" enabled="true" visible="false" accessible="false" x="0" y="422" width="320" height="207" index="0" traits="">
+                                  <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="false" accessible="false" x="8" y="422" width="94" height="64" index="0" traits="">
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="8" y="422" width="94" height="64" index="0" traits="">
+                                      <XCUIElementTypeImage type="XCUIElementTypeImage" name="ic_none" enabled="true" visible="false" accessible="false" x="40" y="439" width="30" height="31" index="0" traits="Image" />
+                                    </XCUIElementTypeOther>
+                                  </XCUIElementTypeCell>
+                                  <XCUIElementTypeCell type="XCUIElementTypeCell" name="CMS-phdm_text_style_202212_004" enabled="true" visible="false" accessible="false" x="113" y="422" width="94" height="64" index="1" traits="">
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="113" y="422" width="94" height="64" index="0" traits="">
+                                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="false" accessible="false" x="113" y="422" width="94" height="64" index="0" traits="StaticText" />
+                                      <XCUIElementTypeImage type="XCUIElementTypeImage" enabled="true" visible="false" accessible="false" x="119" y="422" width="82" height="64" index="1" traits="Image" />
+                                    </XCUIElementTypeOther>
+                                  </XCUIElementTypeCell>
+                                  <XCUIElementTypeCell type="XCUIElementTypeCell" name="CMS-phdm_text_style_202508_011" enabled="true" visible="false" accessible="false" x="218" y="422" width="94" height="64" index="2" traits="">
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="218" y="422" width="94" height="64" index="0" traits="">
+                                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="false" accessible="false" x="218" y="422" width="94" height="64" index="0" traits="StaticText" />
+                                      <XCUIElementTypeImage type="XCUIElementTypeImage" enabled="true" visible="false" accessible="false" x="224" y="422" width="82" height="64" index="1" traits="Image" />
+                                    </XCUIElementTypeOther>
+                                  </XCUIElementTypeCell>
+                                  <XCUIElementTypeCell type="XCUIElementTypeCell" name="CMS-phdm_text_style_202508_001" enabled="true" visible="false" accessible="false" x="8" y="493" width="94" height="64" index="3" traits="">
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="8" y="493" width="94" height="64" index="0" traits="">
+                                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="false" accessible="false" x="8" y="493" width="94" height="64" index="0" traits="StaticText" />
+                                      <XCUIElementTypeImage type="XCUIElementTypeImage" enabled="true" visible="false" accessible="false" x="14" y="493" width="82" height="64" index="1" traits="Image" />
+                                      <XCUIElementTypeImage type="XCUIElementTypeImage" name="ic_crown_circle_black_crown" enabled="true" visible="false" accessible="false" x="91" y="494" width="10" height="11" index="2" traits="Image" />
+                                    </XCUIElementTypeOther>
+                                  </XCUIElementTypeCell>
+                                  <XCUIElementTypeCell type="XCUIElementTypeCell" name="CMS-phdm_text_style_202210_st_001" enabled="true" visible="false" accessible="false" x="113" y="493" width="94" height="64" index="4" traits="">
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="113" y="493" width="94" height="64" index="0" traits="">
+                                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="false" accessible="false" x="113" y="493" width="94" height="64" index="0" traits="StaticText" />
+                                      <XCUIElementTypeImage type="XCUIElementTypeImage" enabled="true" visible="false" accessible="false" x="119" y="493" width="82" height="64" index="1" traits="Image" />
+                                    </XCUIElementTypeOther>
+                                  </XCUIElementTypeCell>
+                                  <XCUIElementTypeCell type="XCUIElementTypeCell" name="CMS-phdm_text_style_202210_st_002" enabled="true" visible="false" accessible="false" x="218" y="493" width="94" height="64" index="5" traits="">
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="218" y="493" width="94" height="64" index="0" traits="">
+                                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="false" accessible="false" x="218" y="493" width="94" height="64" index="0" traits="StaticText" />
+                                      <XCUIElementTypeImage type="XCUIElementTypeImage" enabled="true" visible="false" accessible="false" x="224" y="493" width="82" height="64" index="1" traits="Image" />
+                                    </XCUIElementTypeOther>
+                                  </XCUIElementTypeCell>
+                                  <XCUIElementTypeCell type="XCUIElementTypeCell" name="CMS-phdm_text_style_202210_st_003" enabled="true" visible="false" accessible="false" x="8" y="564" width="94" height="63" index="6" traits="">
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="8" y="564" width="94" height="63" index="0" traits="">
+                                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="false" accessible="false" x="8" y="564" width="94" height="63" index="0" traits="StaticText" />
+                                      <XCUIElementTypeImage type="XCUIElementTypeImage" enabled="true" visible="false" accessible="false" x="14" y="564" width="82" height="63" index="1" traits="Image" />
+                                    </XCUIElementTypeOther>
+                                  </XCUIElementTypeCell>
+                                  <XCUIElementTypeCell type="XCUIElementTypeCell" name="CMS-phdm_text_style_202210_st_004" enabled="true" visible="false" accessible="false" x="113" y="564" width="94" height="63" index="7" traits="">
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="113" y="564" width="94" height="63" index="0" traits="">
+                                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="false" accessible="false" x="113" y="564" width="94" height="63" index="0" traits="StaticText" />
+                                      <XCUIElementTypeImage type="XCUIElementTypeImage" enabled="true" visible="false" accessible="false" x="119" y="564" width="82" height="63" index="1" traits="Image" />
+                                    </XCUIElementTypeOther>
+                                  </XCUIElementTypeCell>
+                                  <XCUIElementTypeCell type="XCUIElementTypeCell" name="CMS-phdm_text_style_202508_014" enabled="true" visible="false" accessible="false" x="218" y="564" width="94" height="63" index="8" traits="">
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="218" y="564" width="94" height="63" index="0" traits="">
+                                      <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="false" accessible="false" x="218" y="564" width="94" height="63" index="0" traits="StaticText" />
+                                      <XCUIElementTypeImage type="XCUIElementTypeImage" enabled="true" visible="false" accessible="false" x="224" y="564" width="82" height="63" index="1" traits="Image" />
+                                      <XCUIElementTypeImage type="XCUIElementTypeImage" name="ic_crown_circle_black_crown" enabled="true" visible="false" accessible="false" x="301" y="565" width="10" height="11" index="2" traits="Image" />
+                                    </XCUIElementTypeOther>
+                                  </XCUIElementTypeCell>
+                                  <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 3 pages" label="Vertical scroll bar, 3 pages" enabled="true" visible="false" accessible="false" x="287" y="422" width="30" height="178" index="9" traits="Adjustable">
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="314" y="425" width="3" height="69" index="0" traits="" />
+                                  </XCUIElementTypeOther>
+                                  <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="false" accessible="false" x="0" y="566" width="320" height="31" index="10" traits="Adjustable">
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="3" y="593" width="311" height="4" index="0" traits="" />
+                                  </XCUIElementTypeOther>
+                                  <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 3 pages" label="Vertical scroll bar, 3 pages" enabled="true" visible="false" accessible="false" x="287" y="422" width="30" height="178" index="11" traits="Adjustable">
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="314" y="425" width="3" height="69" index="0" traits="" />
+                                  </XCUIElementTypeOther>
+                                  <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="false" accessible="false" x="0" y="566" width="320" height="31" index="12" traits="Adjustable">
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="3" y="593" width="311" height="4" index="0" traits="" />
+                                  </XCUIElementTypeOther>
+                                </XCUIElementTypeCollectionView>
+                              </XCUIElementTypeOther>
+                            </XCUIElementTypeOther>
+                          </XCUIElementTypeScrollView>
+                        </XCUIElementTypeOther>
+                      </XCUIElementTypeOther>
+                    </XCUIElementTypeOther>
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeOther>
+              </XCUIElementTypeOther>
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="628" width="320" height="36" index="5" traits="">
+                <XCUIElementTypeButton type="XCUIElementTypeButton" name="btn_cancel_n" enabled="true" visible="false" accessible="true" x="13" y="628" width="36" height="36" index="0" traits="Button" />
+                <XCUIElementTypeButton type="XCUIElementTypeButton" name="ic_undo" enabled="true" visible="false" accessible="true" x="77" y="628" width="37" height="36" index="1" traits="Button" />
+                <XCUIElementTypeButton type="XCUIElementTypeButton" name="ic_redo" enabled="false" visible="false" accessible="true" x="142" y="628" width="36" height="36" index="2" traits="NotEnabled, Button" />
+                <XCUIElementTypeButton type="XCUIElementTypeButton" name="btn_add_n" enabled="true" visible="false" accessible="true" x="206" y="628" width="37" height="36" index="3" traits="Button" />
+                <XCUIElementTypeButton type="XCUIElementTypeButton" name="btn_ok_n" enabled="true" visible="false" accessible="true" x="271" y="628" width="36" height="36" index="4" traits="Button" />
+              </XCUIElementTypeOther>
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="664" width="320" height="29" index="6" traits="" />
+            </XCUIElementTypeOther>
+          </XCUIElementTypeOther>
+        </XCUIElementTypeOther>
+        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="1" traits="">
+          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="" />
+          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="25" y="25" width="270" height="257" index="1" traits="">
+            <XCUIElementTypeImage type="XCUIElementTypeImage" enabled="true" visible="true" accessible="false" x="73" y="126" width="174" height="55" index="0" traits="Image" />
+          </XCUIElementTypeOther>
+          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="307" width="320" height="111" index="2" traits="" />
+          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="307" width="320" height="111" index="3" traits="">
+            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="307" width="17" height="17" index="0" traits="" />
+            <XCUIElementTypeButton type="XCUIElementTypeButton" name="cancelButton" label="btn top cancel p" enabled="true" visible="true" accessible="true" x="3" y="320" width="33" height="34" index="1" traits="Button" />
+            <XCUIElementTypeOther type="XCUIElementTypeOther" name="formatSettingStackView" enabled="true" visible="true" accessible="false" x="39" y="319" width="242" height="36" index="2" traits="">
+              <XCUIElementTypeButton type="XCUIElementTypeButton" name="boldButton" label="btn bold n" enabled="true" visible="true" accessible="true" x="39" y="319" width="37" height="36" index="0" traits="Button" />
+              <XCUIElementTypeButton type="XCUIElementTypeButton" name="italicButton" label="btn italic n" enabled="true" visible="true" accessible="true" x="80" y="319" width="37" height="36" index="1" traits="Button" />
+              <XCUIElementTypeOther type="XCUIElementTypeOther" name="divider" enabled="true" visible="true" accessible="false" x="121" y="319" width="37" height="36" index="2" traits="" />
+              <XCUIElementTypeButton type="XCUIElementTypeButton" name="leftAlignmentButton" label="btn align left n" enabled="true" visible="true" accessible="true" x="162" y="319" width="37" height="36" index="3" traits="Button" />
+              <XCUIElementTypeButton type="XCUIElementTypeButton" value="1" name="centerAlignmentButton" label="btn align center n" enabled="true" visible="true" accessible="true" x="203" y="319" width="37" height="36" index="4" traits="Selected, Button" />
+              <XCUIElementTypeButton type="XCUIElementTypeButton" name="rightAlignmentButton" label="btn align right n" enabled="true" visible="true" accessible="true" x="244" y="319" width="37" height="36" index="5" traits="Button" />
+            </XCUIElementTypeOther>
+            <XCUIElementTypeButton type="XCUIElementTypeButton" name="applyButton" label="btn top done n" enabled="true" visible="true" accessible="true" x="284" y="320" width="33" height="34" index="3" traits="Button" />
+            <XCUIElementTypeOther type="XCUIElementTypeOther" name="miniInputBar" enabled="true" visible="true" accessible="false" x="12" y="366" width="296" height="41" index="4" traits="">
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="12" y="366" width="17" height="17" index="0" traits="" />
+              <XCUIElementTypeTextView type="XCUIElementTypeTextView" value="Text here" name="miniTextView" enabled="true" visible="true" accessible="true" x="16" y="370" width="262" height="33" index="1" traits="">
+                <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 1 page" label="Vertical scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="245" y="370" width="30" height="33" index="0" traits="Adjustable">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="272" y="375" width="3" height="25" index="0" traits="" />
+                </XCUIElementTypeOther>
+              </XCUIElementTypeTextView>
+              <XCUIElementTypeButton type="XCUIElementTypeButton" name="clearTextButton" label="btn iap close n" enabled="true" visible="true" accessible="true" x="278" y="377" width="18" height="19" index="2" traits="Button" />
+            </XCUIElementTypeOther>
+          </XCUIElementTypeOther>
+          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="418" width="320" height="275" index="4" traits="" />
+        </XCUIElementTypeOther>
+      </XCUIElementTypeOther>
+    </XCUIElementTypeOther>
+  </XCUIElementTypeWindow>
+  <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="1" traits="">
+    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="" />
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="418" width="320" height="275" index="1" traits="">
+        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="418" width="320" height="217" index="0" traits="" />
+      </XCUIElementTypeOther>
+    </XCUIElementTypeOther>
+  </XCUIElementTypeWindow>
+  <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="2" traits="">
+    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="418" width="320" height="275" index="0" traits="">
+        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="418" width="320" height="217" index="0" traits="">
+          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="418" width="320" height="275" index="0" traits="">
+            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="418" width="320" height="275" index="0" traits="">
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="418" width="320" height="275" index="0" traits="" />
+            </XCUIElementTypeOther>
+          </XCUIElementTypeOther>
+        </XCUIElementTypeOther>
+        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="418" width="320" height="217" index="1" traits="">
+          <XCUIElementTypeKeyboard type="XCUIElementTypeKeyboard" enabled="true" visible="true" accessible="false" x="0" y="418" width="320" height="217" index="0" traits="">
+            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="418" width="320" height="217" index="0" traits="">
+              <XCUIElementTypeOther type="XCUIElementTypeOther" name="UIKeyboardLayoutStar Preview" enabled="true" visible="true" accessible="false" x="0" y="418" width="320" height="217" index="0" traits="">
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="Q" label="Q" enabled="true" visible="true" accessible="true" x="0" y="424" width="32" height="43" index="0" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="W" label="W" enabled="true" visible="true" accessible="true" x="32" y="424" width="32" height="43" index="1" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="E" label="E" enabled="true" visible="true" accessible="true" x="64" y="424" width="32" height="43" index="2" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="R" label="R" enabled="true" visible="true" accessible="true" x="96" y="424" width="32" height="43" index="3" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="T" label="T" enabled="true" visible="true" accessible="true" x="128" y="424" width="32" height="43" index="4" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="Y" label="Y" enabled="true" visible="true" accessible="true" x="160" y="424" width="32" height="43" index="5" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="U" label="U" enabled="true" visible="true" accessible="true" x="192" y="424" width="32" height="43" index="6" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="I" label="I" enabled="true" visible="true" accessible="true" x="224" y="424" width="32" height="43" index="7" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="O" label="O" enabled="true" visible="true" accessible="true" x="256" y="424" width="32" height="43" index="8" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="P" label="P" enabled="true" visible="true" accessible="true" x="288" y="424" width="32" height="43" index="9" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="A" label="A" enabled="true" visible="true" accessible="true" x="15" y="474" width="33" height="43" index="10" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="S" label="S" enabled="true" visible="true" accessible="true" x="47" y="474" width="33" height="43" index="11" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="D" label="D" enabled="true" visible="true" accessible="true" x="79" y="474" width="33" height="43" index="12" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="F" label="F" enabled="true" visible="true" accessible="true" x="111" y="474" width="33" height="43" index="13" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="G" label="G" enabled="true" visible="true" accessible="true" x="144" y="474" width="33" height="43" index="14" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="H" label="H" enabled="true" visible="true" accessible="true" x="176" y="474" width="33" height="43" index="15" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="J" label="J" enabled="true" visible="true" accessible="true" x="208" y="474" width="33" height="43" index="16" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="K" label="K" enabled="true" visible="true" accessible="true" x="240" y="474" width="33" height="43" index="17" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="L" label="L" enabled="true" visible="true" accessible="true" x="272" y="474" width="33" height="43" index="18" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeButton type="XCUIElementTypeButton" value="1" name="shift" label="maiúsculas" enabled="true" visible="true" accessible="true" x="0" y="524" width="41" height="43" index="19" traits="Selected, PlaysSound, KeyboardKey, Button" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="Z" label="Z" enabled="true" visible="true" accessible="true" x="47" y="524" width="33" height="43" index="20" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="X" label="X" enabled="true" visible="true" accessible="true" x="79" y="524" width="33" height="43" index="21" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="C" label="C" enabled="true" visible="true" accessible="true" x="111" y="524" width="33" height="43" index="22" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="V" label="V" enabled="true" visible="true" accessible="true" x="144" y="524" width="33" height="43" index="23" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="B" label="B" enabled="true" visible="true" accessible="true" x="176" y="524" width="33" height="43" index="24" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="N" label="N" enabled="true" visible="true" accessible="true" x="208" y="524" width="33" height="43" index="25" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="M" label="M" enabled="true" visible="true" accessible="true" x="240" y="524" width="33" height="43" index="26" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="delete" label="apagar" enabled="true" visible="true" accessible="true" x="279" y="524" width="42" height="43" index="27" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="more" label="números" enabled="true" visible="true" accessible="true" x="0" y="574" width="40" height="43" index="28" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeButton type="XCUIElementTypeButton" name="emoji" label="Emoji" enabled="true" visible="true" accessible="true" x="39" y="574" width="41" height="43" index="29" traits="PlaysSound, KeyboardKey, Button" />
+                <XCUIElementTypeKey type="XCUIElementTypeKey" name="space" label="espaço" enabled="true" visible="true" accessible="true" x="79" y="574" width="162" height="43" index="30" traits="PlaysSound, KeyboardKey" />
+                <XCUIElementTypeButton type="XCUIElementTypeButton" name="Return" label="retorno" enabled="true" visible="true" accessible="true" x="240" y="574" width="80" height="43" index="31" traits="PlaysSound, KeyboardKey, Button" />
+              </XCUIElementTypeOther>
+            </XCUIElementTypeOther>
+          </XCUIElementTypeKeyboard>
+        </XCUIElementTypeOther>
+        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="true" x="0" y="418" width="320" height="275" index="2" traits="">
+          <XCUIElementTypeButton type="XCUIElementTypeButton" value="English (US)" name="Next keyboard" label="Next keyboard" enabled="true" visible="true" accessible="false" x="7" y="631" width="59" height="59" index="0" traits="KeyboardKey, Button">
+            <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="false" accessible="false" x="7" y="631" width="1" height="1" index="0" traits="StaticText" />
+          </XCUIElementTypeButton>
+          <XCUIElementTypeButton type="XCUIElementTypeButton" name="dictation" label="Dictate" enabled="true" visible="true" accessible="false" x="254" y="630" width="59" height="60" index="1" traits="KeyboardKey, Button">
+            <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="false" accessible="false" x="254" y="630" width="1" height="1" index="0" traits="StaticText" />
+          </XCUIElementTypeButton>
+          <XCUIElementTypeButton type="XCUIElementTypeButton" name="dictation" label="Dictate" enabled="true" visible="true" accessible="false" x="254" y="630" width="59" height="60" index="2" traits="KeyboardKey, Button">
+            <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="false" accessible="false" x="254" y="630" width="1" height="1" index="0" traits="StaticText" />
+          </XCUIElementTypeButton>
+        </XCUIElementTypeOther>
+      </XCUIElementTypeOther>
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="320" y="693" width="1" height="1" index="1" traits="" />
+    </XCUIElementTypeOther>
+  </XCUIElementTypeWindow>
+</XCUIElementTypeApplication>

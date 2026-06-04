@@ -1,0 +1,164 @@
+{
+  "step_000_t1": {
+    "action": "tap",
+    "coords": {
+      "x": 294.0,
+      "y": 62.0
+    }
+  },
+  "step_001_t1": {
+    "action": "verify_visible",
+    "coords": {
+      "x": 94.0,
+      "y": 303.0
+    }
+  },
+  "step_002_t1": {
+    "action": "verify_get_text",
+    "coords": {
+      "x": 104.0,
+      "y": 307.0
+    }
+  },
+  "step_003_t1": {
+    "action": "tap",
+    "coords": {
+      "x": 21.0,
+      "y": 59.0
+    }
+  },
+  "step_004_t1": {
+    "action": "verify_not_visible",
+    "coords": {
+      "x": 97.0,
+      "y": 307.0
+    }
+  },
+  "step_000_t2": {
+    "type": "accessibility id",
+    "value": "btnSettings"
+  },
+  "step_001_t2": {
+    "type": "accessibility id",
+    "value": "Sign in"
+  },
+  "step_002_t2": {
+    "type": "accessibility id",
+    "value": "Sign in"
+  },
+  "step_003_t2": {
+    "type": "accessibility id",
+    "value": "btnBack"
+  },
+  "step_000_t3": {
+    "action": "tap",
+    "coords": {
+      "x": 294.0,
+      "y": 62.0
+    },
+    "target": {
+      "type": "accessibility id",
+      "value": "btnSettings",
+      "selector_quality": "id",
+      "xpath": "//XCUIElementTypeButton[@name='btnSettings']",
+      "offset_pct": {
+        "x": 76.0,
+        "y": 53.8
+      },
+      "bounds": {
+        "x": 275,
+        "y": 48,
+        "w": 25,
+        "h": 26
+      }
+    }
+  },
+  "step_001_t3": {
+    "action": "verify_visible",
+    "coords": {
+      "x": 94.0,
+      "y": 303.0
+    },
+    "target": {
+      "type": "accessibility id",
+      "value": "Sign in",
+      "selector_quality": "id_eq_label",
+      "bounds": {
+        "x": 68,
+        "y": 296,
+        "w": 44,
+        "h": 18
+      }
+    }
+  },
+  "step_002_t3": {
+    "action": "verify_get_text",
+    "coords": {
+      "x": 104.0,
+      "y": 307.0
+    },
+    "expected_text": "Sign in",
+    "target": {
+      "type": "accessibility id",
+      "value": "Sign in",
+      "selector_quality": "id_eq_label",
+      "bounds": {
+        "x": 68,
+        "y": 296,
+        "w": 44,
+        "h": 18
+      }
+    }
+  },
+  "step_003_t3": {
+    "action": "tap",
+    "coords": {
+      "x": 21.0,
+      "y": 59.0
+    },
+    "target": {
+      "type": "accessibility id",
+      "value": "btnBack",
+      "selector_quality": "id",
+      "xpath": "//XCUIElementTypeButton[@name='btnBack']",
+      "offset_pct": {
+        "x": 61.9,
+        "y": 54.3
+      },
+      "bounds": {
+        "x": 8,
+        "y": 40,
+        "w": 21,
+        "h": 35
+      }
+    }
+  },
+  "step_004_t3": {
+    "action": "verify_not_visible",
+    "coords": {
+      "x": 97.0,
+      "y": 307.0
+    }
+  },
+  "step_000_t4": {
+    "quality": "id",
+    "is_problematic": false
+  },
+  "step_001_t4": {
+    "quality": "id_eq_label",
+    "is_problematic": true
+  },
+  "step_002_t4": {
+    "quality": "id_eq_label",
+    "is_problematic": true
+  },
+  "step_003_t4": {
+    "quality": "id",
+    "is_problematic": false
+  },
+  "step_000_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap btnSettings at (76.0%, 53.8%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnSettings', 76.0, 53.8)\n    assert True\n",
+  "step_001_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Verify] Sign in is visible\"):\n        actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'Sign in')\n    assert True\n",
+  "step_002_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Verify] Sign in text equals 'Sign in'\"):\n        actions.verify_text(AppiumBy.ACCESSIBILITY_ID, 'Sign in', 'Sign in')\n    assert True\n",
+  "step_003_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap btnBack at (61.9%, 54.3%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnBack', 61.9, 54.3)\n    assert True\n",
+  "step_004_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Verify] Sign in is not visible\"):\n        actions.verify_not_visible(AppiumBy.ACCESSIBILITY_ID, 'Sign in')\n    assert True\n"
+}

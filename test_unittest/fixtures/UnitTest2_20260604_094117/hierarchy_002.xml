@@ -1,0 +1,129 @@
+<XCUIElementTypeApplication type="XCUIElementTypeApplication" name="PhotoDirector" label="PhotoDirector" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="" processId="1050" bundleId="com.cyberlink.photodirector">
+  <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="" />
+    </XCUIElementTypeOther>
+    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="1" traits="" />
+    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="2" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+        <XCUIElementTypeNavigationBar type="XCUIElementTypeNavigationBar" name="Notices" enabled="true" visible="true" accessible="false" x="0" y="38" width="320" height="44" index="0" traits="">
+          <XCUIElementTypeButton type="XCUIElementTypeButton" name="Back" label="Back" enabled="true" visible="true" accessible="true" x="8" y="38" width="35" height="44" index="0" traits="Button" />
+          <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Notices" name="Notices" label="Notices" enabled="true" visible="true" accessible="true" x="139" y="55" width="42" height="14" index="1" traits="Header" />
+        </XCUIElementTypeNavigationBar>
+        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="1" traits="">
+          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+            <XCUIElementTypeOther type="XCUIElementTypeOther" name="photodirector.NoticeProViewController" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+              <XCUIElementTypeImage type="XCUIElementTypeImage" enabled="true" visible="false" accessible="false" x="13" y="69" width="46" height="46" index="0" traits="Image" />
+              <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="false" accessible="false" x="69" y="69" width="238" height="46" index="1" traits="StaticText" />
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="82" width="320" height="611" index="2" traits="" />
+              <XCUIElementTypeCollectionView type="XCUIElementTypeCollectionView" name="noticeInfoItemCollectionView" enabled="true" visible="true" accessible="false" x="13" y="92" width="294" height="601" index="3" traits="">
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="13" y="-1110" width="294" height="3176" index="0" traits="" />
+                <XCUIElementTypeCell type="XCUIElementTypeCell" name="NoticeProCollectionViewCell-0" enabled="true" visible="true" accessible="false" x="13" y="92" width="294" height="52" index="1" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="92" width="294" height="52" index="0" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="2026/05/31" name="2026/05/31" label="2026/05/31" enabled="true" visible="true" accessible="true" x="26" y="99" width="61" height="16" index="0" traits="StaticText" />
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Make it your own ✨📸" name="Make it your own ✨📸" label="Make it your own ✨📸" enabled="true" visible="true" accessible="true" x="26" y="117" width="145" height="20" index="1" traits="StaticText" />
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="chevron.down" label="go down" enabled="true" visible="true" accessible="false" x="274" y="111" width="20" height="11" index="2" traits="Image" />
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeCell>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="143" width="294" height="1" index="2" traits="" />
+                <XCUIElementTypeCell type="XCUIElementTypeCell" name="NoticeProCollectionViewCell-1" enabled="true" visible="true" accessible="false" x="13" y="144" width="294" height="52" index="3" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="144" width="294" height="52" index="0" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="2026/05/24" name="2026/05/24" label="2026/05/24" enabled="true" visible="true" accessible="true" x="26" y="151" width="62" height="16" index="0" traits="StaticText" />
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="New hairstyles just dropped 🔥✂️" name="New hairstyles just dropped 🔥✂️" label="New hairstyles just dropped 🔥✂️" enabled="true" visible="true" accessible="true" x="26" y="169" width="211" height="20" index="1" traits="StaticText" />
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="chevron.down" label="go down" enabled="true" visible="true" accessible="false" x="274" y="163" width="20" height="11" index="2" traits="Image" />
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeCell>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="195" width="294" height="2" index="4" traits="" />
+                <XCUIElementTypeCell type="XCUIElementTypeCell" name="NoticeProCollectionViewCell-2" enabled="true" visible="true" accessible="false" x="13" y="196" width="294" height="52" index="5" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="196" width="294" height="52" index="0" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="2026/05/20" name="2026/05/20" label="2026/05/20" enabled="true" visible="true" accessible="true" x="26" y="203" width="62" height="16" index="0" traits="StaticText" />
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Today’s mission: Be stunning 💞" name="Today’s mission: Be stunning 💞" label="Today’s mission: Be stunning 💞" enabled="true" visible="true" accessible="true" x="26" y="221" width="198" height="20" index="1" traits="StaticText" />
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="chevron.down" label="go down" enabled="true" visible="true" accessible="false" x="274" y="215" width="20" height="11" index="2" traits="Image" />
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeCell>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="247" width="294" height="1" index="6" traits="" />
+                <XCUIElementTypeCell type="XCUIElementTypeCell" name="NoticeProCollectionViewCell-3" enabled="true" visible="true" accessible="false" x="13" y="248" width="294" height="52" index="7" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="248" width="294" height="52" index="0" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="2026/05/17" name="2026/05/17" label="2026/05/17" enabled="true" visible="true" accessible="true" x="25" y="255" width="61" height="16" index="0" traits="StaticText" />
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Back in the Fashion Office 🕶️👠" name="Back in the Fashion Office 🕶️👠" label="Back in the Fashion Office 🕶️👠" enabled="true" visible="true" accessible="true" x="26" y="273" width="200" height="20" index="1" traits="StaticText" />
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="chevron.down" label="go down" enabled="true" visible="true" accessible="false" x="274" y="267" width="20" height="11" index="2" traits="Image" />
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeCell>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="299" width="294" height="1" index="8" traits="" />
+                <XCUIElementTypeCell type="XCUIElementTypeCell" name="NoticeProCollectionViewCell-4" enabled="true" visible="true" accessible="false" x="13" y="300" width="294" height="52" index="9" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="300" width="294" height="52" index="0" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="2026/05/10" name="2026/05/10" label="2026/05/10" enabled="true" visible="true" accessible="true" x="26" y="307" width="61" height="16" index="0" traits="StaticText" />
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Your Angel vs Devil 😇😈" name="Your Angel vs Devil 😇😈" label="Your Angel vs Devil 😇😈" enabled="true" visible="true" accessible="true" x="26" y="325" width="158" height="20" index="1" traits="StaticText" />
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="chevron.down" label="go down" enabled="true" visible="true" accessible="false" x="274" y="319" width="20" height="11" index="2" traits="Image" />
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeCell>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="351" width="294" height="1" index="10" traits="" />
+                <XCUIElementTypeCell type="XCUIElementTypeCell" name="NoticeProCollectionViewCell-5" enabled="true" visible="true" accessible="false" x="13" y="352" width="294" height="52" index="11" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="352" width="294" height="52" index="0" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="2026/05/05" name="2026/05/05" label="2026/05/05" enabled="true" visible="true" accessible="true" x="26" y="359" width="63" height="16" index="0" traits="StaticText" />
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="75% OFF Golden Week Sale 🛒🏷️" name="75% OFF Golden Week Sale 🛒🏷️" label="75% OFF Golden Week Sale 🛒🏷️" enabled="true" visible="true" accessible="true" x="26" y="377" width="211" height="20" index="1" traits="StaticText" />
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="chevron.down" label="go down" enabled="true" visible="true" accessible="false" x="274" y="371" width="20" height="11" index="2" traits="Image" />
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeCell>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="403" width="294" height="1" index="12" traits="" />
+                <XCUIElementTypeCell type="XCUIElementTypeCell" name="NoticeProCollectionViewCell-6" enabled="true" visible="true" accessible="false" x="13" y="404" width="294" height="52" index="13" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="404" width="294" height="52" index="0" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="2026/05/02" name="2026/05/02" label="2026/05/02" enabled="true" visible="true" accessible="true" x="26" y="411" width="62" height="16" index="0" traits="StaticText" />
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="These iconic outfits… remember? 👠👜" name="These iconic outfits… remember? 👠👜" label="These iconic outfits… remember? 👠👜" enabled="true" visible="true" accessible="true" x="26" y="429" width="241" height="20" index="1" traits="StaticText" />
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="chevron.down" label="go down" enabled="true" visible="true" accessible="false" x="274" y="423" width="20" height="11" index="2" traits="Image" />
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeCell>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="455" width="294" height="1" index="14" traits="" />
+                <XCUIElementTypeCell type="XCUIElementTypeCell" name="NoticeProCollectionViewCell-7" enabled="true" visible="true" accessible="false" x="13" y="456" width="294" height="52" index="15" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="456" width="294" height="52" index="0" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="2026/04/26" name="2026/04/26" label="2026/04/26" enabled="true" visible="true" accessible="true" x="26" y="463" width="63" height="16" index="0" traits="StaticText" />
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Something missing on your bag? 👜 " name="Something missing on your bag? 👜 " label="Something missing on your bag? 👜 " enabled="true" visible="true" accessible="true" x="26" y="481" width="224" height="20" index="1" traits="StaticText" />
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="chevron.down" label="go down" enabled="true" visible="true" accessible="false" x="274" y="475" width="20" height="11" index="2" traits="Image" />
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeCell>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="507" width="294" height="1" index="16" traits="" />
+                <XCUIElementTypeCell type="XCUIElementTypeCell" name="NoticeProCollectionViewCell-8" enabled="true" visible="true" accessible="false" x="13" y="508" width="294" height="52" index="17" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="508" width="294" height="52" index="0" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="2026/04/22" name="2026/04/22" label="2026/04/22" enabled="true" visible="true" accessible="true" x="26" y="515" width="62" height="16" index="0" traits="StaticText" />
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Your pet do this too? 👀🐾" name="Your pet do this too? 👀🐾" label="Your pet do this too? 👀🐾" enabled="true" visible="true" accessible="true" x="26" y="533" width="168" height="20" index="1" traits="StaticText" />
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="chevron.down" label="go down" enabled="true" visible="true" accessible="false" x="274" y="527" width="20" height="11" index="2" traits="Image" />
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeCell>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="559" width="294" height="2" index="18" traits="" />
+                <XCUIElementTypeCell type="XCUIElementTypeCell" name="NoticeProCollectionViewCell-9" enabled="true" visible="true" accessible="false" x="13" y="560" width="294" height="52" index="19" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="560" width="294" height="52" index="0" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="2026/04/19" name="2026/04/19" label="2026/04/19" enabled="true" visible="true" accessible="true" x="26" y="567" width="61" height="16" index="0" traits="StaticText" />
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Here’s why my photos look so good 😚" name="Here’s why my photos look so good 😚" label="Here’s why my photos look so good 😚" enabled="true" visible="true" accessible="true" x="25" y="585" width="239" height="20" index="1" traits="StaticText" />
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="chevron.down" label="go down" enabled="true" visible="true" accessible="false" x="274" y="579" width="20" height="11" index="2" traits="Image" />
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeCell>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="611" width="294" height="1" index="20" traits="" />
+                <XCUIElementTypeCell type="XCUIElementTypeCell" name="NoticeProCollectionViewCell-10" enabled="true" visible="true" accessible="false" x="13" y="612" width="294" height="52" index="21" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="612" width="294" height="52" index="0" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="2026/04/12" name="2026/04/12" label="2026/04/12" enabled="true" visible="true" accessible="true" x="26" y="619" width="61" height="16" index="0" traits="StaticText" />
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="No such thing as too many festival pics 😵🤳" name="No such thing as too many festival pics 😵🤳" label="No such thing as too many festival pics 😵🤳" enabled="true" visible="true" accessible="true" x="26" y="637" width="241" height="20" index="1" traits="StaticText" />
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="chevron.down" label="go down" enabled="true" visible="true" accessible="false" x="274" y="631" width="20" height="11" index="2" traits="Image" />
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeCell>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="663" width="294" height="1" index="22" traits="" />
+                <XCUIElementTypeCell type="XCUIElementTypeCell" name="NoticeProCollectionViewCell-11" enabled="true" visible="true" accessible="false" x="13" y="664" width="294" height="52" index="23" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="664" width="294" height="52" index="0" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="2026/04/05" name="2026/04/05" label="2026/04/05" enabled="true" visible="true" accessible="true" x="26" y="671" width="63" height="16" index="0" traits="StaticText" />
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Dare to Shine 🥰💖" name="Dare to Shine 🥰💖" label="Dare to Shine 🥰💖" enabled="true" visible="true" accessible="true" x="25" y="689" width="125" height="20" index="1" traits="StaticText" />
+                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="chevron.down" label="go down" enabled="true" visible="true" accessible="false" x="274" y="683" width="20" height="11" index="2" traits="Image" />
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeCell>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="25" y="660" width="270" height="30" index="24" traits="Adjustable">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="284" y="687" width="8" height="3" index="0" traits="" />
+                </XCUIElementTypeOther>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="25" y="660" width="270" height="30" index="25" traits="Adjustable">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="284" y="687" width="8" height="3" index="0" traits="" />
+                </XCUIElementTypeOther>
+              </XCUIElementTypeCollectionView>
+            </XCUIElementTypeOther>
+          </XCUIElementTypeOther>
+        </XCUIElementTypeOther>
+      </XCUIElementTypeOther>
+    </XCUIElementTypeOther>
+  </XCUIElementTypeWindow>
+</XCUIElementTypeApplication>

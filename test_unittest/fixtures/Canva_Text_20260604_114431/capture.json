@@ -1,0 +1,250 @@
+{
+  "captured_at": "2026-06-04T11:44:31",
+  "case_name": "Canva_Text",
+  "entries": [
+    {
+      "input": {
+        "action": "tap",
+        "x": 137.0,
+        "y": 511.0
+      },
+      "output": {
+        "action": "tap",
+        "coords": {
+          "x": 137.0,
+          "y": 511.0
+        },
+        "timestamp": 1780544650.2360141,
+        "target": {
+          "type": "accessibility id",
+          "value": "btn_text_sub_menu_n",
+          "selector_quality": "id",
+          "xpath": "//XCUIElementTypeImage[@name='btn_text_sub_menu_n']",
+          "offset_pct": {
+            "x": 76.0,
+            "y": 64.0
+          },
+          "bounds": {
+            "x": 118,
+            "y": 495,
+            "w": 25,
+            "h": 25
+          }
+        },
+        "scroll_container": {
+          "type": "accessibility id",
+          "value": "effectMenuCollectionViewPresenterCollectionView",
+          "selector_quality": "id",
+          "bounds": {
+            "x": 98,
+            "y": 483,
+            "w": 124,
+            "h": 65
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_000.xml"
+    },
+    {
+      "input": {
+        "action": "tap",
+        "x": 137.0,
+        "y": 183.0
+      },
+      "output": {
+        "action": "tap",
+        "coords": {
+          "x": 137.0,
+          "y": 183.0
+        },
+        "timestamp": 1780544656.7969909,
+        "target": {
+          "type": "xpath",
+          "value": "//XCUIElementTypeImage",
+          "selector_quality": "xpath_only",
+          "xpath": "//XCUIElementTypeImage",
+          "offset_pct": {
+            "x": 38.1,
+            "y": 50.8
+          },
+          "bounds": {
+            "x": 63,
+            "y": 152,
+            "w": 194,
+            "h": 61
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_001.xml"
+    },
+    {
+      "input": {
+        "action": "type_text",
+        "text": "Text Test",
+        "target_x": 137.0,
+        "target_y": 183.0
+      },
+      "output": {
+        "action": "type_text",
+        "text": "Text Test",
+        "timestamp": 1780544663.739572,
+        "target": {
+          "type": "xpath",
+          "value": "//XCUIElementTypeImage",
+          "selector_quality": "xpath_only",
+          "xpath": "//XCUIElementTypeImage",
+          "offset_pct": {
+            "x": 38.1,
+            "y": 50.8
+          },
+          "bounds": {
+            "x": 63,
+            "y": 152,
+            "w": 194,
+            "h": 61
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_002.xml"
+    },
+    {
+      "input": {
+        "action": "tap",
+        "x": 297.0,
+        "y": 337.0
+      },
+      "output": {
+        "action": "tap",
+        "coords": {
+          "x": 297.0,
+          "y": 337.0
+        },
+        "timestamp": 1780544667.2927842,
+        "target": {
+          "type": "accessibility id",
+          "value": "applyButton",
+          "selector_quality": "id",
+          "xpath": "//XCUIElementTypeButton[@name='applyButton']",
+          "offset_pct": {
+            "x": 39.4,
+            "y": 50.0
+          },
+          "bounds": {
+            "x": 284,
+            "y": 320,
+            "w": 33,
+            "h": 34
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_003.xml"
+    }
+  ],
+  "steps": [
+    {
+      "action": "tap",
+      "coords": {
+        "x": 137.0,
+        "y": 511.0
+      },
+      "timestamp": 1780544650.2360141,
+      "target": {
+        "type": "accessibility id",
+        "value": "btn_text_sub_menu_n",
+        "selector_quality": "id",
+        "xpath": "//XCUIElementTypeImage[@name='btn_text_sub_menu_n']",
+        "offset_pct": {
+          "x": 76.0,
+          "y": 64.0
+        },
+        "bounds": {
+          "x": 118,
+          "y": 495,
+          "w": 25,
+          "h": 25
+        }
+      },
+      "scroll_container": {
+        "type": "accessibility id",
+        "value": "effectMenuCollectionViewPresenterCollectionView",
+        "selector_quality": "id",
+        "bounds": {
+          "x": 98,
+          "y": 483,
+          "w": 124,
+          "h": 65
+        }
+      }
+    },
+    {
+      "action": "tap",
+      "coords": {
+        "x": 137.0,
+        "y": 183.0
+      },
+      "timestamp": 1780544656.7969909,
+      "target": {
+        "type": "xpath",
+        "value": "//XCUIElementTypeImage",
+        "selector_quality": "xpath_only",
+        "xpath": "//XCUIElementTypeImage",
+        "offset_pct": {
+          "x": 38.1,
+          "y": 50.8
+        },
+        "bounds": {
+          "x": 63,
+          "y": 152,
+          "w": 194,
+          "h": 61
+        }
+      }
+    },
+    {
+      "action": "type_text",
+      "text": "Text Test",
+      "timestamp": 1780544663.739572,
+      "target": {
+        "type": "xpath",
+        "value": "//XCUIElementTypeImage",
+        "selector_quality": "xpath_only",
+        "xpath": "//XCUIElementTypeImage",
+        "offset_pct": {
+          "x": 38.1,
+          "y": 50.8
+        },
+        "bounds": {
+          "x": 63,
+          "y": 152,
+          "w": 194,
+          "h": 61
+        }
+      }
+    },
+    {
+      "action": "tap",
+      "coords": {
+        "x": 297.0,
+        "y": 337.0
+      },
+      "timestamp": 1780544667.2927842,
+      "target": {
+        "type": "accessibility id",
+        "value": "applyButton",
+        "selector_quality": "id",
+        "xpath": "//XCUIElementTypeButton[@name='applyButton']",
+        "offset_pct": {
+          "x": 39.4,
+          "y": 50.0
+        },
+        "bounds": {
+          "x": 284,
+          "y": 320,
+          "w": 33,
+          "h": 34
+        }
+      }
+    }
+  ],
+  "codegen_output": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"Canva_Text\")\ndef test_Canva_Text(actions: DriverActions):\n    with step(\"[Action] Tap btn_text_sub_menu_n at (76.0%, 64.0%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_text_sub_menu_n', 76.0, 64.0, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='effectMenuCollectionViewPresenterCollectionView', container_w=124, container_h=65)\n    with step(\"[Action] Tap //XCUIElementTypeImage at (38.1%, 50.8%)\"):\n        actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeImage', 38.1, 50.8)\n    with step(\"[Action] Type 'Text Test' into //XCUIElementTypeImage\"):\n        actions.type_text_by_locator(AppiumBy.XPATH, '//XCUIElementTypeImage', 'Text Test')\n    with step(\"[Action] Tap applyButton at (39.4%, 50.0%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'applyButton', 39.4, 50.0)\n    assert True\n"
+}

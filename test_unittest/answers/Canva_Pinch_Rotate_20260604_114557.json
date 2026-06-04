@@ -1,0 +1,75 @@
+{
+  "step_000_t1": {
+    "action": "pinch",
+    "coords": {
+      "x": 123.0,
+      "y": 332.0
+    }
+  },
+  "step_001_t1": {
+    "action": "rotate",
+    "coords": {
+      "x": 232.0,
+      "y": 288.0
+    }
+  },
+  "step_000_t2": {
+    "type": "xpath",
+    "value": "//XCUIElementTypeImage"
+  },
+  "step_001_t2": {
+    "type": "xpath",
+    "value": "//XCUIElementTypeImage"
+  },
+  "step_000_t3": {
+    "action": "pinch",
+    "coords": {
+      "x": 123.0,
+      "y": 332.0
+    },
+    "scale": 1.974,
+    "spread": 80,
+    "duration": 912,
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeImage",
+      "selector_quality": "xpath_only",
+      "bounds": {
+        "x": 112,
+        "y": 258,
+        "w": 96,
+        "h": 97
+      }
+    }
+  },
+  "step_001_t3": {
+    "action": "rotate",
+    "coords": {
+      "x": 232.0,
+      "y": 288.0
+    },
+    "rotation": 115.3,
+    "spread": 80,
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeImage",
+      "selector_quality": "xpath_only",
+      "bounds": {
+        "x": 53,
+        "y": 200,
+        "w": 214,
+        "h": 214
+      }
+    }
+  },
+  "step_000_t4": {
+    "quality": "xpath_only",
+    "is_problematic": true
+  },
+  "step_001_t4": {
+    "quality": "xpath_only",
+    "is_problematic": true
+  },
+  "step_000_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Pinch //XCUIElementTypeImage scale=1.974\"):\n        actions.pinch(actions.find_element(AppiumBy.XPATH, '//XCUIElementTypeImage'), scale=1.974, velocity=1.068)\n    assert True\n",
+  "step_001_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Rotate //XCUIElementTypeImage 115.3°\"):\n        actions.rotate(actions.find_element(AppiumBy.XPATH, '//XCUIElementTypeImage'), rotation=115.3)\n    assert True\n"
+}

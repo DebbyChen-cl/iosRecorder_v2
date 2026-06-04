@@ -1,0 +1,255 @@
+{
+  "captured_at": "2026-06-04T09:41:17",
+  "case_name": "UnitTest2",
+  "entries": [
+    {
+      "input": {
+        "action": "tap",
+        "x": 281.0,
+        "y": 637.0
+      },
+      "output": {
+        "action": "tap",
+        "coords": {
+          "x": 281.0,
+          "y": 637.0
+        },
+        "timestamp": 1780537262.207063,
+        "target": {
+          "type": "accessibility id",
+          "value": "btnMyCredit",
+          "selector_quality": "id",
+          "xpath": "//XCUIElementTypeButton[@name='btnMyCredit']",
+          "offset_pct": {
+            "x": 42.9,
+            "y": 34.1
+          },
+          "bounds": {
+            "x": 257,
+            "y": 623,
+            "w": 56,
+            "h": 41
+          }
+        },
+        "scroll_container": {
+          "type": "accessibility id",
+          "value": "launcherTrendyViewConfigCollectionView",
+          "selector_quality": "id",
+          "bounds": {
+            "x": 13,
+            "y": 615,
+            "w": 294,
+            "h": 119
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_000.xml"
+    },
+    {
+      "input": {
+        "action": "tap",
+        "x": 28.0,
+        "y": 58.0
+      },
+      "output": {
+        "action": "tap",
+        "coords": {
+          "x": 28.0,
+          "y": 58.0
+        },
+        "timestamp": 1780537267.388809,
+        "target": {
+          "type": "accessibility id",
+          "value": "btnNotification",
+          "selector_quality": "id",
+          "xpath": "//XCUIElementTypeButton[@name='btnNotification']",
+          "offset_pct": {
+            "x": 75.0,
+            "y": 52.4
+          },
+          "bounds": {
+            "x": 13,
+            "y": 47,
+            "w": 20,
+            "h": 21
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_001.xml"
+    },
+    {
+      "input": {
+        "action": "tap",
+        "x": 25.0,
+        "y": 61.0
+      },
+      "output": {
+        "action": "tap",
+        "coords": {
+          "x": 25.0,
+          "y": 61.0
+        },
+        "timestamp": 1780537271.573313,
+        "target": {
+          "type": "accessibility id",
+          "value": "Back",
+          "selector_quality": "id_eq_label",
+          "xpath": "//XCUIElementTypeButton[@name='Back']",
+          "offset_pct": {
+            "x": 48.6,
+            "y": 52.3
+          },
+          "bounds": {
+            "x": 8,
+            "y": 38,
+            "w": 35,
+            "h": 44
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_002.xml"
+    },
+    {
+      "input": {
+        "action": "tap",
+        "x": 37.0,
+        "y": 637.0
+      },
+      "output": {
+        "action": "tap",
+        "coords": {
+          "x": 37.0,
+          "y": 637.0
+        },
+        "timestamp": 1780537275.187944,
+        "target": {
+          "type": "accessibility id",
+          "value": "btnHome",
+          "selector_quality": "id",
+          "xpath": "//XCUIElementTypeButton[@name='btnHome']",
+          "offset_pct": {
+            "x": 53.6,
+            "y": 34.1
+          },
+          "bounds": {
+            "x": 7,
+            "y": 623,
+            "w": 56,
+            "h": 41
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_003.xml"
+    }
+  ],
+  "steps": [
+    {
+      "action": "tap",
+      "coords": {
+        "x": 281.0,
+        "y": 637.0
+      },
+      "timestamp": 1780537262.207063,
+      "target": {
+        "type": "accessibility id",
+        "value": "btnMyCredit",
+        "selector_quality": "id",
+        "xpath": "//XCUIElementTypeButton[@name='btnMyCredit']",
+        "offset_pct": {
+          "x": 42.9,
+          "y": 34.1
+        },
+        "bounds": {
+          "x": 257,
+          "y": 623,
+          "w": 56,
+          "h": 41
+        }
+      },
+      "scroll_container": {
+        "type": "accessibility id",
+        "value": "launcherTrendyViewConfigCollectionView",
+        "selector_quality": "id",
+        "bounds": {
+          "x": 13,
+          "y": 615,
+          "w": 294,
+          "h": 119
+        }
+      }
+    },
+    {
+      "action": "tap",
+      "coords": {
+        "x": 28.0,
+        "y": 58.0
+      },
+      "timestamp": 1780537267.388809,
+      "target": {
+        "type": "accessibility id",
+        "value": "btnNotification",
+        "selector_quality": "id",
+        "xpath": "//XCUIElementTypeButton[@name='btnNotification']",
+        "offset_pct": {
+          "x": 75.0,
+          "y": 52.4
+        },
+        "bounds": {
+          "x": 13,
+          "y": 47,
+          "w": 20,
+          "h": 21
+        }
+      }
+    },
+    {
+      "action": "tap",
+      "coords": {
+        "x": 25.0,
+        "y": 61.0
+      },
+      "timestamp": 1780537271.573313,
+      "target": {
+        "type": "accessibility id",
+        "value": "Back",
+        "selector_quality": "id_eq_label",
+        "xpath": "//XCUIElementTypeButton[@name='Back']",
+        "offset_pct": {
+          "x": 48.6,
+          "y": 52.3
+        },
+        "bounds": {
+          "x": 8,
+          "y": 38,
+          "w": 35,
+          "h": 44
+        }
+      }
+    },
+    {
+      "action": "tap",
+      "coords": {
+        "x": 37.0,
+        "y": 637.0
+      },
+      "timestamp": 1780537275.187944,
+      "target": {
+        "type": "accessibility id",
+        "value": "btnHome",
+        "selector_quality": "id",
+        "xpath": "//XCUIElementTypeButton[@name='btnHome']",
+        "offset_pct": {
+          "x": 53.6,
+          "y": 34.1
+        },
+        "bounds": {
+          "x": 7,
+          "y": 623,
+          "w": 56,
+          "h": 41
+        }
+      }
+    }
+  ],
+  "codegen_output": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"UnitTest2\")\ndef test_UnitTest2(actions: DriverActions):\n    with step(\"[Action] Tap btnMyCredit at (42.9%, 34.1%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnMyCredit', 42.9, 34.1, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='launcherTrendyViewConfigCollectionView', container_w=294, container_h=119)\n    with step(\"[Action] Tap btnNotification at (75.0%, 52.4%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnNotification', 75.0, 52.4)\n    with step(\"[Action] Tap Back at (48.6%, 52.3%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Back', 48.6, 52.3)\n    with step(\"[Action] Tap btnHome at (53.6%, 34.1%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnHome', 53.6, 34.1)\n    assert True\n"
+}

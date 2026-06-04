@@ -12,6 +12,7 @@
   <header class="header">
     <span class="logo">iOS Recorder</span>
     <span id="versionBadge" class="version-badge"></span>
+    <span id="unitTestBadge" class="unit-test-badge" style="display:none">🧪 Unit Test Capture</span>
     <div class="conn-bar">
       <input id="urlInput" type="text" placeholder="http://192.168.x.x:8100" spellcheck="false" />
       <button id="connectBtn">Connect</button>
@@ -194,6 +195,12 @@
             <button class="btn-sm" id="clearBtn" disabled>Clear</button>
             <button class="btn-sm" id="exportBtn" disabled>Export</button>
           </div>
+          <div id="unitTestPanel" style="display:none;margin-top:8px">
+            <div class="btn-row">
+              <button class="btn-unit-test" id="exportUnitTestBtn" disabled>⬇ Save Unit Test</button>
+            </div>
+            <div class="unit-test-count" id="unitTestCount">0 entries captured</div>
+          </div>
         </div>
       </div>
 
@@ -286,6 +293,20 @@
     </div>
     <div class="modal-list" id="appPickerList">
       <!-- populated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ── Unit Test Save Result Modal ───────────────────────────────────────── -->
+<div id="unitTestResultModal" class="modal-backdrop" style="display:none">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">🧪 Unit Test Fixture Saved</span>
+      <button class="modal-close" id="unitTestResultClose">✕</button>
+    </div>
+    <div style="padding:16px;min-width:0;overflow-x:hidden;">
+      <p style="margin:0 0 10px;color:var(--muted);font-size:13px;">Fixture files saved to:</p>
+      <ul id="unitTestResultPaths" style="margin:0;padding:0 0 0 18px;line-height:2;max-width:100%;box-sizing:border-box;"></ul>
     </div>
   </div>
 </div>

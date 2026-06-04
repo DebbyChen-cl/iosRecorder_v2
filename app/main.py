@@ -17,6 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .codegen import generate_script
+from .unit_test_gen import generate_unit_tests
 from .hittest import hit_test, hit_test_for_swipe, hit_test_excluding, hit_test_drop_target, find_scroll_container, build_scroll_container_selector, serialize, _rect as _el_rect
 from .selector import build_selector, build_xpath, get_selector_quality
 from .wda import WDAClient
@@ -250,6 +251,11 @@ class VerifyVisibleReq(BaseModel):
     target_x: float
     target_y: float
     not_visible: bool = False  # True → verify_not_visible
+    # Pre-resolved selector saved at selection time (not_visible phase-0 pick)
+    target_type: Optional[str] = None
+    target_value: Optional[str] = None
+    target_bounds: Optional[dict] = None
+    target_selector_quality: Optional[str] = None
 
 class VerifyGetTextReq(BaseModel):
     target_x: float
@@ -430,7 +436,8 @@ async def api_element_info(x: float, y: float):
     text = a.get("value", "") or a.get("label", "") or a.get("name", "")
     r = _rect(el)
     bounds = {"x": r[0], "y": r[1], "w": r[2], "h": r[3]} if r else None
-    return {"found": True, "cache_ready": True, "type": sel_type, "value": sel_val, "text": text, "bounds": bounds}
+    return {"found": True, "cache_ready": True, "type": sel_type, "value": sel_val,
+            "text": text, "bounds": bounds, "selector_quality": get_selector_quality(el)}
 
 
 @app.post("/api/swipe")
@@ -540,7 +547,11 @@ async def record_terminate_app(req: LaunchAppReq):
 async def record_verify_visible(req: VerifyVisibleReq):
     snapshot = _cache.get("root") if req.not_visible else None
     pre_ss = await _take_pre_gesture_screenshot()
-    await _record_verify_visible(req.target_x, req.target_y, req.not_visible, snapshot, pre_screenshot=pre_ss)
+    await _record_verify_visible(
+        req.target_x, req.target_y, req.not_visible, snapshot, pre_screenshot=pre_ss,
+        target_type=req.target_type, target_value=req.target_value,
+        target_bounds=req.target_bounds, target_selector_quality=req.target_selector_quality,
+    )
     return {"ok": True}
 
 
@@ -923,19 +934,29 @@ async def _record_terminate_app(bundle_id: str):
     logger.info(f"Recorded terminate_app: {bundle_id}")
 
 
-async def _record_verify_visible(tx: float, ty: float, not_visible: bool, snapshot=None, pre_screenshot: Optional[str] = None):
+async def _record_verify_visible(tx: float, ty: float, not_visible: bool, snapshot=None, pre_screenshot: Optional[str] = None,
+                                  target_type: Optional[str] = None, target_value: Optional[str] = None,
+                                  target_bounds: Optional[dict] = None, target_selector_quality: Optional[str] = None):
     action = "verify_not_visible" if not_visible else "verify_visible"
     step: dict = {"action": action, "coords": {"x": tx, "y": ty}, "timestamp": time.time()}
-    if not_visible and snapshot is not None:
-        # Use pre-action snapshot so the element is captured before it disappears
+    if not_visible and target_type and target_value:
+        # Use the selector resolved at selection time (before the PROCESS phase changed the screen)
+        t: dict = {"type": target_type, "value": target_value}
+        if target_selector_quality:
+            t["selector_quality"] = target_selector_quality
+        if target_bounds:
+            t["bounds"] = target_bounds
+        step["target"] = t
+    elif not_visible and snapshot is not None:
+        # Fallback: use pre-action snapshot so the element is captured before it disappears
         el = hit_test(tx, ty, snapshot)
         if el is not None:
             sel_type, sel_val = build_selector(el)
-            t: dict = {"type": sel_type, "value": sel_val, "selector_quality": get_selector_quality(el)}
+            t2: dict = {"type": sel_type, "value": sel_val, "selector_quality": get_selector_quality(el)}
             r = _el_rect(el)
             if r:
-                t["bounds"] = {"x": int(r[0]), "y": int(r[1]), "w": int(r[2]), "h": int(r[3])}
-            step["target"] = t
+                t2["bounds"] = {"x": int(r[0]), "y": int(r[1]), "w": int(r[2]), "h": int(r[3])}
+            step["target"] = t2
         else:
             step["target"] = {"type": "coordinate", "x": tx, "y": ty}
     else:
@@ -1348,7 +1369,11 @@ async def ws_handler(ws: WebSocket):
                 not_vis = bool(data.get("not_visible", False))
                 snapshot = _cache.get("root") if not_vis else None
                 pre_ss = await _take_pre_gesture_screenshot() if rec else None
-                if rec: asyncio.create_task(_record_verify_visible(tx, ty, not_vis, snapshot, pre_screenshot=pre_ss))
+                if rec: asyncio.create_task(_record_verify_visible(
+                    tx, ty, not_vis, snapshot, pre_screenshot=pre_ss,
+                    target_type=data.get("target_type"), target_value=data.get("target_value"),
+                    target_bounds=data.get("target_bounds"), target_selector_quality=data.get("target_selector_quality"),
+                ))
 
             elif t == "verify_get_text":
                 tx, ty = float(data["target_x"]), float(data["target_y"])
@@ -1605,31 +1630,44 @@ async def unit_test_status():
 async def unit_test_save(req: UnitTestSaveReq):
     ts = time.strftime("%Y%m%d_%H%M%S")
     safe = "".join(c if c.isalnum() or c == "_" else "_" for c in req.case_name).strip("_") or "capture"
-    _FIXTURES_DIR.mkdir(parents=True, exist_ok=True)
+    save_dir = _FIXTURES_DIR / f"{safe}_{ts}"
+    save_dir.mkdir(parents=True, exist_ok=True)
 
-    capture_file = _FIXTURES_DIR / f"capture_{safe}_{ts}.json"
+    # Save each entry's hierarchy as a separate XML file; strip inline XML from the JSON
+    entries_clean = []
+    xml_count = 0
+    for i, entry in enumerate(_unit_test_entries):
+        entry_copy = {k: v for k, v in entry.items() if k != "hierarchy_xml"}
+        if entry.get("hierarchy_xml"):
+            xml_name = f"hierarchy_{i:03d}.xml"
+            (save_dir / xml_name).write_text(entry["hierarchy_xml"], encoding="utf-8")
+            entry_copy["hierarchy_file"] = xml_name
+            xml_count += 1
+        else:
+            entry_copy["hierarchy_file"] = None
+        entries_clean.append(entry_copy)
+
     steps_clean = [{k: v for k, v in s.items() if k not in _STRIP_STEP_KEYS} for s in _steps]
     payload = {
         "captured_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "case_name": req.case_name,
-        "entries": _unit_test_entries,
+        "entries": entries_clean,
         "steps": steps_clean,
         "codegen_output": generate_script(steps_clean, req.case_name) if steps_clean else "",
     }
+    capture_file = save_dir / "capture.json"
     capture_file.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    # Save first available hierarchy XML as a standalone fixture file
-    xml_file = None
-    for entry in _unit_test_entries:
-        if entry.get("hierarchy_xml"):
-            xml_file = _FIXTURES_DIR / f"hierarchy_{safe}_{ts}.xml"
-            xml_file.write_text(entry["hierarchy_xml"], encoding="utf-8")
-            break
+    # Generate / append to the 5 pytest test files
+    folder_name = save_dir.name  # e.g. "MyTest_20260603_143510"
+    gen_paths = generate_unit_tests(folder_name, len(entries_clean))
 
-    saved = [str(capture_file.relative_to(_PROJECT_ROOT))]
-    if xml_file:
-        saved.append(str(xml_file.relative_to(_PROJECT_ROOT)))
-    logger.info(f"Unit test capture saved: {capture_file.name} ({len(_unit_test_entries)} entries)")
+    rel_dir = str(save_dir.relative_to(_PROJECT_ROOT))
+    saved = [f"{rel_dir}/capture.json"]
+    if xml_count:
+        saved.append(f"{rel_dir}/hierarchy_000.xml … _{xml_count - 1:03d}.xml  ({xml_count} files)")
+    saved.extend(gen_paths)
+    logger.info(f"Unit test capture saved: {save_dir.name}/ ({len(_unit_test_entries)} entries, {xml_count} XMLs, {len(gen_paths)} test files)")
     return {"ok": True, "saved_paths": saved, "entry_count": len(_unit_test_entries)}
 
 

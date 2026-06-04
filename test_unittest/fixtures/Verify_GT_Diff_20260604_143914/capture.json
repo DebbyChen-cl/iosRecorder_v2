@@ -1,0 +1,503 @@
+{
+  "captured_at": "2026-06-04T14:39:14",
+  "case_name": "Verify_GT_Diff",
+  "entries": [
+    {
+      "input": {
+        "action": "verify_screenshot_diff",
+        "target_x": 38.0,
+        "target_y": 412.0,
+        "phase": "before"
+      },
+      "output": {
+        "action": "verify_screenshot_diff",
+        "phase": "before",
+        "coords": {
+          "x": 38.0,
+          "y": 412.0
+        },
+        "bounds": {
+          "x": 0,
+          "y": 158,
+          "w": 320,
+          "h": 320
+        },
+        "timestamp": 1780555132.746473,
+        "target": {
+          "type": "accessibility id",
+          "value": "EditingImageView_ImageView",
+          "selector_quality": "id",
+          "bounds": {
+            "x": 0,
+            "y": 158,
+            "w": 320,
+            "h": 320
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_000.xml"
+    },
+    {
+      "input": {
+        "action": "tap",
+        "x": 145.0,
+        "y": 587.0
+      },
+      "output": {
+        "action": "tap",
+        "coords": {
+          "x": 145.0,
+          "y": 587.0
+        },
+        "timestamp": 1780555134.623264,
+        "target": {
+          "type": "accessibility id",
+          "value": "ic_crop",
+          "selector_quality": "id",
+          "xpath": "//XCUIElementTypeImage[@name='ic_crop']",
+          "offset_pct": {
+            "x": 69.2,
+            "y": 60.0
+          },
+          "bounds": {
+            "x": 127,
+            "y": 572,
+            "w": 26,
+            "h": 25
+          }
+        },
+        "scroll_container": {
+          "type": "accessibility id",
+          "value": "EditViewControllerBottomBarCollectionView",
+          "selector_quality": "id",
+          "bounds": {
+            "x": 0,
+            "y": 556,
+            "w": 320,
+            "h": 72
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_001.xml"
+    },
+    {
+      "input": {
+        "action": "tap",
+        "x": 187.0,
+        "y": 507.0
+      },
+      "output": {
+        "action": "tap",
+        "coords": {
+          "x": 187.0,
+          "y": 507.0
+        },
+        "timestamp": 1780555137.8616698,
+        "target": {
+          "type": "accessibility id",
+          "value": "btn_perspective_s",
+          "selector_quality": "id",
+          "xpath": "//XCUIElementTypeImage[@name='btn_perspective_s']",
+          "offset_pct": {
+            "x": 40.0,
+            "y": 48.0
+          },
+          "bounds": {
+            "x": 177,
+            "y": 495,
+            "w": 25,
+            "h": 25
+          }
+        },
+        "scroll_container": {
+          "type": "accessibility id",
+          "value": "effectMenuCollectionViewPresenterCollectionView",
+          "selector_quality": "id",
+          "bounds": {
+            "x": 98,
+            "y": 483,
+            "w": 124,
+            "h": 65
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_002.xml"
+    },
+    {
+      "input": {
+        "action": "drag",
+        "x1": 133.0,
+        "y1": 558.0,
+        "x2": 224.0,
+        "y2": 557.0,
+        "duration": 1000
+      },
+      "output": {
+        "action": "drag",
+        "coords": {
+          "x1": 133.0,
+          "y1": 558.0,
+          "x2": 224.0,
+          "y2": 557.0
+        },
+        "duration": 1000,
+        "timestamp": 1780555142.008924,
+        "start_target": {
+          "type": "accessibility id",
+          "value": "centerSlider",
+          "selector_quality": "id",
+          "xpath": "//XCUIElementTypeSlider[@name='centerSlider']",
+          "offset_pct": {
+            "x": 49.6,
+            "y": 51.6
+          },
+          "bounds": {
+            "x": 14,
+            "y": 542,
+            "w": 240,
+            "h": 31
+          }
+        },
+        "end_target": {
+          "type": "accessibility id",
+          "value": "slider",
+          "selector_quality": "id",
+          "xpath": "//XCUIElementTypeOther[@name='slider']",
+          "offset_pct": {
+            "x": 88.1,
+            "y": 50.0
+          },
+          "bounds": {
+            "x": 16,
+            "y": 542,
+            "w": 236,
+            "h": 30
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_003.xml"
+    },
+    {
+      "input": {
+        "action": "tap",
+        "x": 303.0,
+        "y": 644.0
+      },
+      "output": {
+        "action": "tap",
+        "coords": {
+          "x": 303.0,
+          "y": 644.0
+        },
+        "timestamp": 1780555146.741577,
+        "target": {
+          "type": "accessibility id",
+          "value": "btn_ok_n",
+          "selector_quality": "id",
+          "xpath": "//XCUIElementTypeButton[@name='btn_ok_n']",
+          "offset_pct": {
+            "x": 88.9,
+            "y": 44.4
+          },
+          "bounds": {
+            "x": 271,
+            "y": 628,
+            "w": 36,
+            "h": 36
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_004.xml"
+    },
+    {
+      "input": {
+        "action": "verify_screenshot_diff",
+        "target_x": 38.0,
+        "target_y": 412.0,
+        "phase": "after"
+      },
+      "output": {
+        "action": "verify_screenshot_diff",
+        "phase": "after",
+        "coords": {
+          "x": 38.0,
+          "y": 412.0
+        },
+        "bounds": {
+          "x": 0,
+          "y": 158,
+          "w": 320,
+          "h": 320
+        },
+        "timestamp": 1780555150.130862,
+        "expected_result": "different",
+        "target": {
+          "type": "accessibility id",
+          "value": "EditingImageView_ImageView",
+          "selector_quality": "id",
+          "bounds": {
+            "x": 0,
+            "y": 158,
+            "w": 320,
+            "h": 320
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_005.xml"
+    },
+    {
+      "input": {
+        "action": "verify_screenshot_gt",
+        "target_x": 59.0,
+        "target_y": 422.0,
+        "screenshot_name": "Verify_GT_Diff_Step07"
+      },
+      "output": {
+        "action": "verify_screenshot_gt",
+        "coords": {
+          "x": 59.0,
+          "y": 422.0
+        },
+        "screenshot_name": "Verify_GT_Diff_Step07",
+        "bounds": {
+          "x": 0,
+          "y": 158,
+          "w": 320,
+          "h": 320
+        },
+        "timestamp": 1780555153.597761,
+        "target": {
+          "type": "accessibility id",
+          "value": "EditingImageView_ImageView",
+          "selector_quality": "id",
+          "bounds": {
+            "x": 0,
+            "y": 158,
+            "w": 320,
+            "h": 320
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_006.xml"
+    }
+  ],
+  "steps": [
+    {
+      "action": "verify_screenshot_diff",
+      "phase": "before",
+      "coords": {
+        "x": 38.0,
+        "y": 412.0
+      },
+      "bounds": {
+        "x": 0,
+        "y": 158,
+        "w": 320,
+        "h": 320
+      },
+      "timestamp": 1780555132.746473,
+      "target": {
+        "type": "accessibility id",
+        "value": "EditingImageView_ImageView",
+        "selector_quality": "id",
+        "bounds": {
+          "x": 0,
+          "y": 158,
+          "w": 320,
+          "h": 320
+        }
+      }
+    },
+    {
+      "action": "tap",
+      "coords": {
+        "x": 145.0,
+        "y": 587.0
+      },
+      "timestamp": 1780555134.623264,
+      "target": {
+        "type": "accessibility id",
+        "value": "ic_crop",
+        "selector_quality": "id",
+        "xpath": "//XCUIElementTypeImage[@name='ic_crop']",
+        "offset_pct": {
+          "x": 69.2,
+          "y": 60.0
+        },
+        "bounds": {
+          "x": 127,
+          "y": 572,
+          "w": 26,
+          "h": 25
+        }
+      },
+      "scroll_container": {
+        "type": "accessibility id",
+        "value": "EditViewControllerBottomBarCollectionView",
+        "selector_quality": "id",
+        "bounds": {
+          "x": 0,
+          "y": 556,
+          "w": 320,
+          "h": 72
+        }
+      }
+    },
+    {
+      "action": "tap",
+      "coords": {
+        "x": 187.0,
+        "y": 507.0
+      },
+      "timestamp": 1780555137.8616698,
+      "target": {
+        "type": "accessibility id",
+        "value": "btn_perspective_s",
+        "selector_quality": "id",
+        "xpath": "//XCUIElementTypeImage[@name='btn_perspective_s']",
+        "offset_pct": {
+          "x": 40.0,
+          "y": 48.0
+        },
+        "bounds": {
+          "x": 177,
+          "y": 495,
+          "w": 25,
+          "h": 25
+        }
+      },
+      "scroll_container": {
+        "type": "accessibility id",
+        "value": "effectMenuCollectionViewPresenterCollectionView",
+        "selector_quality": "id",
+        "bounds": {
+          "x": 98,
+          "y": 483,
+          "w": 124,
+          "h": 65
+        }
+      }
+    },
+    {
+      "action": "drag",
+      "coords": {
+        "x1": 133.0,
+        "y1": 558.0,
+        "x2": 224.0,
+        "y2": 557.0
+      },
+      "duration": 1000,
+      "timestamp": 1780555142.008924,
+      "start_target": {
+        "type": "accessibility id",
+        "value": "centerSlider",
+        "selector_quality": "id",
+        "xpath": "//XCUIElementTypeSlider[@name='centerSlider']",
+        "offset_pct": {
+          "x": 49.6,
+          "y": 51.6
+        },
+        "bounds": {
+          "x": 14,
+          "y": 542,
+          "w": 240,
+          "h": 31
+        }
+      },
+      "end_target": {
+        "type": "accessibility id",
+        "value": "slider",
+        "selector_quality": "id",
+        "xpath": "//XCUIElementTypeOther[@name='slider']",
+        "offset_pct": {
+          "x": 88.1,
+          "y": 50.0
+        },
+        "bounds": {
+          "x": 16,
+          "y": 542,
+          "w": 236,
+          "h": 30
+        }
+      }
+    },
+    {
+      "action": "tap",
+      "coords": {
+        "x": 303.0,
+        "y": 644.0
+      },
+      "timestamp": 1780555146.741577,
+      "target": {
+        "type": "accessibility id",
+        "value": "btn_ok_n",
+        "selector_quality": "id",
+        "xpath": "//XCUIElementTypeButton[@name='btn_ok_n']",
+        "offset_pct": {
+          "x": 88.9,
+          "y": 44.4
+        },
+        "bounds": {
+          "x": 271,
+          "y": 628,
+          "w": 36,
+          "h": 36
+        }
+      }
+    },
+    {
+      "action": "verify_screenshot_diff",
+      "phase": "after",
+      "coords": {
+        "x": 38.0,
+        "y": 412.0
+      },
+      "bounds": {
+        "x": 0,
+        "y": 158,
+        "w": 320,
+        "h": 320
+      },
+      "timestamp": 1780555150.130862,
+      "expected_result": "different",
+      "target": {
+        "type": "accessibility id",
+        "value": "EditingImageView_ImageView",
+        "selector_quality": "id",
+        "bounds": {
+          "x": 0,
+          "y": 158,
+          "w": 320,
+          "h": 320
+        }
+      }
+    },
+    {
+      "action": "verify_screenshot_gt",
+      "coords": {
+        "x": 59.0,
+        "y": 422.0
+      },
+      "screenshot_name": "Verify_GT_Diff_Step07",
+      "bounds": {
+        "x": 0,
+        "y": 158,
+        "w": 320,
+        "h": 320
+      },
+      "timestamp": 1780555153.597761,
+      "target": {
+        "type": "accessibility id",
+        "value": "EditingImageView_ImageView",
+        "selector_quality": "id",
+        "bounds": {
+          "x": 0,
+          "y": 158,
+          "w": 320,
+          "h": 320
+        }
+      }
+    }
+  ],
+  "codegen_output": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"Verify_GT_Diff\")\ndef test_Verify_GT_Diff(actions: DriverActions):\n    with step(\"[Verify] Capture 'screenshot' before screenshot\"):\n        actions.capture_for_preview('screenshot', 'before', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView')\n    with step(\"[Action] Tap ic_crop at (69.2%, 60.0%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic_crop', 69.2, 60.0, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='EditViewControllerBottomBarCollectionView', container_w=320, container_h=72)\n    with step(\"[Action] Tap btn_perspective_s at (40.0%, 48.0%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_perspective_s', 40.0, 48.0, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='effectMenuCollectionViewPresenterCollectionView', container_w=124, container_h=65)\n    with step(\"[Action] Drag centerSlider (49.6%,51.6%) → slider (88.1%,50.0%)\"):\n        actions.drag_within_elements(AppiumBy.ACCESSIBILITY_ID, 'centerSlider', 49.6, 51.6, AppiumBy.ACCESSIBILITY_ID, 'slider', 88.1, 50.0, duration=1.0)\n    with step(\"[Action] Tap btn_ok_n at (88.9%, 44.4%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_ok_n', 88.9, 44.4)\n    with step(\"[Verify] Capture 'screenshot' after screenshot\"):\n        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', expected_result='different', threshold=0.95)\n    with step(\"[Verify] Capture 'Verify_GT_Diff_Step07' for GT comparison\"):\n        actions.capture_for_gt('Verify_GT_Diff_Step07', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', threshold=0.95)\n    with step(\"[Verify] Screenshot comparisons\"):\n        actions.run_screenshot_comparisons(threshold=0.95)\n    assert True\n"
+}

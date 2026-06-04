@@ -1,0 +1,264 @@
+{
+  "captured_at": "2026-06-04T11:55:47",
+  "case_name": "Verify_visible_nonVsible_text",
+  "entries": [
+    {
+      "input": {
+        "action": "tap",
+        "x": 294.0,
+        "y": 62.0
+      },
+      "output": {
+        "action": "tap",
+        "coords": {
+          "x": 294.0,
+          "y": 62.0
+        },
+        "timestamp": 1780545319.234786,
+        "target": {
+          "type": "accessibility id",
+          "value": "btnSettings",
+          "selector_quality": "id",
+          "xpath": "//XCUIElementTypeButton[@name='btnSettings']",
+          "offset_pct": {
+            "x": 76.0,
+            "y": 53.8
+          },
+          "bounds": {
+            "x": 275,
+            "y": 48,
+            "w": 25,
+            "h": 26
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_000.xml"
+    },
+    {
+      "input": {
+        "action": "verify_visible",
+        "target_x": 94.0,
+        "target_y": 303.0,
+        "not_visible": false
+      },
+      "output": {
+        "action": "verify_visible",
+        "coords": {
+          "x": 94.0,
+          "y": 303.0
+        },
+        "timestamp": 1780545323.204272,
+        "target": {
+          "type": "accessibility id",
+          "value": "Sign in",
+          "selector_quality": "id_eq_label",
+          "bounds": {
+            "x": 68,
+            "y": 296,
+            "w": 44,
+            "h": 18
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_001.xml"
+    },
+    {
+      "input": {
+        "action": "verify_get_text",
+        "target_x": 104.0,
+        "target_y": 307.0,
+        "expected_text": "Sign in"
+      },
+      "output": {
+        "action": "verify_get_text",
+        "coords": {
+          "x": 104.0,
+          "y": 307.0
+        },
+        "expected_text": "Sign in",
+        "timestamp": 1780545327.38158,
+        "target": {
+          "type": "accessibility id",
+          "value": "Sign in",
+          "selector_quality": "id_eq_label",
+          "bounds": {
+            "x": 68,
+            "y": 296,
+            "w": 44,
+            "h": 18
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_002.xml"
+    },
+    {
+      "input": {
+        "action": "tap",
+        "x": 21.0,
+        "y": 59.0
+      },
+      "output": {
+        "action": "tap",
+        "coords": {
+          "x": 21.0,
+          "y": 59.0
+        },
+        "timestamp": 1780545332.840898,
+        "target": {
+          "type": "accessibility id",
+          "value": "btnBack",
+          "selector_quality": "id",
+          "xpath": "//XCUIElementTypeButton[@name='btnBack']",
+          "offset_pct": {
+            "x": 61.9,
+            "y": 54.3
+          },
+          "bounds": {
+            "x": 8,
+            "y": 40,
+            "w": 21,
+            "h": 35
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_003.xml"
+    },
+    {
+      "input": {
+        "action": "verify_not_visible",
+        "target_x": 97.0,
+        "target_y": 307.0,
+        "not_visible": true
+      },
+      "output": {
+        "action": "verify_not_visible",
+        "coords": {
+          "x": 97.0,
+          "y": 307.0
+        },
+        "timestamp": 1780545333.919733,
+        "target": {
+          "type": "accessibility id",
+          "value": "Sign in",
+          "selector_quality": "id_eq_label",
+          "bounds": {
+            "x": 68,
+            "y": 296,
+            "w": 44,
+            "h": 18
+          }
+        }
+      },
+      "hierarchy_file": null
+    }
+  ],
+  "steps": [
+    {
+      "action": "tap",
+      "coords": {
+        "x": 294.0,
+        "y": 62.0
+      },
+      "timestamp": 1780545319.234786,
+      "target": {
+        "type": "accessibility id",
+        "value": "btnSettings",
+        "selector_quality": "id",
+        "xpath": "//XCUIElementTypeButton[@name='btnSettings']",
+        "offset_pct": {
+          "x": 76.0,
+          "y": 53.8
+        },
+        "bounds": {
+          "x": 275,
+          "y": 48,
+          "w": 25,
+          "h": 26
+        }
+      }
+    },
+    {
+      "action": "verify_visible",
+      "coords": {
+        "x": 94.0,
+        "y": 303.0
+      },
+      "timestamp": 1780545323.204272,
+      "target": {
+        "type": "accessibility id",
+        "value": "Sign in",
+        "selector_quality": "id_eq_label",
+        "bounds": {
+          "x": 68,
+          "y": 296,
+          "w": 44,
+          "h": 18
+        }
+      }
+    },
+    {
+      "action": "verify_get_text",
+      "coords": {
+        "x": 104.0,
+        "y": 307.0
+      },
+      "expected_text": "Sign in",
+      "timestamp": 1780545327.38158,
+      "target": {
+        "type": "accessibility id",
+        "value": "Sign in",
+        "selector_quality": "id_eq_label",
+        "bounds": {
+          "x": 68,
+          "y": 296,
+          "w": 44,
+          "h": 18
+        }
+      }
+    },
+    {
+      "action": "tap",
+      "coords": {
+        "x": 21.0,
+        "y": 59.0
+      },
+      "timestamp": 1780545332.840898,
+      "target": {
+        "type": "accessibility id",
+        "value": "btnBack",
+        "selector_quality": "id",
+        "xpath": "//XCUIElementTypeButton[@name='btnBack']",
+        "offset_pct": {
+          "x": 61.9,
+          "y": 54.3
+        },
+        "bounds": {
+          "x": 8,
+          "y": 40,
+          "w": 21,
+          "h": 35
+        }
+      }
+    },
+    {
+      "action": "verify_not_visible",
+      "coords": {
+        "x": 97.0,
+        "y": 307.0
+      },
+      "timestamp": 1780545333.919733,
+      "target": {
+        "type": "accessibility id",
+        "value": "Sign in",
+        "selector_quality": "id_eq_label",
+        "bounds": {
+          "x": 68,
+          "y": 296,
+          "w": 44,
+          "h": 18
+        }
+      }
+    }
+  ],
+  "codegen_output": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"Verify_visible_nonVsible_text\")\ndef test_Verify_visible_nonVsible_text(actions: DriverActions):\n    with step(\"[Action] Tap btnSettings at (76.0%, 53.8%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnSettings', 76.0, 53.8)\n    with step(\"[Verify] Sign in is visible\"):\n        actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'Sign in')\n    with step(\"[Verify] Sign in text equals 'Sign in'\"):\n        actions.verify_text(AppiumBy.ACCESSIBILITY_ID, 'Sign in', 'Sign in')\n    with step(\"[Action] Tap btnBack at (61.9%, 54.3%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnBack', 61.9, 54.3)\n    with step(\"[Verify] Sign in is not visible\"):\n        actions.verify_not_visible(AppiumBy.ACCESSIBILITY_ID, 'Sign in')\n    assert True\n"
+}
