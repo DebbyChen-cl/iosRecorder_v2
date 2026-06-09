@@ -585,3 +585,37 @@ def test_gen3_TypeText_20260609_140326_step_000():
     result = {k: v for k, v in step.items() if k not in _STRIP_KEYS}
     answer = _load_or_store("TypeText_20260609_140326", "step_000_t3", result)
     assert result == answer
+
+
+# ── Drag_20260609_151706 ──────────────────────────────────────────────────────
+
+def test_gen3_Drag_20260609_151706_step_000():
+    cap = json.loads((_FIXTURE_DIR / "Drag_20260609_151706" / "capture.json").read_text())
+    entry = cap["entries"][0]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "Drag_20260609_151706" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {k: v for k, v in step.items() if k not in _STRIP_KEYS}
+    answer = _load_or_store("Drag_20260609_151706", "step_000_t3", result)
+    assert result == answer
+
+
+# ── LongPress8_20260609_164342 ────────────────────────────────────────────────
+
+def test_gen3_LongPress8_20260609_164342_step_001():
+    cap = json.loads((_FIXTURE_DIR / "LongPress8_20260609_164342" / "capture.json").read_text())
+    entry = cap["entries"][1]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "LongPress8_20260609_164342" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {k: v for k, v in step.items() if k not in _STRIP_KEYS}
+    answer = _load_or_store("LongPress8_20260609_164342", "step_001_t3", result)
+    assert result == answer

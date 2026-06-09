@@ -8,8 +8,45 @@ Organized into three sections:
                   each wrapped in a reportportal `with step(...)` context
 """
 
+import json
 import math
+from pathlib import Path
 from typing import List, Optional
+
+
+_RECORDING_RULES_FILE = Path(__file__).parent.parent / "recording_rules.json"
+_COMPARE_RULE_DEFAULTS: dict = {
+    "long_press_compare_keywords": ["compare"],
+    "long_press_compare_selector_types": ["accessibility id", "id"],
+}
+
+
+def _load_recording_rules() -> dict:
+    try:
+        raw = json.loads(_RECORDING_RULES_FILE.read_text())
+        cfg = {**_COMPARE_RULE_DEFAULTS, **raw}
+        if not isinstance(cfg.get("long_press_compare_keywords"), list):
+            cfg["long_press_compare_keywords"] = list(_COMPARE_RULE_DEFAULTS["long_press_compare_keywords"])
+        if not isinstance(cfg.get("long_press_compare_selector_types"), list):
+            cfg["long_press_compare_selector_types"] = list(_COMPARE_RULE_DEFAULTS["long_press_compare_selector_types"])
+        return cfg
+    except Exception:
+        return dict(_COMPARE_RULE_DEFAULTS)
+
+
+def _contains_compare_keyword(target: Optional[dict]) -> bool:
+    if not target or target.get("type") == "coordinate":
+        return False
+    target_type = str(target.get("type", "") or "").strip().lower()
+    value = str(target.get("value", "") or "").lower()
+    if not value:
+        return False
+    cfg = _load_recording_rules()
+    allowed_types = [str(t).strip().lower() for t in cfg.get("long_press_compare_selector_types", []) if str(t).strip()]
+    if target_type not in allowed_types:
+        return False
+    keywords = [str(k).strip().lower() for k in cfg.get("long_press_compare_keywords", []) if str(k).strip()]
+    return any(k in value for k in keywords)
 
 # ── 1. UI Setup ────────────────────────────────────────────────────────────────
 
@@ -370,6 +407,40 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
         return (f"[Verify] Capture '{name}' {phase} screenshot",
                 [f"actions.capture_for_preview('{name}', '{phase}')"])
 
+    # ── long press + capture-after during hold ───────────────────────────────
+    if action == "long_press_capture_after_during_hold":
+        lp = step.get("long_press", {})
+        press_t = lp.get("target") or {}
+        capture_t = step.get("capture_target") or {}
+        name = _q(step.get("screenshot_name", "screenshot"))
+        expected = step.get("expected_result", "same")
+        dur = round(lp.get("duration", 1000) / 1000, 2)
+
+        if press_t.get("type") == "coordinate" or capture_t.get("type") == "coordinate":
+            return (
+                f"[Action] Long press and capture '{name}' during hold",
+                ["# long_press_capture_after_during_hold skipped — missing element locator"],
+            )
+
+        p_by, p_val = _locator(press_t)
+        c_by, c_val = _locator(capture_t)
+        sc_kw = _sc_kwargs(lp.get("scroll_container"))
+        pct = press_t.get("offset_pct")
+        if pct:
+            px, py = pct["x"], pct["y"]
+            return (
+                f"[Action] Long press {p_val} and capture '{name}' after during hold",
+                [
+                    f"actions.long_press_capture_for_preview_within_element({p_by}, '{p_val}', {px}, {py}, duration={dur}, capture_name='{name}', capture_by={c_by}, capture_value='{c_val}', expected_result='{expected}', threshold=0.95{sc_kw})"
+                ],
+            )
+        return (
+            f"[Action] Long press {p_val} and capture '{name}' after during hold",
+            [
+                f"actions.long_press_capture_for_preview({p_by}, '{p_val}', duration={dur}, capture_name='{name}', capture_by={c_by}, capture_value='{c_val}', expected_result='{expected}', threshold=0.95{sc_kw})"
+            ],
+        )
+
     return (f"[Action] {action}",
             [f"# [unknown action: {action}]"])
 
@@ -488,6 +559,52 @@ def _merge_scroll_tap(steps: List[dict]) -> List[dict]:
     return out
 
 
+def _merge_screenshot_diff_long_press_compare(steps: List[dict]) -> List[dict]:
+        """Merge before + long_press + after pattern into one synthetic action.
+
+        Pattern:
+            verify_screenshot_diff(before) -> long_press -> verify_screenshot_diff(after)
+        Conditions:
+            - exactly one process step (the long_press)
+            - long_press target contains configured compare keyword
+        Result:
+            keep BEFORE step unchanged;
+            replace long_press + AFTER with one action that captures AFTER during hold,
+            using AFTER target (= same as BEFORE target from recording rule).
+        """
+        out: list[dict] = []
+        i = 0
+        while i < len(steps):
+                s = steps[i]
+                if (
+                        i + 2 < len(steps)
+                        and s.get("action") == "verify_screenshot_diff"
+                        and s.get("phase") == "before"
+                        and steps[i + 1].get("action") == "long_press"
+                        and steps[i + 2].get("action") == "verify_screenshot_diff"
+                        and steps[i + 2].get("phase") == "after"
+                        and _contains_compare_keyword(steps[i + 1].get("target"))
+                ):
+                        before_s = s
+                        long_s = steps[i + 1]
+                        after_s = steps[i + 2]
+                        out.append(before_s)
+                        out.append(
+                                {
+                                        "action": "long_press_capture_after_during_hold",
+                                        "long_press": long_s,
+                                        "capture_target": after_s.get("target") or before_s.get("target"),
+                                        "screenshot_name": after_s.get("screenshot_name", "screenshot"),
+                                        "expected_result": after_s.get("expected_result", "same"),
+                                }
+                        )
+                        i += 3
+                        continue
+                out.append(s)
+                i += 1
+        return out
+
+
 def generate_script(steps: List[dict], case_name: str = "") -> str:
     """
     Convert a list of recorded step dicts into a complete pytest test file
@@ -500,6 +617,7 @@ def generate_script(steps: List[dict], case_name: str = "") -> str:
     """
     steps = _merge_five_taps(steps)
     steps = _merge_scroll_tap(steps)
+    steps = _merge_screenshot_diff_long_press_compare(steps)
     header = generate_header(case_name)
     body_lines: list[str] = []
     _screenshot_actions = {"verify_screenshot_gt", "verify_screenshot_diff"}

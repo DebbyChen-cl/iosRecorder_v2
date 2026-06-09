@@ -1,0 +1,62 @@
+{
+  "step_000_t1": {
+    "action": "drag",
+    "coords": {
+      "x1": 62.0,
+      "y1": 310.0,
+      "x2": 235.0,
+      "y2": 470.0
+    }
+  },
+  "step_000_t2": {
+    "type": "xpath",
+    "value": "//XCUIElementTypeOther"
+  },
+  "step_000_t3": {
+    "action": "drag",
+    "coords": {
+      "x1": 62.0,
+      "y1": 310.0,
+      "x2": 235.0,
+      "y2": 470.0
+    },
+    "duration": 1000,
+    "start_target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"AIReplaceViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage/XCUIElementTypeOther[1]/XCUIElementTypeOther[2]",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeOther[@name=\"AIReplaceViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage/XCUIElementTypeOther[1]/XCUIElementTypeOther[2]",
+      "offset_pct": {
+        "x": 19.4,
+        "y": 49.3
+      },
+      "bounds": {
+        "x": 0,
+        "y": 105,
+        "w": 320,
+        "h": 416
+      }
+    },
+    "end_target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"AIReplaceViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeOther[@name=\"AIReplaceViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage",
+      "offset_pct": {
+        "x": 73.4,
+        "y": 82.8
+      },
+      "bounds": {
+        "x": 0,
+        "y": 74,
+        "w": 320,
+        "h": 478
+      }
+    }
+  },
+  "step_000_t4": {
+    "quality": "xpath_only",
+    "is_problematic": true
+  },
+  "step_000_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Drag //XCUIElementTypeOther[@name=\\\"AIReplaceViewController\\\"]/XCUIElementTypeOther[2]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage/XCUIElementTypeOther[1]/XCUIElementTypeOther[2] (19.4%,49.3%) → //XCUIElementTypeOther[@name=\\\"AIReplaceViewController\\\"]/XCUIElementTypeOther[2]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage (73.4%,82.8%)\"):\n        actions.drag_within_elements(AppiumBy.XPATH, '//XCUIElementTypeOther[@name=\"AIReplaceViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage/XCUIElementTypeOther[1]/XCUIElementTypeOther[2]', 19.4, 49.3, AppiumBy.XPATH, '//XCUIElementTypeOther[@name=\"AIReplaceViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage', 73.4, 82.8, duration=1.0)\n    assert True\n"
+}

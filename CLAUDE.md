@@ -83,6 +83,7 @@ iosRecorder_v2/
 - Labels: `[Action] ...` for gestures, `[Verify] ...` for assertions
 - Falls back to a `# comment` when no element matched (never crashes)
 - Test function name and `@pytest.mark.name` derived from case name + timestamp suffix (`_YYYYMMDD_HHMMSS`) appended at export time
+- For `verify_screenshot_diff(before) -> long_press -> verify_screenshot_diff(after)` on compare-tagged element ids, codegen emits a hold-time capture flow: before capture -> start long press -> after capture -> release (`recording_rules.json` controls keyword/type matching)
 
 ### Export output (POST /api/export)
 - Backend appends timestamp to case name before generating code (e.g. `MyTest_20260508_143022`)

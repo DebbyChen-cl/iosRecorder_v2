@@ -15,11 +15,11 @@
   },
   "step_000_t2": {
     "type": "xpath",
-    "value": "//XCUIElementTypeImage"
+    "value": "//XCUIElementTypeOther"
   },
   "step_001_t2": {
     "type": "xpath",
-    "value": "//XCUIElementTypeImage"
+    "value": "//XCUIElementTypeOther"
   },
   "step_000_t3": {
     "action": "pinch",
@@ -32,7 +32,7 @@
     "duration": 912,
     "target": {
       "type": "xpath",
-      "value": "//XCUIElementTypeImage",
+      "value": "//XCUIElementTypeOther",
       "selector_quality": "xpath_only",
       "bounds": {
         "x": 112,
@@ -52,7 +52,7 @@
     "spread": 80,
     "target": {
       "type": "xpath",
-      "value": "//XCUIElementTypeImage",
+      "value": "//XCUIElementTypeOther",
       "selector_quality": "xpath_only",
       "bounds": {
         "x": 53,

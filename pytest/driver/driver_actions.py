@@ -9,7 +9,12 @@ import functools
 import logging
 import math
 import os
+import threading
 import time
+import json
+import base64
+import urllib.request
+import urllib.parse
 from datetime import datetime
 from typing import Optional, Tuple
 
@@ -125,6 +130,8 @@ class DriverActions:
         self._preview_compare_queue: list[tuple[str, str, str, Optional[float], str]] = []
         # Pending before-captures: name → (ts, before_path), waiting for the matching "after".
         self._preview_pending: dict[str, tuple[str, str]] = {}
+        # Optional metadata captured at "before" to keep before/after crop geometry identical.
+        self._preview_pending_meta: dict[str, tuple[Optional[dict], Optional[dict]]] = {}
         # ──────────────────────────────────────────────────────────────────
 
     # ──────────────────────────────────────────
@@ -491,6 +498,174 @@ class DriverActions:
             "mobile: touchAndHold",
             {"element": element.id, "duration": duration},
         )
+
+    @step("Long press and capture preview during hold")
+    def long_press_capture_for_preview(
+        self,
+        press_by: str,
+        press_value: str,
+        duration: float,
+        capture_name: str,
+        capture_by: str,
+        capture_value: str,
+        expected_result: str = "same",
+        threshold: Optional[float] = 0.95,
+        timeout: int = DEFAULT_WAIT,
+        container_by: Optional[str] = None,
+        container_value: Optional[str] = None,
+        container_w: int = 0,
+        container_h: int = 0,
+        compare_folder: str = "pytest/screenshots/compare",
+    ) -> None:
+        """Capture preview AFTER while a long-press gesture is still holding.
+
+        Sequence: press-down/hold starts -> capture target screenshot -> release.
+        """
+        el = self.wait_for_visible(
+            press_by,
+            press_value,
+            timeout,
+            container_by,
+            container_value,
+            container_w,
+            container_h,
+        )
+        capture_rect = None
+        try:
+            capture_el = self.find_element(capture_by, capture_value, timeout=3)
+            capture_rect = capture_el.rect
+        except Exception as exc:
+            logger.warning("Capture target lookup failed before hold (%s); fallback to full-screen", exc)
+        screen_pts = self.driver.get_window_size()
+
+        center_x = int(el.rect["x"] + el.rect["width"] / 2)
+        center_y = int(el.rect["y"] + el.rect["height"] / 2)
+
+        hold_exc: list[Exception] = []
+        hold_done = threading.Event()
+
+        def _run_hold():
+            logger.info("[compare-hold] long press start (%d,%d)", center_x, center_y)
+            try:
+                self._perform_w3c_hold(center_x, center_y, duration)
+            except Exception as exc:
+                hold_exc.append(exc)
+            finally:
+                hold_done.set()
+                logger.info("[compare-hold] long press end (%d,%d)", center_x, center_y)
+
+        t = threading.Thread(target=_run_hold, daemon=True)
+        t.start()
+        # Give WDA a brief moment to enter hold state, then capture during hold.
+        time.sleep(max(0.05, min(0.2, duration * 0.25)))
+
+        captured = self._capture_preview_after_during_hold(
+            name=capture_name,
+            capture_rect_pts=capture_rect,
+            screen_pts=screen_pts,
+            compare_folder=compare_folder,
+            threshold=threshold,
+            expected_result=expected_result,
+        )
+        if not captured:
+            raise AssertionError("Failed to capture AFTER screenshot during long press hold")
+        logger.info("[compare-hold] after screenshot captured during hold")
+
+        t.join(timeout=max(2.0, float(duration) + 2.0))
+        if not hold_done.is_set():
+            logger.warning("long_press_capture_for_preview: hold thread did not finish in expected window")
+        if hold_exc:
+            raise hold_exc[0]
+
+    @step("Long press within element and capture preview during hold")
+    def long_press_capture_for_preview_within_element(
+        self,
+        press_by: str,
+        press_value: str,
+        pct_x: float,
+        pct_y: float,
+        duration: float,
+        capture_name: str,
+        capture_by: str,
+        capture_value: str,
+        expected_result: str = "same",
+        threshold: Optional[float] = 0.95,
+        timeout: int = DEFAULT_WAIT,
+        container_by: Optional[str] = None,
+        container_value: Optional[str] = None,
+        container_w: int = 0,
+        container_h: int = 0,
+        compare_folder: str = "pytest/screenshots/compare",
+    ) -> None:
+        """Hold at an offset inside press element, capture target screenshot during hold."""
+        el = self.wait_for_visible(
+            press_by,
+            press_value,
+            timeout,
+            container_by,
+            container_value,
+            container_w,
+            container_h,
+        )
+        tx, ty = self._coord_at_pct(el, pct_x, pct_y)
+        capture_rect = None
+        try:
+            capture_el = self.find_element(capture_by, capture_value, timeout=3)
+            capture_rect = capture_el.rect
+        except Exception as exc:
+            logger.warning("Capture target lookup failed before hold (%s); fallback to full-screen", exc)
+        screen_pts = self.driver.get_window_size()
+
+        hold_exc: list[Exception] = []
+        hold_done = threading.Event()
+
+        def _run_hold():
+            logger.info("[compare-hold] long press start (%d,%d)", tx, ty)
+            try:
+                self._perform_w3c_hold(tx, ty, duration)
+            except Exception as exc:
+                hold_exc.append(exc)
+            finally:
+                hold_done.set()
+                logger.info("[compare-hold] long press end (%d,%d)", tx, ty)
+
+        t = threading.Thread(target=_run_hold, daemon=True)
+        t.start()
+        time.sleep(max(0.05, min(0.2, duration * 0.25)))
+
+        captured = self._capture_preview_after_during_hold(
+            name=capture_name,
+            capture_rect_pts=capture_rect,
+            screen_pts=screen_pts,
+            compare_folder=compare_folder,
+            threshold=threshold,
+            expected_result=expected_result,
+        )
+        if not captured:
+            raise AssertionError("Failed to capture AFTER screenshot during long press hold")
+        logger.info("[compare-hold] after screenshot captured during hold")
+
+        t.join(timeout=max(2.0, float(duration) + 2.0))
+        if not hold_done.is_set():
+            logger.warning("long_press_capture_for_preview_within_element: hold thread did not finish in expected window")
+        if hold_exc:
+            raise hold_exc[0]
+
+    def _perform_w3c_hold(self, x: int, y: int, duration: float) -> None:
+        """Perform touch down -> hold -> touch up in one W3C action sequence."""
+        from selenium.webdriver.common.action_chains import ActionChains
+        from selenium.webdriver.common.actions.action_builder import ActionBuilder
+        from selenium.webdriver.common.actions import interaction
+        from selenium.webdriver.common.actions.pointer_input import PointerInput
+
+        ac = ActionChains(self.driver)
+        ac.w3c_actions = ActionBuilder(self.driver, mouse=PointerInput(interaction.POINTER_TOUCH, "touch"))
+        pa = ac.w3c_actions.pointer_action
+        pa.move_to_location(int(x), int(y))
+        pa.pointer_down()
+        pa.pause(max(0.1, float(duration)))
+        pa.pointer_up()
+        ac.perform()
 
     @step("Triple tap")
     def triple_tap(self, element: WebElement) -> None:
@@ -1028,6 +1203,245 @@ class DriverActions:
         except Exception as exc:
             logger.warning("Could not attach image to ReportPortal: %s", exc)
 
+    def _get_wda_base_url(self) -> Optional[str]:
+        """Return WDA base URL from capabilities, if present."""
+        caps = self.driver.capabilities or {}
+        return (
+            caps.get("appium:webDriverAgentUrl")
+            or caps.get("webDriverAgentUrl")
+            or caps.get("wdaBaseUrl")
+        )
+
+    def _fetch_wda_screenshot_png(self) -> Optional[bytes]:
+        """Fetch full-screen PNG bytes directly from WDA (outside Appium session queue)."""
+        wda_base = self._get_wda_base_url()
+        if not wda_base:
+            return None
+        url = f"{wda_base.rstrip('/')}/screenshot"
+        try:
+            req = urllib.request.Request(url, method="GET")
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                raw = resp.read().decode("utf-8")
+            data = json.loads(raw)
+            b64 = data.get("value") if isinstance(data, dict) else None
+            if not b64 and isinstance(data, str):
+                b64 = data
+            if not b64:
+                return None
+            return base64.b64decode(b64)
+        except Exception as exc:
+            logger.warning("WDA direct screenshot failed: %s", exc)
+            return None
+
+    def _fetch_mjpeg_frame_bytes(self, timeout_s: float = 1.2) -> Optional[bytes]:
+        """Fetch one JPEG frame from WDA MJPEG stream.
+
+        This channel is usually independent of WebDriver command queue and is
+        more likely to represent the true during-hold frame.
+        """
+        wda_base = self._get_wda_base_url()
+        if not wda_base:
+            return None
+
+        parsed = urllib.parse.urlparse(wda_base)
+        host = parsed.hostname or "localhost"
+        caps = self.driver.capabilities or {}
+        mjpeg_port = caps.get("appium:mjpegServerPort") or caps.get("mjpegServerPort") or 9100
+        url = f"http://{host}:{int(mjpeg_port)}/"
+
+        boundary = b"--BoundaryString"
+        started = time.monotonic()
+        buf = b""
+        try:
+            req = urllib.request.Request(url, method="GET")
+            with urllib.request.urlopen(req, timeout=timeout_s) as resp:
+                while time.monotonic() - started < timeout_s:
+                    chunk = resp.read(4096)
+                    if not chunk:
+                        break
+                    buf += chunk
+
+                    b_start = buf.find(boundary)
+                    if b_start == -1:
+                        continue
+                    h_end = buf.find(b"\r\n\r\n", b_start)
+                    if h_end == -1:
+                        continue
+                    frame_start = h_end + 4
+
+                    cl = None
+                    for line in buf[b_start:h_end].split(b"\r\n"):
+                        if line.lower().startswith(b"content-length:"):
+                            try:
+                                cl = int(line.split(b":", 1)[1].strip())
+                            except Exception:
+                                cl = None
+                            break
+
+                    if cl is not None and len(buf) >= frame_start + cl:
+                        return buf[frame_start:frame_start + cl]
+
+                    next_b = buf.find(boundary, frame_start)
+                    if next_b != -1:
+                        frame = buf[frame_start:next_b].rstrip(b"\r\n")
+                        if frame:
+                            return frame
+        except Exception as exc:
+            logger.warning("MJPEG frame fetch failed: %s", exc)
+        return None
+
+    def _save_image_crop_by_rect(
+        self,
+        image_bytes: bytes,
+        out_path: str,
+        rect_pts: Optional[dict],
+        screen_pts: Optional[dict],
+    ) -> bool:
+        """Save a cropped image using point-space rect; returns False if crop is unavailable."""
+        if not rect_pts or not screen_pts:
+            return False
+        try:
+            import cv2
+            import numpy as np
+        except Exception:
+            return False
+
+        arr = np.frombuffer(image_bytes, dtype=np.uint8)
+        img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+        if img is None:
+            return False
+
+        h, w = img.shape[:2]
+        sw = float(screen_pts.get("width", 0) or 0)
+        sh = float(screen_pts.get("height", 0) or 0)
+        if sw <= 0 or sh <= 0:
+            return False
+
+        sx = w / sw
+        sy = h / sh
+        x = int((rect_pts.get("x", 0) or 0) * sx)
+        y = int((rect_pts.get("y", 0) or 0) * sy)
+        cw = int((rect_pts.get("width", 0) or 0) * sx)
+        ch = int((rect_pts.get("height", 0) or 0) * sy)
+        if cw <= 0 or ch <= 0:
+            return False
+
+        x1 = max(0, min(w - 1, x))
+        y1 = max(0, min(h - 1, y))
+        x2 = max(x1 + 1, min(w, x1 + cw))
+        y2 = max(y1 + 1, min(h, y1 + ch))
+        crop = img[y1:y2, x1:x2]
+        return bool(cv2.imwrite(out_path, crop))
+
+    def _resolve_capture_rect(
+        self,
+        by: Optional[str],
+        value: Optional[str],
+        timeout: int = 3,
+    ) -> tuple[Optional[dict], Optional[dict]]:
+        """Return (rect_pts, screen_pts) for capture target, or (None, None)."""
+        if not by or not value:
+            return None, None
+        try:
+            el = self.find_element(by, value, timeout=timeout)
+            return el.rect, self.driver.get_window_size()
+        except Exception:
+            return None, None
+
+    def _save_preview_image(
+        self,
+        out_path: str,
+        rect_pts: Optional[dict],
+        screen_pts: Optional[dict],
+        by: Optional[str],
+        value: Optional[str],
+        allow_driver_fallback: bool = True,
+        prefer_mjpeg: bool = False,
+    ) -> bool:
+        """Save preview image from direct channels first; fallback to Appium screenshot."""
+        if prefer_mjpeg:
+            jpeg = self._fetch_mjpeg_frame_bytes()
+            if jpeg and self._save_image_crop_by_rect(jpeg, out_path, rect_pts, screen_pts):
+                return True
+
+        png = self._fetch_wda_screenshot_png()
+        if png:
+            if self._save_image_crop_by_rect(png, out_path, rect_pts, screen_pts):
+                return True
+            if rect_pts is None or screen_pts is None:
+                try:
+                    with open(out_path, "wb") as fh:
+                        fh.write(png)
+                    return True
+                except Exception:
+                    pass
+
+        if not prefer_mjpeg:
+            jpeg = self._fetch_mjpeg_frame_bytes()
+            if jpeg and self._save_image_crop_by_rect(jpeg, out_path, rect_pts, screen_pts):
+                return True
+
+        # Final fallback for non-hold flow.
+        if not allow_driver_fallback:
+            return False
+        if by and value:
+            try:
+                el = self.find_element(by, value)
+                el.screenshot(out_path)
+                return True
+            except Exception:
+                pass
+        try:
+            self.driver.save_screenshot(out_path)
+            return True
+        except Exception:
+            return False
+
+    def _capture_preview_after_during_hold(
+        self,
+        name: str,
+        capture_rect_pts: Optional[dict],
+        screen_pts: Optional[dict],
+        compare_folder: str,
+        threshold: Optional[float],
+        expected_result: str,
+    ) -> bool:
+        """Capture AFTER image during hold and enqueue preview comparison."""
+        os.makedirs(compare_folder, exist_ok=True)
+        pending = self._preview_pending.pop(name, None)
+        meta = self._preview_pending_meta.pop(name, (None, None))
+        if pending:
+            ts, before_path = pending
+        else:
+            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+            before_path = os.path.join(compare_folder, f"{name}_before.png")
+        after_path = os.path.join(compare_folder, f"{name}_{ts}_after.png")
+
+        rect_for_after = capture_rect_pts or meta[0]
+        screen_for_after = screen_pts or meta[1]
+        saved = self._save_preview_image(
+            after_path,
+            rect_for_after,
+            screen_for_after,
+            None,
+            None,
+            allow_driver_fallback=False,
+            prefer_mjpeg=True,
+        )
+
+        if not saved:
+            logger.warning("Failed to capture AFTER screenshot during hold for %s", name)
+            return False
+
+        self._preview_compare_queue.append((name, before_path, after_path, threshold, expected_result))
+        logger.info(
+            "Captured after screenshot during hold: %s (threshold=%s, expected=%s)",
+            after_path,
+            threshold,
+            expected_result,
+        )
+        return True
+
     @step("Capture screenshot for GT comparison")
     def capture_for_gt(
         self,
@@ -1095,34 +1509,26 @@ class DriverActions:
         if phase == "before":
             ts = datetime.now().strftime("%Y%m%d_%H%M%S")
             path = os.path.join(compare_folder, f"{name}_{ts}_before.png")
-            if by and value:
-                try:
-                    el = self.find_element(by, value)
-                    el.screenshot(path)
-                except Exception as exc:
-                    logger.warning("Element screenshot failed (%s); falling back to full-screen", exc)
-                    self.driver.save_screenshot(path)
-            else:
-                self.driver.save_screenshot(path)
+            rect_pts, screen_pts = self._resolve_capture_rect(by, value)
+            if not self._save_preview_image(path, rect_pts, screen_pts, by, value):
+                raise AssertionError(f"Failed to capture before screenshot: {name}")
             self._preview_pending[name] = (ts, path)
+            self._preview_pending_meta[name] = (rect_pts, screen_pts)
             logger.info("Captured before screenshot for preview: %s", path)
         else:
             pending = self._preview_pending.pop(name, None)
+            meta = self._preview_pending_meta.pop(name, (None, None))
             if pending:
                 ts, before_path = pending
             else:
                 ts = datetime.now().strftime("%Y%m%d_%H%M%S")
                 before_path = os.path.join(compare_folder, f"{name}_before.png")  # fallback
             path = os.path.join(compare_folder, f"{name}_{ts}_after.png")
-            if by and value:
-                try:
-                    el = self.find_element(by, value)
-                    el.screenshot(path)
-                except Exception as exc:
-                    logger.warning("Element screenshot failed (%s); falling back to full-screen", exc)
-                    self.driver.save_screenshot(path)
-            else:
-                self.driver.save_screenshot(path)
+            rect_pts, screen_pts = meta
+            if rect_pts is None or screen_pts is None:
+                rect_pts, screen_pts = self._resolve_capture_rect(by, value)
+            if not self._save_preview_image(path, rect_pts, screen_pts, by, value):
+                raise AssertionError(f"Failed to capture after screenshot: {name}")
             self._preview_compare_queue.append((name, before_path, path, threshold, expected_result))
             logger.info(
                 "Captured after screenshot for preview: %s (threshold=%s, expected=%s)",

@@ -185,7 +185,7 @@ def _has_id(el: ET.Element) -> bool:
     a = el.attrib
     name = a.get("name", "").strip()
     label = a.get("label", "").strip()
-    return (bool(name) and not name.startswith("0x")) or bool(label)
+    return (bool(name) and not name.startswith("0x") and not name.startswith("/")) or bool(label)
 
 
 def _score(el: ET.Element) -> tuple:
@@ -259,7 +259,7 @@ def _structural_xpath(target: ET.Element, root: ET.Element) -> Optional[str]:
     anchor_idx = 0
     for i, el in enumerate(path):
         name = el.attrib.get("name", "").strip()
-        if name and not name.startswith("0x"):
+        if name and not name.startswith("0x") and not name.startswith("/"):
             anchor_idx = i
 
     anchor = path[anchor_idx]

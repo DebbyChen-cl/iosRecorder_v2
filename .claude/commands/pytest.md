@@ -69,6 +69,8 @@ def test_<safe_name>(actions: DriverActions):
 - `triple_tap(element)` / `triple_tap_within_element(by, value, pct_x, pct_y, ..., container_by=None, ...)`
 - `five_tap(element)` / `five_tap_within_element(by, value, pct_x, pct_y, ..., container_by=None, ...)` — tap 5 times
 - `long_press(element, duration=1.0)` / `long_press_within_element(by, value, pct_x, pct_y, duration=1.0, ..., container_by=None, ...)`
+- `long_press_capture_for_preview(press_by, press_value, duration, capture_name, capture_by, capture_value, expected_result="same", threshold=0.95, ..., container_by=None, ...)` — starts long press, captures preview AFTER during hold, then releases
+- `long_press_capture_for_preview_within_element(press_by, press_value, pct_x, pct_y, duration, capture_name, capture_by, capture_value, expected_result="same", threshold=0.95, ..., container_by=None, ...)` — same as above but press point uses % offset inside element
 - `two_finger_tap(element)`
 - `multi_finger_tap(element, fingers=3)`
 

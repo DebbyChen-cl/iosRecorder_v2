@@ -43,6 +43,17 @@ def test_<safe_name>(actions: DriverActions):
 | `_q(value)` | Escapes backslash and single-quote for Python string literals |
 | `_by(selector_type)` | Maps selector type string → `AppiumBy.*` constant string |
 | `_swipe_direction(dx, dy)` | Derives direction from coordinate delta |
+| `_merge_screenshot_diff_long_press_compare(steps)` | Merges `before -> long_press -> after` screenshot-diff pattern into a long-press-with-capture action when compare rules match |
+
+## Recording Rules Config
+
+`app/codegen.py` reads compare-related generation rules from `recording_rules.json` (project root).
+
+Current keys:
+- `long_press_compare_keywords`: list of keywords to match in element id value (default `['compare']`)
+- `long_press_compare_selector_types`: allowed selector types for keyword matching (default `['accessibility id', 'id']`)
+
+When the file is missing or invalid JSON, codegen falls back to defaults.
 
 ---
 
@@ -114,6 +125,7 @@ def test_<safe_name>(actions: DriverActions):
 - **No trailing newlines** inside `with step(...)` blocks — one call per block
 - **`assert True`** appended after all `with step` blocks at function body level (4 spaces indent)
 - **Screenshot comparison pattern**: `verify_screenshot_gt` / `verify_screenshot_diff` steps only capture inline (`capture_for_gt` / `capture_for_preview`); a single `with step("[Verify] Screenshot comparisons"): actions.run_screenshot_comparisons()` is appended **once at the end** of the test when any screenshot steps exist — AND logic, all failures raised together
+- **Long-press compare shortcut**: when the sequence is exactly `verify_screenshot_diff(before) -> long_press -> verify_screenshot_diff(after)` and the long-press target element id matches `recording_rules.json` keywords, codegen keeps `before` and replaces the remaining two steps with `long_press_capture_after_during_hold` so the AFTER image is captured during the press hold window
 - **`verify_visible` pattern**: generates `if not actions.verify_visible(...): assert False, '<val> is not visible'` (two lines inside the `with step` block)
 - **`verify_not_visible` pattern**: generates `actions.verify_not_visible(...)` (single line; the method raises `AssertionError` internally on failure)
 - **Label format**:

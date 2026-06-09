@@ -716,3 +716,81 @@ def test_gen4_TypeText_20260609_140326_step_000():
     result = {"quality": quality, "is_problematic": quality in _WARN_QUALITIES}
     answer = _load_or_store("TypeText_20260609_140326", "step_000_t4", result)
     assert result == answer
+
+
+# ── Drag_20260609_151706 ──────────────────────────────────────────────────────
+
+def test_gen4_Drag_20260609_151706_step_000():
+    cap = json.loads((_FIXTURE_DIR / "Drag_20260609_151706" / "capture.json").read_text())
+    entry = cap["entries"][0]
+    hfile = entry.get("hierarchy_file")
+    if not hfile:
+        pytest.skip("no hierarchy for this step")
+    inp = entry["input"]
+    x = inp.get("x", inp.get("x1", inp.get("target_x")))
+    y = inp.get("y", inp.get("y1", inp.get("target_y")))
+    if x is None or y is None:
+        pytest.skip("no coordinates for this step")
+    root = ET.fromstring((_FIXTURE_DIR / "Drag_20260609_151706" / hfile).read_text())
+    el = hit_test(x, y, root)
+    quality = get_selector_quality(el) if el is not None else "coordinate"
+    result = {"quality": quality, "is_problematic": quality in _WARN_QUALITIES}
+    answer = _load_or_store("Drag_20260609_151706", "step_000_t4", result)
+    assert result == answer
+
+
+# ── LongPress8_20260609_164342 ────────────────────────────────────────────────
+
+def test_gen4_LongPress8_20260609_164342_step_000():
+    cap = json.loads((_FIXTURE_DIR / "LongPress8_20260609_164342" / "capture.json").read_text())
+    entry = cap["entries"][0]
+    hfile = entry.get("hierarchy_file")
+    if not hfile:
+        pytest.skip("no hierarchy for this step")
+    inp = entry["input"]
+    x = inp.get("x", inp.get("x1", inp.get("target_x")))
+    y = inp.get("y", inp.get("y1", inp.get("target_y")))
+    if x is None or y is None:
+        pytest.skip("no coordinates for this step")
+    root = ET.fromstring((_FIXTURE_DIR / "LongPress8_20260609_164342" / hfile).read_text())
+    el = hit_test(x, y, root)
+    quality = get_selector_quality(el) if el is not None else "coordinate"
+    result = {"quality": quality, "is_problematic": quality in _WARN_QUALITIES}
+    answer = _load_or_store("LongPress8_20260609_164342", "step_000_t4", result)
+    assert result == answer
+
+def test_gen4_LongPress8_20260609_164342_step_001():
+    cap = json.loads((_FIXTURE_DIR / "LongPress8_20260609_164342" / "capture.json").read_text())
+    entry = cap["entries"][1]
+    hfile = entry.get("hierarchy_file")
+    if not hfile:
+        pytest.skip("no hierarchy for this step")
+    inp = entry["input"]
+    x = inp.get("x", inp.get("x1", inp.get("target_x")))
+    y = inp.get("y", inp.get("y1", inp.get("target_y")))
+    if x is None or y is None:
+        pytest.skip("no coordinates for this step")
+    root = ET.fromstring((_FIXTURE_DIR / "LongPress8_20260609_164342" / hfile).read_text())
+    el = hit_test(x, y, root)
+    quality = get_selector_quality(el) if el is not None else "coordinate"
+    result = {"quality": quality, "is_problematic": quality in _WARN_QUALITIES}
+    answer = _load_or_store("LongPress8_20260609_164342", "step_001_t4", result)
+    assert result == answer
+
+def test_gen4_LongPress8_20260609_164342_step_002():
+    cap = json.loads((_FIXTURE_DIR / "LongPress8_20260609_164342" / "capture.json").read_text())
+    entry = cap["entries"][2]
+    hfile = entry.get("hierarchy_file")
+    if not hfile:
+        pytest.skip("no hierarchy for this step")
+    inp = entry["input"]
+    x = inp.get("x", inp.get("x1", inp.get("target_x")))
+    y = inp.get("y", inp.get("y1", inp.get("target_y")))
+    if x is None or y is None:
+        pytest.skip("no coordinates for this step")
+    root = ET.fromstring((_FIXTURE_DIR / "LongPress8_20260609_164342" / hfile).read_text())
+    el = hit_test(x, y, root)
+    quality = get_selector_quality(el) if el is not None else "coordinate"
+    result = {"quality": quality, "is_problematic": quality in _WARN_QUALITIES}
+    answer = _load_or_store("LongPress8_20260609_164342", "step_002_t4", result)
+    assert result == answer

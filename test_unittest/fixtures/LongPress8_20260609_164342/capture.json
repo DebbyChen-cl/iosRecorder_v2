@@ -1,0 +1,214 @@
+{
+  "captured_at": "2026-06-09T16:43:42",
+  "case_name": "LongPress8",
+  "entries": [
+    {
+      "input": {
+        "action": "verify_screenshot_diff",
+        "target_x": 58.0,
+        "target_y": 440.0,
+        "phase": "before"
+      },
+      "output": {
+        "action": "verify_screenshot_diff",
+        "phase": "before",
+        "coords": {
+          "x": 58.0,
+          "y": 440.0
+        },
+        "bounds": {
+          "x": 0,
+          "y": 110,
+          "w": 320,
+          "h": 416
+        },
+        "timestamp": 1780994527.269859,
+        "target": {
+          "type": "accessibility id",
+          "value": "EditingImageView_ImageView",
+          "selector_quality": "id",
+          "bounds": {
+            "x": 0,
+            "y": 110,
+            "w": 320,
+            "h": 416
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_000.xml"
+    },
+    {
+      "input": {
+        "action": "long_press",
+        "x": 303.0,
+        "y": 526.0,
+        "duration": 1000
+      },
+      "output": {
+        "action": "long_press",
+        "coords": {
+          "x": 303.0,
+          "y": 526.0
+        },
+        "duration": 1000,
+        "timestamp": 1780994528.626869,
+        "target": {
+          "type": "accessibility id",
+          "value": "ic edit compare n",
+          "selector_quality": "id_eq_label",
+          "xpath": "//XCUIElementTypeButton[@name='ic edit compare n']",
+          "offset_pct": {
+            "x": 69.0,
+            "y": 51.7
+          },
+          "bounds": {
+            "x": 283,
+            "y": 511,
+            "w": 29,
+            "h": 29
+          }
+        },
+        "scroll_container": {
+          "type": "xpath",
+          "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView",
+          "selector_quality": "xpath_only",
+          "bounds": {
+            "x": 0,
+            "y": 80,
+            "w": 320,
+            "h": 476
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_001.xml"
+    },
+    {
+      "input": {
+        "action": "verify_screenshot_diff",
+        "target_x": 58.0,
+        "target_y": 440.0,
+        "phase": "after"
+      },
+      "output": {
+        "action": "verify_screenshot_diff",
+        "phase": "after",
+        "coords": {
+          "x": 58.0,
+          "y": 440.0
+        },
+        "bounds": {
+          "x": 0,
+          "y": 110,
+          "w": 320,
+          "h": 416
+        },
+        "timestamp": 1780994532.208122,
+        "expected_result": "different",
+        "target": {
+          "type": "accessibility id",
+          "value": "EditingImageView_ImageView",
+          "selector_quality": "id",
+          "bounds": {
+            "x": 0,
+            "y": 110,
+            "w": 320,
+            "h": 416
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_002.xml"
+    }
+  ],
+  "steps": [
+    {
+      "action": "verify_screenshot_diff",
+      "phase": "before",
+      "coords": {
+        "x": 58.0,
+        "y": 440.0
+      },
+      "bounds": {
+        "x": 0,
+        "y": 110,
+        "w": 320,
+        "h": 416
+      },
+      "timestamp": 1780994527.269859,
+      "target": {
+        "type": "accessibility id",
+        "value": "EditingImageView_ImageView",
+        "selector_quality": "id",
+        "bounds": {
+          "x": 0,
+          "y": 110,
+          "w": 320,
+          "h": 416
+        }
+      }
+    },
+    {
+      "action": "long_press",
+      "coords": {
+        "x": 303.0,
+        "y": 526.0
+      },
+      "duration": 1000,
+      "timestamp": 1780994528.626869,
+      "target": {
+        "type": "accessibility id",
+        "value": "ic edit compare n",
+        "selector_quality": "id_eq_label",
+        "xpath": "//XCUIElementTypeButton[@name='ic edit compare n']",
+        "offset_pct": {
+          "x": 69.0,
+          "y": 51.7
+        },
+        "bounds": {
+          "x": 283,
+          "y": 511,
+          "w": 29,
+          "h": 29
+        }
+      },
+      "scroll_container": {
+        "type": "xpath",
+        "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView",
+        "selector_quality": "xpath_only",
+        "bounds": {
+          "x": 0,
+          "y": 80,
+          "w": 320,
+          "h": 476
+        }
+      }
+    },
+    {
+      "action": "verify_screenshot_diff",
+      "phase": "after",
+      "coords": {
+        "x": 58.0,
+        "y": 440.0
+      },
+      "bounds": {
+        "x": 0,
+        "y": 110,
+        "w": 320,
+        "h": 416
+      },
+      "timestamp": 1780994532.208122,
+      "expected_result": "different",
+      "target": {
+        "type": "accessibility id",
+        "value": "EditingImageView_ImageView",
+        "selector_quality": "id",
+        "bounds": {
+          "x": 0,
+          "y": 110,
+          "w": 320,
+          "h": 416
+        }
+      }
+    }
+  ],
+  "codegen_output": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"LongPress8\")\ndef test_LongPress8(actions: DriverActions):\n    with step(\"[Verify] Capture 'screenshot' before screenshot\"):\n        actions.capture_for_preview('screenshot', 'before', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView')\n    with step(\"[Action] Long press ic edit compare n and capture 'screenshot' after during hold\"):\n        actions.long_press_capture_for_preview_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic edit compare n', 69.0, 51.7, duration=1.0, capture_name='screenshot', capture_by=AppiumBy.ACCESSIBILITY_ID, capture_value='EditingImageView_ImageView', expected_result='different', threshold=0.95, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView', container_w=320, container_h=476)\n    with step(\"[Verify] Screenshot comparisons\"):\n        actions.run_screenshot_comparisons(threshold=0.95)\n    assert True\n"
+}

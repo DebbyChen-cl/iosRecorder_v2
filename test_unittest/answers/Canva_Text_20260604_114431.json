@@ -81,9 +81,9 @@
     },
     "target": {
       "type": "xpath",
-      "value": "//XCUIElementTypeImage",
+      "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeImage",
       "selector_quality": "xpath_only",
-      "xpath": "//XCUIElementTypeImage",
+      "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeImage",
       "offset_pct": {
         "x": 38.1,
         "y": 50.8
@@ -101,9 +101,9 @@
     "text": "Text Test",
     "target": {
       "type": "xpath",
-      "value": "//XCUIElementTypeImage",
+      "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeImage",
       "selector_quality": "xpath_only",
-      "xpath": "//XCUIElementTypeImage",
+      "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeImage",
       "offset_pct": {
         "x": 38.1,
         "y": 50.8

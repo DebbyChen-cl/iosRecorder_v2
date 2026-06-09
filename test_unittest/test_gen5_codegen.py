@@ -378,3 +378,37 @@ def test_gen5_TypeText_20260609_140326_step_000():
     code = generate_script([step], "test_case")
     answer = _load_or_store("TypeText_20260609_140326", "step_000_t5", code)
     assert code == answer
+
+
+# ── Drag_20260609_151706 ──────────────────────────────────────────────────────
+
+def test_gen5_Drag_20260609_151706_step_000():
+    cap = json.loads((_FIXTURE_DIR / "Drag_20260609_151706" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][0]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("Drag_20260609_151706", "step_000_t5", code)
+    assert code == answer
+
+
+# ── LongPress8_20260609_164342 ────────────────────────────────────────────────
+
+def test_gen5_LongPress8_20260609_164342_step_000():
+    cap = json.loads((_FIXTURE_DIR / "LongPress8_20260609_164342" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][0]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("LongPress8_20260609_164342", "step_000_t5", code)
+    assert code == answer
+
+def test_gen5_LongPress8_20260609_164342_step_001():
+    cap = json.loads((_FIXTURE_DIR / "LongPress8_20260609_164342" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][1]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("LongPress8_20260609_164342", "step_001_t5", code)
+    assert code == answer
+
+def test_gen5_LongPress8_20260609_164342_step_002():
+    cap = json.loads((_FIXTURE_DIR / "LongPress8_20260609_164342" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][2]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("LongPress8_20260609_164342", "step_002_t5", code)
+    assert code == answer

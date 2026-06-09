@@ -1,0 +1,9 @@
+{
+  "long_press_compare_keywords": [
+    "compare"
+  ],
+  "long_press_compare_selector_types": [
+    "accessibility id",
+    "id"
+  ]
+}

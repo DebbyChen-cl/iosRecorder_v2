@@ -19,7 +19,7 @@ from pydantic import BaseModel
 
 from .codegen import generate_script
 from .unit_test_gen import generate_unit_tests
-from .hittest import hit_test, hit_test_for_swipe, hit_test_excluding, hit_test_drop_target, find_scroll_container, build_scroll_container_selector, serialize, _rect as _el_rect, _find_path as _ht_find_path, _unwrap as _ht_unwrap
+from .hittest import hit_test, hit_test_for_swipe, hit_test_drop_target, find_scroll_container, build_scroll_container_selector, serialize, _rect as _el_rect, _find_path as _ht_find_path, _unwrap as _ht_unwrap, _structural_xpath as _ht_structural_xpath
 from .selector import build_selector, build_xpath, get_selector_quality
 from .wda import WDAClient
 
@@ -756,22 +756,35 @@ async def record_swipe(req: SwipeReq):
 
 @app.post("/api/record/drag")
 async def record_drag(req: DragReq):
-    snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
+    snapshot = _cache.get("root") or await _cached_tree()
     await _record_drag(req.x1, req.y1, req.x2, req.y2, req.duration, snapshot=snapshot, pre_screenshot=pre_ss)
     return {"ok": True}
 
 
 # ── Recording helpers ──────────────────────────────────────────────────────────
 
-def _build_target(x: float, y: float, el) -> dict:
+def _build_target(x: float, y: float, el, root=None) -> dict:
     """Build step target dict with selector + offset_pct + quality + bounds + xpath."""
     sel_type, sel_val = build_selector(el)
+    xpath = build_xpath(el)
+    if root is not None and sel_type == "xpath":
+        unwrapped = _ht_unwrap(root)
+        path = _ht_find_path(unwrapped, el)
+        logger.info(f"[structural] el={el.tag} root={unwrapped.tag} path_len={len(path) if path else 'None(not found)'}")
+        if path:
+            for i, p in enumerate(path):
+                logger.info(f"  [{i}] {p.tag} name={p.attrib.get('name','')[:40]!r}")
+        structural = _ht_structural_xpath(el, unwrapped)
+        logger.info(f"[structural] result={structural}")
+        if structural:
+            sel_val = structural
+            xpath = structural
     target: dict = {
         "type": sel_type,
         "value": sel_val,
         "selector_quality": get_selector_quality(el),
-        "xpath": build_xpath(el),
+        "xpath": xpath,
     }
     r = _el_rect(el)
     if r:
@@ -825,7 +838,7 @@ async def _record_point(action: str, x: float, y: float, snapshot=None, pre_scre
     step: dict = {"action": action, "coords": {"x": x, "y": y}, "timestamp": time.time()}
     if root is not None:
         el = hit_test(x, y, root)
-        step["target"] = _build_target(x, y, el) if el is not None else {"type": "coordinate", "x": x, "y": y}
+        step["target"] = _build_target(x, y, el, root) if el is not None else {"type": "coordinate", "x": x, "y": y}
         container_el = find_scroll_container(x, y, root)
         if container_el is not None:
             sc_type, sc_val = build_scroll_container_selector(container_el, root)
@@ -855,7 +868,7 @@ async def _record_long_press(x: float, y: float, duration: int, snapshot=None, p
     step: dict = {"action": "long_press", "coords": {"x": x, "y": y}, "duration": duration, "timestamp": time.time()}
     if root is not None:
         el = hit_test(x, y, root)
-        step["target"] = _build_target(x, y, el) if el is not None else {"type": "coordinate", "x": x, "y": y}
+        step["target"] = _build_target(x, y, el, root) if el is not None else {"type": "coordinate", "x": x, "y": y}
         container_el = find_scroll_container(x, y, root)
         if container_el is not None:
             sc_type, sc_val = build_scroll_container_selector(container_el, root)
@@ -883,7 +896,7 @@ async def _record_multi_finger_tap(x: float, y: float, fingers: int, snapshot=No
     step: dict = {"action": "multi_finger_tap", "coords": {"x": x, "y": y}, "fingers": fingers, "timestamp": time.time()}
     if root is not None:
         el = hit_test(x, y, root)
-        step["target"] = _build_target(x, y, el) if el is not None else {"type": "coordinate", "x": x, "y": y}
+        step["target"] = _build_target(x, y, el, root) if el is not None else {"type": "coordinate", "x": x, "y": y}
     else:
         step["target"] = {"type": "coordinate", "x": x, "y": y}
     if pre_screenshot:
@@ -1046,8 +1059,20 @@ async def _record_type_text(text: str, tx: Optional[float], ty: Optional[float],
         t: dict = {"type": target_type, "value": target_value}
         if target_selector_quality:
             t["selector_quality"] = target_selector_quality
+        if target_type == "xpath":
+            t["xpath"] = target_value
         if target_bounds:
             t["bounds"] = target_bounds
+            if tx is not None and ty is not None:
+                bw = float(target_bounds.get("w", 0) or 0)
+                bh = float(target_bounds.get("h", 0) or 0)
+                bx = float(target_bounds.get("x", 0) or 0)
+                by = float(target_bounds.get("y", 0) or 0)
+                if bw > 0 and bh > 0:
+                    t["offset_pct"] = {
+                        "x": max(0.0, min(100.0, round((tx - bx) / bw * 100, 1))),
+                        "y": max(0.0, min(100.0, round((ty - by) / bh * 100, 1))),
+                    }
         step["target"] = t
     # 2. Last-tapped element target (avoids iOS updating text field name after typing)
     elif _last_tap_target is not None and _last_tap_target.get("type") != "coordinate":
@@ -1058,8 +1083,7 @@ async def _record_type_text(text: str, tx: Optional[float], ty: Optional[float],
         if root is not None:
             el = hit_test(tx, ty, root)
             if el is not None:
-                sel_type, sel_val = build_selector(el)
-                step["target"] = {"type": sel_type, "value": sel_val, "selector_quality": get_selector_quality(el)}
+                step["target"] = _build_target(tx, ty, el, root)
             else:
                 step["target"] = {"type": "coordinate", "x": tx, "y": ty}
         else:
@@ -1256,15 +1280,12 @@ async def _record_drag(x1: float, y1: float, x2: float, y2: float, duration: int
         # Find the element being dragged (source)
         start_el = hit_test(x1, y1, root)
         if start_el is not None:
-            step["start_target"] = _build_target(x1, y1, start_el)
-            # Find the drop target: exclude source subtree AND deprioritise
-            # elements of the same tag (e.g. another image in a gallery)
-            # so we land on the container/slot instead
-            end_el = hit_test_drop_target(x2, y2, root, start_el)
-        else:
-            end_el = hit_test(x2, y2, root)
+            step["start_target"] = _build_target(x1, y1, start_el, root)
+        # For drop target, exclude source subtree and penalize same-tag matches
+        # so we avoid recording a generic/duplicate locator for the destination.
+        end_el = hit_test_drop_target(x2, y2, root, start_el) if start_el is not None else hit_test(x2, y2, root)
         if end_el is not None:
-            step["end_target"] = _build_target(x2, y2, end_el)
+            step["end_target"] = _build_target(x2, y2, end_el, root)
     if pre_screenshot:
         step["pre_screenshot"] = pre_screenshot
         step["pre_screenshot_size"] = dict(wda._last_screen_size)
@@ -1477,8 +1498,8 @@ async def ws_handler(ws: WebSocket):
             elif t == "drag":
                 x1, y1, x2, y2 = float(data["x1"]), float(data["y1"]), float(data["x2"]), float(data["y2"])
                 dur = int(data.get("duration", 1000))
-                snapshot = _cache.get("root") if rec else None
                 pre_ss = await _take_pre_gesture_screenshot() if rec else None
+                snapshot = (_cache.get("root") or await _cached_tree()) if rec else None
                 if rec:
                     await wda.drag(x1, y1, x2, y2, dur)
                     asyncio.create_task(_record_drag(x1, y1, x2, y2, dur, snapshot=snapshot, pre_screenshot=pre_ss))

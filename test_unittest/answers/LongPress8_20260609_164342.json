@@ -1,0 +1,71 @@
+{
+  "step_001_t1": {
+    "action": "long_press",
+    "coords": {
+      "x": 303.0,
+      "y": 526.0
+    }
+  },
+  "step_000_t2": {
+    "type": "accessibility id",
+    "value": "EditingImageView_ImageView"
+  },
+  "step_001_t2": {
+    "type": "accessibility id",
+    "value": "ic edit compare n"
+  },
+  "step_002_t2": {
+    "type": "accessibility id",
+    "value": "EditingImageView_ImageView"
+  },
+  "step_001_t3": {
+    "action": "long_press",
+    "coords": {
+      "x": 303.0,
+      "y": 526.0
+    },
+    "duration": 1000,
+    "target": {
+      "type": "accessibility id",
+      "value": "ic edit compare n",
+      "selector_quality": "id_eq_label",
+      "xpath": "//XCUIElementTypeButton[@name='ic edit compare n']",
+      "offset_pct": {
+        "x": 69.0,
+        "y": 51.7
+      },
+      "bounds": {
+        "x": 283,
+        "y": 511,
+        "w": 29,
+        "h": 29
+      }
+    },
+    "scroll_container": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView",
+      "selector_quality": "xpath_only",
+      "bounds": {
+        "x": 0,
+        "y": 80,
+        "w": 320,
+        "h": 476
+      }
+    }
+  },
+  "step_000_t4": {
+    "quality": "id",
+    "is_problematic": false
+  },
+  "step_001_t4": {
+    "quality": "id_eq_label",
+    "is_problematic": true
+  },
+  "step_002_t4": {
+    "quality": "id",
+    "is_problematic": false
+  },
+  "step_000_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Verify] Capture 'screenshot' before screenshot\"):\n        actions.capture_for_preview('screenshot', 'before', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView')\n    with step(\"[Verify] Screenshot comparisons\"):\n        actions.run_screenshot_comparisons(threshold=0.95)\n    assert True\n",
+  "step_001_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Long press ic edit compare n at (69.0%, 51.7%)\"):\n        actions.long_press_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic edit compare n', 69.0, 51.7, duration=1.0, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView', container_w=320, container_h=476)\n    assert True\n",
+  "step_002_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Verify] Capture 'screenshot' after screenshot\"):\n        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', expected_result='different', threshold=0.95)\n    with step(\"[Verify] Screenshot comparisons\"):\n        actions.run_screenshot_comparisons(threshold=0.95)\n    assert True\n"
+}
