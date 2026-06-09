@@ -125,6 +125,21 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
         return (f"[Action] Double tap at ({c.get('x')},{c.get('y')})",
                 [f"# double_tap at ({c.get('x')},{c.get('y')}) — no element matched"])
 
+    # ── five tap ──────────────────────────────────────────────────────────────
+    if action == "five_tap":
+        if has_el:
+            by, val = _locator(t)
+            sc_kw = _sc_kwargs(step.get("scroll_container"))
+            pct = t.get("offset_pct")
+            if pct:
+                px, py = pct["x"], pct["y"]
+                return (f"[Action] Five tap {val} at ({px}%, {py}%)",
+                        [f"actions.five_tap_within_element({by}, '{val}', {px}, {py}{sc_kw})"])
+            return (f"[Action] Five tap {val}",
+                    [f"actions.five_tap(actions.find_element({by}, '{val}'{sc_kw}))"])
+        return (f"[Action] Five tap at ({c.get('x')},{c.get('y')})",
+                [f"# five_tap at ({c.get('x')},{c.get('y')}) — no element matched"])
+
     # ── triple tap ────────────────────────────────────────────────────────────
     if action == "triple_tap":
         if has_el:
@@ -375,6 +390,54 @@ def _scroll_needs_target(scroll_step: dict) -> bool:
     return not st or st.get("type") == "coordinate"
 
 
+def _merge_five_taps(steps: List[dict]) -> List[dict]:
+    """Merge exactly 5 consecutive tap steps on the same element into a single five_tap step.
+
+    Matches when: action=="tap", same target type+value across all 5 steps, and
+    target is not coordinate-only.  The first step's target/coords/scroll_container
+    are kept on the merged step.
+    """
+    out: list[dict] = []
+    i = 0
+    while i < len(steps):
+        s = steps[i]
+        if s.get("action") != "tap":
+            out.append(s)
+            i += 1
+            continue
+
+        t0 = s.get("target")
+        if not t0 or t0.get("type") == "coordinate":
+            out.append(s)
+            i += 1
+            continue
+
+        run = [s]
+        j = i + 1
+        while j < len(steps):
+            ns = steps[j]
+            if ns.get("action") != "tap":
+                break
+            nt = ns.get("target")
+            if not nt or nt.get("type") == "coordinate":
+                break
+            if nt.get("type") != t0.get("type") or nt.get("value") != t0.get("value"):
+                break
+            run.append(ns)
+            j += 1
+
+        if len(run) == 5:
+            merged = dict(run[0])
+            merged["action"] = "five_tap"
+            out.append(merged)
+            i = j
+        else:
+            out.extend(run[:1])
+            i += 1
+
+    return out
+
+
 def _merge_scroll_tap(steps: List[dict]) -> List[dict]:
     """Merge consecutive scroll steps followed by a tap into scroll_until + tap.
 
@@ -405,7 +468,7 @@ def _merge_scroll_tap(steps: List[dict]) -> List[dict]:
 
         # Check if the next step is a tap-type action with a valid element target
         tap_s = steps[j] if j < len(steps) else None
-        if tap_s and tap_s.get("action") in ("tap", "double_tap", "triple_tap", "long_press"):
+        if tap_s and tap_s.get("action") in ("tap", "double_tap", "triple_tap", "five_tap", "long_press"):
             tap_t = tap_s.get("target")
             if tap_t and tap_t.get("type") != "coordinate":
                 # Use the last scroll step (has most recent offsets / container)
@@ -435,6 +498,7 @@ def generate_script(steps: List[dict], case_name: str = "") -> str:
     appended at the end of the test to evaluate ALL captures together (AND
     logic — every comparison runs, all failures reported at once).
     """
+    steps = _merge_five_taps(steps)
     steps = _merge_scroll_tap(steps)
     header = generate_header(case_name)
     body_lines: list[str] = []

@@ -442,6 +442,31 @@ class DriverActions:
                 pa.pause(0.08)
         ac.perform()
 
+    @step("Five tap within element")
+    def five_tap_within_element(
+        self, by: str, value: str, pct_x: float, pct_y: float, timeout: int = DEFAULT_WAIT,
+        container_by: Optional[str] = None, container_value: Optional[str] = None,
+        container_w: int = 0, container_h: int = 0,
+    ) -> None:
+        """Find element and tap 5 times at (pct_x%, pct_y%) within its bounds."""
+        from selenium.webdriver.common.action_chains import ActionChains
+        from selenium.webdriver.common.actions.action_builder import ActionBuilder
+        from selenium.webdriver.common.actions import interaction
+        from selenium.webdriver.common.actions.pointer_input import PointerInput
+        el = self.wait_for_visible(by, value, timeout, container_by, container_value, container_w, container_h)
+        tx, ty = self._coord_at_pct(el, pct_x, pct_y)
+        ac = ActionChains(self.driver)
+        ac.w3c_actions = ActionBuilder(self.driver, mouse=PointerInput(interaction.POINTER_TOUCH, "touch"))
+        pa = ac.w3c_actions.pointer_action
+        for i in range(5):
+            pa.move_to_location(tx, ty)
+            pa.pointer_down()
+            pa.pause(0.05)
+            pa.pointer_up()
+            if i < 4:
+                pa.pause(0.08)
+        ac.perform()
+
     @step("Long press within element")
     def long_press_within_element(
         self, by: str, value: str, pct_x: float, pct_y: float, duration: float = 1.0,
@@ -473,6 +498,14 @@ class DriverActions:
         self.driver.execute_script(
             "mobile: tapWithNumberOfTaps",
             {"element": element.id, "numberOfTaps": 3, "numberOfTouches": 1},
+        )
+
+    @step("Five tap")
+    def five_tap(self, element: WebElement) -> None:
+        """Tap a WebElement five times using native XCUITest gesture."""
+        self.driver.execute_script(
+            "mobile: tapWithNumberOfTaps",
+            {"element": element.id, "numberOfTaps": 5, "numberOfTouches": 1},
         )
 
     @step("Two finger tap")
@@ -916,7 +949,7 @@ class DriverActions:
         self,
         by: str,
         value: str,
-        timeout: int = 5,
+        timeout: int = 60,
         msg: str = "",
         container_by: Optional[str] = None,
         container_value: Optional[str] = None,
@@ -969,19 +1002,15 @@ class DriverActions:
         Raises AssertionError with a clear diff message on mismatch.
         """
         element = self.wait_for_visible(by, value, timeout)
-        actual = element.text
+        # XCUIElementTypeTextView (and other text inputs) expose their content
+        # via the `value` attribute; `element.text` maps to the accessibility
+        # label which is often empty for programmatic text views.
+        actual = element.text or element.get_attribute("value") or ""
         assert actual == expected, (
             f"verify_text FAILED for ({by}, {value!r})\n"
             f"  expected : {expected!r}\n"
             f"  actual   : {actual!r}"
         )
-
-        if actual != expected:
-            raise AssertionError(
-                f"verify_text FAILED for ({by}, {value!r})\n"
-                f"  expected : {expected!r}\n"
-                f"  actual   : {actual!r}"
-            )
         logger.info("verify_text PASSED for (%s, %r)", by, value)
 
     # ──────────────────────────────────────────

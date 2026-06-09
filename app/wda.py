@@ -218,6 +218,30 @@ class WDAClient:
             {"type": "pointerUp", "button": 0},
         ]))
 
+    async def five_tap(self, x: float, y: float) -> bool:
+        return await self._actions(self._touch_actions([
+            {"type": "pointerMove", "duration": 0, "x": int(x), "y": int(y)},
+            {"type": "pointerDown", "button": 0},
+            {"type": "pause", "duration": 50},
+            {"type": "pointerUp", "button": 0},
+            {"type": "pause", "duration": 80},
+            {"type": "pointerDown", "button": 0},
+            {"type": "pause", "duration": 50},
+            {"type": "pointerUp", "button": 0},
+            {"type": "pause", "duration": 80},
+            {"type": "pointerDown", "button": 0},
+            {"type": "pause", "duration": 50},
+            {"type": "pointerUp", "button": 0},
+            {"type": "pause", "duration": 80},
+            {"type": "pointerDown", "button": 0},
+            {"type": "pause", "duration": 50},
+            {"type": "pointerUp", "button": 0},
+            {"type": "pause", "duration": 80},
+            {"type": "pointerDown", "button": 0},
+            {"type": "pause", "duration": 50},
+            {"type": "pointerUp", "button": 0},
+        ]))
+
     async def long_press(self, x: float, y: float, duration_ms: int = 1000) -> bool:
         return await self._actions(
             self._touch_actions([

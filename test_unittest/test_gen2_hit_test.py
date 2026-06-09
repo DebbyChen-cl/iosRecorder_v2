@@ -703,3 +703,94 @@ def test_gen2_Tap_2f_3finger_20260604_143948_step_001():
         result = {"type": "coordinate", "value": None}
     answer = _load_or_store("Tap_2f_3finger_20260604_143948", "step_001_t2", result)
     assert result == answer
+
+
+# ── tap_5_20260608_155442 ─────────────────────────────────────────────────────
+
+def test_gen2_tap_5_20260608_155442_step_000():
+    cap = json.loads((_FIXTURE_DIR / "tap_5_20260608_155442" / "capture.json").read_text())
+    entry = cap["entries"][0]
+    hfile = entry.get("hierarchy_file")
+    if not hfile:
+        pytest.skip("no hierarchy for this step")
+    inp = entry["input"]
+    x = inp.get("x", inp.get("x1", inp.get("target_x")))
+    y = inp.get("y", inp.get("y1", inp.get("target_y")))
+    if x is None or y is None:
+        pytest.skip("no coordinates for this step")
+    root = ET.fromstring((_FIXTURE_DIR / "tap_5_20260608_155442" / hfile).read_text())
+    el = hit_test(x, y, root)
+    if el is not None:
+        sel_type, sel_val = build_selector(el)
+        result = {"type": sel_type, "value": sel_val}
+    else:
+        result = {"type": "coordinate", "value": None}
+    answer = _load_or_store("tap_5_20260608_155442", "step_000_t2", result)
+    assert result == answer
+
+def test_gen2_tap_5_20260608_155442_step_001():
+    cap = json.loads((_FIXTURE_DIR / "tap_5_20260608_155442" / "capture.json").read_text())
+    entry = cap["entries"][1]
+    hfile = entry.get("hierarchy_file")
+    if not hfile:
+        pytest.skip("no hierarchy for this step")
+    inp = entry["input"]
+    x = inp.get("x", inp.get("x1", inp.get("target_x")))
+    y = inp.get("y", inp.get("y1", inp.get("target_y")))
+    if x is None or y is None:
+        pytest.skip("no coordinates for this step")
+    root = ET.fromstring((_FIXTURE_DIR / "tap_5_20260608_155442" / hfile).read_text())
+    el = hit_test(x, y, root)
+    if el is not None:
+        sel_type, sel_val = build_selector(el)
+        result = {"type": sel_type, "value": sel_val}
+    else:
+        result = {"type": "coordinate", "value": None}
+    answer = _load_or_store("tap_5_20260608_155442", "step_001_t2", result)
+    assert result == answer
+
+def test_gen2_tap_5_20260608_155442_step_002():
+    cap = json.loads((_FIXTURE_DIR / "tap_5_20260608_155442" / "capture.json").read_text())
+    entry = cap["entries"][2]
+    hfile = entry.get("hierarchy_file")
+    if not hfile:
+        pytest.skip("no hierarchy for this step")
+    inp = entry["input"]
+    x = inp.get("x", inp.get("x1", inp.get("target_x")))
+    y = inp.get("y", inp.get("y1", inp.get("target_y")))
+    if x is None or y is None:
+        pytest.skip("no coordinates for this step")
+    root = ET.fromstring((_FIXTURE_DIR / "tap_5_20260608_155442" / hfile).read_text())
+    el = hit_test(x, y, root)
+    if el is not None:
+        sel_type, sel_val = build_selector(el)
+        result = {"type": sel_type, "value": sel_val}
+    else:
+        result = {"type": "coordinate", "value": None}
+    answer = _load_or_store("tap_5_20260608_155442", "step_002_t2", result)
+    assert result == answer
+
+
+
+# ── PromptBox_20260609_114419 ─────────────────────────────────────────────────
+
+def test_gen2_PromptBox_20260609_114419_step_000():
+    cap = json.loads((_FIXTURE_DIR / "PromptBox_20260609_114419" / "capture.json").read_text())
+    entry = cap["entries"][0]
+    hfile = entry.get("hierarchy_file")
+    if not hfile:
+        pytest.skip("no hierarchy for this step")
+    inp = entry["input"]
+    x = inp.get("x", inp.get("x1", inp.get("target_x")))
+    y = inp.get("y", inp.get("y1", inp.get("target_y")))
+    if x is None or y is None:
+        pytest.skip("no coordinates for this step")
+    root = ET.fromstring((_FIXTURE_DIR / "PromptBox_20260609_114419" / hfile).read_text())
+    el = hit_test(x, y, root)
+    if el is not None:
+        sel_type, sel_val = build_selector(el)
+        result = {"type": sel_type, "value": sel_val}
+    else:
+        result = {"type": "coordinate", "value": None}
+    answer = _load_or_store("PromptBox_20260609_114419", "step_000_t2", result)
+    assert result == answer

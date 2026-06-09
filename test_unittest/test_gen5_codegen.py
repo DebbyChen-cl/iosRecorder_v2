@@ -334,3 +334,37 @@ def test_gen5_Tap_2f_3finger_20260604_143948_step_001():
     code = generate_script([step], "test_case")
     answer = _load_or_store("Tap_2f_3finger_20260604_143948", "step_001_t5", code)
     assert code == answer
+
+
+# ── tap_5_20260608_155442 ─────────────────────────────────────────────────────
+
+def test_gen5_tap_5_20260608_155442_step_000():
+    cap = json.loads((_FIXTURE_DIR / "tap_5_20260608_155442" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][0]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("tap_5_20260608_155442", "step_000_t5", code)
+    assert code == answer
+
+def test_gen5_tap_5_20260608_155442_step_001():
+    cap = json.loads((_FIXTURE_DIR / "tap_5_20260608_155442" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][1]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("tap_5_20260608_155442", "step_001_t5", code)
+    assert code == answer
+
+def test_gen5_tap_5_20260608_155442_step_002():
+    cap = json.loads((_FIXTURE_DIR / "tap_5_20260608_155442" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][2]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("tap_5_20260608_155442", "step_002_t5", code)
+    assert code == answer
+
+
+# ── PromptBox_20260609_114419 ─────────────────────────────────────────────────
+
+def test_gen5_PromptBox_20260609_114419_step_000():
+    cap = json.loads((_FIXTURE_DIR / "PromptBox_20260609_114419" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][0]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("PromptBox_20260609_114419", "step_000_t5", code)
+    assert code == answer

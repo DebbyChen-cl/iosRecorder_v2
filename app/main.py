@@ -19,7 +19,7 @@ from pydantic import BaseModel
 
 from .codegen import generate_script
 from .unit_test_gen import generate_unit_tests
-from .hittest import hit_test, hit_test_for_swipe, hit_test_excluding, hit_test_drop_target, find_scroll_container, build_scroll_container_selector, serialize, _rect as _el_rect
+from .hittest import hit_test, hit_test_for_swipe, hit_test_excluding, hit_test_drop_target, find_scroll_container, build_scroll_container_selector, serialize, _rect as _el_rect, _find_path as _ht_find_path, _unwrap as _ht_unwrap
 from .selector import build_selector, build_xpath, get_selector_quality
 from .wda import WDAClient
 
@@ -455,6 +455,12 @@ async def api_triple_tap(req: Coords):
     return {"ok": True}
 
 
+@app.post("/api/five_tap")
+async def api_five_tap(req: Coords):
+    asyncio.create_task(wda.five_tap(req.x, req.y))
+    return {"ok": True}
+
+
 @app.post("/api/long_press")
 async def api_long_press(req: LongPressReq):
     asyncio.create_task(wda.long_press(req.x, req.y, req.duration))
@@ -533,14 +539,38 @@ async def api_element_info(x: float, y: float):
     root = _cache.get("root")
     if root is None:
         return {"found": False, "cache_ready": False}
-    from .hittest import _rect
     el = hit_test(x, y, root)
     if el is None:
         return {"found": False, "cache_ready": True}
     sel_type, sel_val = build_selector(el)
     a = el.attrib
     text = a.get("value", "") or a.get("label", "") or a.get("name", "")
-    r = _rect(el)
+    # hit_test deprioritises XCUIElementTypeTextView (it's a TAP_CONTAINER_TAG),
+    # so it may return a sibling, parent, or child element whose value is empty.
+    # Search both ancestors and descendants for a text input with a non-empty value.
+    _TEXT_INPUT_TAGS = {"XCUIElementTypeTextView", "XCUIElementTypeTextField", "XCUIElementTypeSecureTextField"}
+    if not (a.get("value", "") or a.get("label", "")):
+        found_val = ""
+        # Up: hit_test returned a child of a textView
+        path = _ht_find_path(_ht_unwrap(root), el)
+        if path:
+            for anc in reversed(path[:-1]):
+                if anc.tag in _TEXT_INPUT_TAGS:
+                    found_val = anc.attrib.get("value", "")
+                    break
+        # Down: hit_test returned a container wrapping a textView
+        if not found_val:
+            for child in el:
+                for desc in child.iter():
+                    if desc.tag in _TEXT_INPUT_TAGS:
+                        found_val = desc.attrib.get("value", "")
+                        if found_val:
+                            break
+                if found_val:
+                    break
+        if found_val:
+            text = found_val
+    r = _el_rect(el)
     bounds = {"x": r[0], "y": r[1], "w": r[2], "h": r[3]} if r else None
     return {"found": True, "cache_ready": True, "type": sel_type, "value": sel_val,
             "text": text, "bounds": bounds, "selector_quality": get_selector_quality(el)}
@@ -581,6 +611,14 @@ async def record_triple_tap(req: Coords):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
     await _record_point("triple_tap", req.x, req.y, snapshot, pre_screenshot=pre_ss)
+    return {"ok": True}
+
+
+@app.post("/api/record/five_tap")
+async def record_five_tap(req: Coords):
+    snapshot = _cache.get("root")
+    pre_ss = await _take_pre_gesture_screenshot()
+    await _record_point("five_tap", req.x, req.y, snapshot, pre_screenshot=pre_ss)
     return {"ok": True}
 
 

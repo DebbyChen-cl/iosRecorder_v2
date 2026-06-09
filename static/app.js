@@ -572,7 +572,7 @@ function onTap(dx, dy) {
     Math.hypot(dx - tapSeq.x, dy - tapSeq.y) < DBL_TAP_DIST;
 
   if (sameSite) {
-    tapSeq.count = Math.min(tapSeq.count + 1, 3);
+    tapSeq.count = Math.min(tapSeq.count + 1, 5);
   } else {
     // New location — start fresh (discard any unfinished streak from elsewhere)
     tapSeq.count = 1;
@@ -629,7 +629,10 @@ function dispatchTap(cnt, fx, fy) {
   }
 
   // single-finger mode — respect tap count
-  if (cnt >= 3) {
+  if (cnt >= 5) {
+    showRipple(fx, fy); showRipple(fx, fy); showRipple(fx, fy); showRipple(fx, fy); showRipple(fx, fy);
+    sendGesture("five_tap", coords);
+  } else if (cnt >= 3) {
     showRipple(fx, fy); showRipple(fx, fy); showRipple(fx, fy);
     sendGesture("triple_tap", coords);
   } else if (cnt >= 2) {
@@ -696,8 +699,8 @@ function sendGesture(type, data) {
   }
 
   // HTTP fallback — recording endpoints own gesture execution, so never double-call
-  const execEp = { tap: "/api/tap", double_tap: "/api/double_tap", triple_tap: "/api/triple_tap", long_press: "/api/long_press", two_finger_tap: "/api/two_finger_tap", multi_finger_tap: "/api/multi_finger_tap", pinch: "/api/pinch", rotate: "/api/rotate", scroll: "/api/scroll", swipe: "/api/swipe", drag: "/api/drag" };
-  const recEp  = { tap: "/api/record", double_tap: "/api/record/double_tap", triple_tap: "/api/record/triple_tap", long_press: "/api/record/long_press", two_finger_tap: "/api/record/two_finger_tap", multi_finger_tap: "/api/record/multi_finger_tap", pinch: "/api/record/pinch", rotate: "/api/record/rotate", scroll: "/api/record/scroll", swipe: "/api/record/swipe", drag: "/api/record/drag" };
+  const execEp = { tap: "/api/tap", double_tap: "/api/double_tap", triple_tap: "/api/triple_tap", five_tap: "/api/five_tap", long_press: "/api/long_press", two_finger_tap: "/api/two_finger_tap", multi_finger_tap: "/api/multi_finger_tap", pinch: "/api/pinch", rotate: "/api/rotate", scroll: "/api/scroll", swipe: "/api/swipe", drag: "/api/drag" };
+  const recEp  = { tap: "/api/record", double_tap: "/api/record/double_tap", triple_tap: "/api/record/triple_tap", five_tap: "/api/record/five_tap", long_press: "/api/record/long_press", two_finger_tap: "/api/record/two_finger_tap", multi_finger_tap: "/api/record/multi_finger_tap", pinch: "/api/record/pinch", rotate: "/api/record/rotate", scroll: "/api/record/scroll", swipe: "/api/record/swipe", drag: "/api/record/drag" };
 
   if (record) {
     // Screenshot must be taken before the gesture fires: await record (screenshot),
@@ -1536,7 +1539,7 @@ function renderSteps() {
         valStr = t ? `(${t.x},${t.y})` : `(${c?.x},${c?.y})`;
       } else {
         cls = qualityClass(t);
-        const labelMap = { tap: "tap", double_tap: "2×tap", triple_tap: "3×tap", long_press: "long press", two_finger_tap: "2 finger tap", multi_finger_tap: `${s.fingers ?? 3} finger tap` };
+        const labelMap = { tap: "tap", double_tap: "2×tap", triple_tap: "3×tap", five_tap: "5×tap", long_press: "long press", two_finger_tap: "2 finger tap", multi_finger_tap: `${s.fingers ?? 3} finger tap` };
         typeStr = `${labelMap[s.action] ?? s.action}: ${t.type}`;
         valStr = t.value;
       }

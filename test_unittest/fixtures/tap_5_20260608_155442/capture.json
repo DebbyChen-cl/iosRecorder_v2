@@ -1,0 +1,199 @@
+{
+  "captured_at": "2026-06-08T15:54:42",
+  "case_name": "tap_5",
+  "entries": [
+    {
+      "input": {
+        "action": "tap",
+        "x": 287.0,
+        "y": 61.0
+      },
+      "output": {
+        "action": "tap",
+        "coords": {
+          "x": 287.0,
+          "y": 61.0
+        },
+        "timestamp": 1780905263.552633,
+        "target": {
+          "type": "accessibility id",
+          "value": "btnSettings",
+          "selector_quality": "id",
+          "xpath": "//XCUIElementTypeButton[@name='btnSettings']",
+          "offset_pct": {
+            "x": 48.0,
+            "y": 50.0
+          },
+          "bounds": {
+            "x": 275,
+            "y": 48,
+            "w": 25,
+            "h": 26
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_000.xml"
+    },
+    {
+      "input": {
+        "action": "tap",
+        "x": 50.0,
+        "y": 388.0
+      },
+      "output": {
+        "action": "tap",
+        "coords": {
+          "x": 50.0,
+          "y": 388.0
+        },
+        "timestamp": 1780905269.28193,
+        "target": {
+          "type": "accessibility id",
+          "value": "About",
+          "selector_quality": "id_eq_label",
+          "xpath": "//XCUIElementTypeStaticText[@name='About']",
+          "offset_pct": {
+            "x": 46.2,
+            "y": 41.2
+          },
+          "bounds": {
+            "x": 32,
+            "y": 381,
+            "w": 39,
+            "h": 17
+          }
+        },
+        "scroll_container": {
+          "type": "xpath",
+          "value": "//XCUIElementTypeOther[@name=\"photodirector.SettingPageViewController\"]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeCollectionView",
+          "selector_quality": "xpath_only",
+          "bounds": {
+            "x": 0,
+            "y": 87,
+            "w": 320,
+            "h": 521
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_001.xml"
+    },
+    {
+      "input": {
+        "action": "five_tap",
+        "x": 29.0,
+        "y": 100.0
+      },
+      "output": {
+        "action": "five_tap",
+        "coords": {
+          "x": 29.0,
+          "y": 100.0
+        },
+        "timestamp": 1780905276.15311,
+        "target": {
+          "type": "accessibility id",
+          "value": "developerButton",
+          "selector_quality": "id",
+          "xpath": "//XCUIElementTypeButton[@name='developerButton']",
+          "offset_pct": {
+            "x": 44.4,
+            "y": 29.7
+          },
+          "bounds": {
+            "x": 13,
+            "y": 89,
+            "w": 36,
+            "h": 37
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_002.xml"
+    }
+  ],
+  "steps": [
+    {
+      "action": "tap",
+      "coords": {
+        "x": 287.0,
+        "y": 61.0
+      },
+      "timestamp": 1780905263.552633,
+      "target": {
+        "type": "accessibility id",
+        "value": "btnSettings",
+        "selector_quality": "id",
+        "xpath": "//XCUIElementTypeButton[@name='btnSettings']",
+        "offset_pct": {
+          "x": 48.0,
+          "y": 50.0
+        },
+        "bounds": {
+          "x": 275,
+          "y": 48,
+          "w": 25,
+          "h": 26
+        }
+      }
+    },
+    {
+      "action": "tap",
+      "coords": {
+        "x": 50.0,
+        "y": 388.0
+      },
+      "timestamp": 1780905269.28193,
+      "target": {
+        "type": "accessibility id",
+        "value": "About",
+        "selector_quality": "id_eq_label",
+        "xpath": "//XCUIElementTypeStaticText[@name='About']",
+        "offset_pct": {
+          "x": 46.2,
+          "y": 41.2
+        },
+        "bounds": {
+          "x": 32,
+          "y": 381,
+          "w": 39,
+          "h": 17
+        }
+      },
+      "scroll_container": {
+        "type": "xpath",
+        "value": "//XCUIElementTypeOther[@name=\"photodirector.SettingPageViewController\"]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeCollectionView",
+        "selector_quality": "xpath_only",
+        "bounds": {
+          "x": 0,
+          "y": 87,
+          "w": 320,
+          "h": 521
+        }
+      }
+    },
+    {
+      "action": "five_tap",
+      "coords": {
+        "x": 29.0,
+        "y": 100.0
+      },
+      "timestamp": 1780905276.15311,
+      "target": {
+        "type": "accessibility id",
+        "value": "developerButton",
+        "selector_quality": "id",
+        "xpath": "//XCUIElementTypeButton[@name='developerButton']",
+        "offset_pct": {
+          "x": 44.4,
+          "y": 29.7
+        },
+        "bounds": {
+          "x": 13,
+          "y": 89,
+          "w": 36,
+          "h": 37
+        }
+      }
+    }
+  ],
+  "codegen_output": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"tap_5\")\ndef test_tap_5(actions: DriverActions):\n    with step(\"[Action] Tap btnSettings at (48.0%, 50.0%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnSettings', 48.0, 50.0)\n    with step(\"[Action] Tap About at (46.2%, 41.2%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'About', 46.2, 41.2, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name=\"photodirector.SettingPageViewController\"]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeCollectionView', container_w=320, container_h=521)\n    with step(\"[Action] Five tap developerButton at (44.4%, 29.7%)\"):\n        actions.five_tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'developerButton', 44.4, 29.7)\n    assert True\n"
+}

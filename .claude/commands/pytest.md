@@ -67,6 +67,7 @@ def test_<safe_name>(actions: DriverActions):
 - `tap_within_element(by, value, pct_x, pct_y, ..., container_by=None, container_value=None, container_w=0, container_h=0)` — tap at % offset within element; auto-scrolls when container params given
 - `double_tap(element)` / `double_tap_within_element(by, value, pct_x, pct_y, ..., container_by=None, ...)`
 - `triple_tap(element)` / `triple_tap_within_element(by, value, pct_x, pct_y, ..., container_by=None, ...)`
+- `five_tap(element)` / `five_tap_within_element(by, value, pct_x, pct_y, ..., container_by=None, ...)` — tap 5 times
 - `long_press(element, duration=1.0)` / `long_press_within_element(by, value, pct_x, pct_y, duration=1.0, ..., container_by=None, ...)`
 - `two_finger_tap(element)`
 - `multi_finger_tap(element, fingers=3)`

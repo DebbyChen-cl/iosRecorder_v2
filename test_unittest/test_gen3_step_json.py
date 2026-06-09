@@ -520,3 +520,51 @@ def test_gen3_Tap_2f_3finger_20260604_143948_step_001():
     result = {k: v for k, v in step.items() if k not in _STRIP_KEYS}
     answer = _load_or_store("Tap_2f_3finger_20260604_143948", "step_001_t3", result)
     assert result == answer
+
+
+# ── tap_5_20260608_155442 ─────────────────────────────────────────────────────
+
+def test_gen3_tap_5_20260608_155442_step_000():
+    cap = json.loads((_FIXTURE_DIR / "tap_5_20260608_155442" / "capture.json").read_text())
+    entry = cap["entries"][0]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "tap_5_20260608_155442" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {k: v for k, v in step.items() if k not in _STRIP_KEYS}
+    answer = _load_or_store("tap_5_20260608_155442", "step_000_t3", result)
+    assert result == answer
+
+def test_gen3_tap_5_20260608_155442_step_001():
+    cap = json.loads((_FIXTURE_DIR / "tap_5_20260608_155442" / "capture.json").read_text())
+    entry = cap["entries"][1]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "tap_5_20260608_155442" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {k: v for k, v in step.items() if k not in _STRIP_KEYS}
+    answer = _load_or_store("tap_5_20260608_155442", "step_001_t3", result)
+    assert result == answer
+
+
+# ── PromptBox_20260609_114419 ─────────────────────────────────────────────────
+
+def test_gen3_PromptBox_20260609_114419_step_000():
+    cap = json.loads((_FIXTURE_DIR / "PromptBox_20260609_114419" / "capture.json").read_text())
+    entry = cap["entries"][0]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "PromptBox_20260609_114419" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {k: v for k, v in step.items() if k not in _STRIP_KEYS}
+    answer = _load_or_store("PromptBox_20260609_114419", "step_000_t3", result)
+    assert result == answer
