@@ -368,3 +368,13 @@ def test_gen5_PromptBox_20260609_114419_step_000():
     code = generate_script([step], "test_case")
     answer = _load_or_store("PromptBox_20260609_114419", "step_000_t5", code)
     assert code == answer
+
+
+# ── TypeText_20260609_140326 ──────────────────────────────────────────────────
+
+def test_gen5_TypeText_20260609_140326_step_000():
+    cap = json.loads((_FIXTURE_DIR / "TypeText_20260609_140326" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][0]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("TypeText_20260609_140326", "step_000_t5", code)
+    assert code == answer

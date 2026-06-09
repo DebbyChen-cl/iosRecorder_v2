@@ -633,3 +633,22 @@ def test_gen1_PromptBox_20260609_114419_step_000():
         result["coords"] = step["coords"]
     answer = _load_or_store("PromptBox_20260609_114419", "step_000_t1", result)
     assert result == answer
+
+
+# ── TypeText_20260609_140326 ──────────────────────────────────────────────────
+
+def test_gen1_TypeText_20260609_140326_step_000():
+    cap = json.loads((_FIXTURE_DIR / "TypeText_20260609_140326" / "capture.json").read_text())
+    entry = cap["entries"][0]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "TypeText_20260609_140326" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("TypeText_20260609_140326", "step_000_t1", result)
+    assert result == answer

@@ -1,0 +1,34 @@
+{
+  "step_000_t1": {
+    "action": "type_text"
+  },
+  "step_000_t2": {
+    "type": "accessibility id",
+    "value": "CLViewContainer"
+  },
+  "step_000_t3": {
+    "action": "type_text",
+    "text": "aaa",
+    "target": {
+      "type": "accessibility id",
+      "value": "About",
+      "selector_quality": "id_eq_label",
+      "xpath": "//XCUIElementTypeStaticText[@name='About']",
+      "offset_pct": {
+        "x": 46.2,
+        "y": 41.2
+      },
+      "bounds": {
+        "x": 32,
+        "y": 381,
+        "w": 39,
+        "h": 17
+      }
+    }
+  },
+  "step_000_t4": {
+    "quality": "id",
+    "is_problematic": false
+  },
+  "step_000_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Type 'aaa' into CLViewContainer\"):\n        actions.type_text_by_locator(AppiumBy.ACCESSIBILITY_ID, 'CLViewContainer', 'aaa')\n    assert True\n"
+}

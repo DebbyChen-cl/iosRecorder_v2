@@ -349,6 +349,11 @@ class TypeTextReq(BaseModel):
     text: str
     target_x: Optional[float] = None
     target_y: Optional[float] = None
+    # Pre-resolved selector from the frontend element-pick phase (highest priority)
+    target_type: Optional[str] = None
+    target_value: Optional[str] = None
+    target_bounds: Optional[dict] = None
+    target_selector_quality: Optional[str] = None
 
 class LaunchAppReq(BaseModel):
     bundle_id: str
@@ -665,7 +670,8 @@ async def record_rotate(req: RotateReq):
 @app.post("/api/record/type_text")
 async def record_type_text(req: TypeTextReq):
     snapshot = _cache.get("root")
-    await _record_type_text(req.text, req.target_x, req.target_y, snapshot)
+    await _record_type_text(req.text, req.target_x, req.target_y, snapshot,
+                            req.target_type, req.target_value, req.target_bounds, req.target_selector_quality)
     return {"ok": True}
 
 
@@ -1031,12 +1037,22 @@ async def _record_swipe_target(x: float, y: float):
     logger.info("Updated last swipe target")
 
 
-async def _record_type_text(text: str, tx: Optional[float], ty: Optional[float], snapshot=None):
+async def _record_type_text(text: str, tx: Optional[float], ty: Optional[float], snapshot=None,
+                             target_type: Optional[str] = None, target_value: Optional[str] = None,
+                             target_bounds: Optional[dict] = None, target_selector_quality: Optional[str] = None):
     step: dict = {"action": "type_text", "text": text, "timestamp": time.time()}
-    # Prefer the last-tapped element target — avoids iOS updating the text field's
-    # `name` attribute to the typed text before we can run hit_test.
-    if _last_tap_target is not None and _last_tap_target.get("type") != "coordinate":
+    # 1. Pre-resolved selector from frontend element-pick (user explicitly selected the target)
+    if target_type and target_value and target_type != "coordinate":
+        t: dict = {"type": target_type, "value": target_value}
+        if target_selector_quality:
+            t["selector_quality"] = target_selector_quality
+        if target_bounds:
+            t["bounds"] = target_bounds
+        step["target"] = t
+    # 2. Last-tapped element target (avoids iOS updating text field name after typing)
+    elif _last_tap_target is not None and _last_tap_target.get("type") != "coordinate":
         step["target"] = _last_tap_target
+    # 3. Coordinate hit_test fallback
     elif tx is not None and ty is not None:
         root = snapshot if snapshot is not None else (_cache.get("root") or await _cached_tree())
         if root is not None:
@@ -1473,6 +1489,10 @@ async def ws_handler(ws: WebSocket):
                 text = data.get("text", "")
                 tx = data.get("target_x")
                 ty = data.get("target_y")
+                target_type = data.get("target_type")
+                target_value = data.get("target_value")
+                target_bounds = data.get("target_bounds")
+                target_selector_quality = data.get("target_selector_quality")
                 snapshot = _cache.get("root")
                 if rec:
                     await wda.type_text(text)
@@ -1481,6 +1501,7 @@ async def ws_handler(ws: WebSocket):
                         float(tx) if tx is not None else None,
                         float(ty) if ty is not None else None,
                         snapshot,
+                        target_type, target_value, target_bounds, target_selector_quality,
                     ))
                 else:
                     asyncio.create_task(wda.type_text(text))

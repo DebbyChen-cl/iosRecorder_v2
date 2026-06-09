@@ -1,0 +1,38 @@
+{
+  "captured_at": "2026-06-09T14:03:26",
+  "case_name": "TypeText",
+  "entries": [
+    {
+      "input": {
+        "action": "type_text",
+        "text": "aaa",
+        "target_x": 0.0,
+        "target_y": 0.0
+      },
+      "output": {
+        "action": "type_text",
+        "text": "aaa",
+        "timestamp": 1780984977.6130571,
+        "target": {
+          "type": "accessibility id",
+          "value": "CLViewContainer",
+          "selector_quality": "id"
+        }
+      },
+      "hierarchy_file": "hierarchy_000.xml"
+    }
+  ],
+  "steps": [
+    {
+      "action": "type_text",
+      "text": "aaa",
+      "timestamp": 1780984977.6130571,
+      "target": {
+        "type": "accessibility id",
+        "value": "CLViewContainer",
+        "selector_quality": "id"
+      }
+    }
+  ],
+  "codegen_output": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"TypeText\")\ndef test_TypeText(actions: DriverActions):\n    with step(\"[Action] Type 'aaa' into CLViewContainer\"):\n        actions.type_text_by_locator(AppiumBy.ACCESSIBILITY_ID, 'CLViewContainer', 'aaa')\n    assert True\n"
+}

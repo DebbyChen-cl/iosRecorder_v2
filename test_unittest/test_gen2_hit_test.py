@@ -794,3 +794,27 @@ def test_gen2_PromptBox_20260609_114419_step_000():
         result = {"type": "coordinate", "value": None}
     answer = _load_or_store("PromptBox_20260609_114419", "step_000_t2", result)
     assert result == answer
+
+
+# ── TypeText_20260609_140326 ──────────────────────────────────────────────────
+
+def test_gen2_TypeText_20260609_140326_step_000():
+    cap = json.loads((_FIXTURE_DIR / "TypeText_20260609_140326" / "capture.json").read_text())
+    entry = cap["entries"][0]
+    hfile = entry.get("hierarchy_file")
+    if not hfile:
+        pytest.skip("no hierarchy for this step")
+    inp = entry["input"]
+    x = inp.get("x", inp.get("x1", inp.get("target_x")))
+    y = inp.get("y", inp.get("y1", inp.get("target_y")))
+    if x is None or y is None:
+        pytest.skip("no coordinates for this step")
+    root = ET.fromstring((_FIXTURE_DIR / "TypeText_20260609_140326" / hfile).read_text())
+    el = hit_test(x, y, root)
+    if el is not None:
+        sel_type, sel_val = build_selector(el)
+        result = {"type": sel_type, "value": sel_val}
+    else:
+        result = {"type": "coordinate", "value": None}
+    answer = _load_or_store("TypeText_20260609_140326", "step_000_t2", result)
+    assert result == answer

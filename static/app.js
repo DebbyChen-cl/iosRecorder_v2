@@ -13,7 +13,9 @@ let gestureMode = "normal"; // "normal" | "pinch" | "rotate"
 let dragMode    = "scroll"; // "scroll" | "swipe" | "drag"
 let awaitingScrollTarget = false;
 let awaitingSwipeTarget  = false;
-let typeTextTarget = { x: 0, y: 0 }; // device coords of last single tap (text target)
+let typeTextTarget = { x: 0, y: 0 }; // device coords of last single tap (text target, non-recording fallback)
+let awaitingTypeTarget = false;       // true while waiting for user to click the type target element
+let typeTextSelectedTarget = null;    // resolved target element { x, y, type, value, bounds, selector_quality }
 
 // Verify state
 let verifyMode  = null; // null|"visible"|"not_visible"|"get_text"|"screenshot_gt"|"screenshot_diff"
@@ -54,6 +56,7 @@ const dragModeBtns  = document.querySelectorAll(".drag-mode-btn[data-drag]");
 const typeBtn           = document.getElementById("typeBtn");
 const textInputOverlay  = document.getElementById("textInputOverlay");
 const textInputField    = document.getElementById("textInputField");
+const textInputHint     = document.getElementById("textInputHint");
 const textCancelBtn     = document.getElementById("textCancelBtn");
 const textSendBtn       = document.getElementById("textSendBtn");
 const homeBtn           = document.getElementById("homeBtn");
@@ -595,6 +598,12 @@ function dispatchTap(cnt, fx, fy) {
     return;
   }
 
+  // ── Type target pick intercept (pick phase: no tap sent to device) ──────────
+  if (awaitingTypeTarget) {
+    handleTypeTargetPick(fx, fy);
+    return;
+  }
+
   // Enrich last scroll step with this tap's element as the scroll target
   if (awaitingScrollTarget) {
     awaitingScrollTarget = false;
@@ -714,6 +723,12 @@ function sendGesture(type, data) {
 // ── Type Text overlay ─────────────────────────────────────────────────────────
 function openTypeOverlay() {
   textInputField.value = "";
+  const t = typeTextSelectedTarget;
+  if (t && t.type !== "coordinate") {
+    textInputHint.textContent = `value to element: ${t.value}`;
+  } else {
+    textInputHint.textContent = "Press Enter or click outside to send";
+  }
   textInputOverlay.style.display = "flex";
   textInputField.focus();
 }
@@ -721,6 +736,10 @@ function openTypeOverlay() {
 function closeTypeOverlay() {
   textInputOverlay.style.display = "none";
   textInputField.value = "";
+  typeTextSelectedTarget = null;
+  awaitingTypeTarget = false;
+  typeBtn.classList.remove("active");
+  clearVerifyBbox();
 }
 
 function submitTypeText() {
@@ -732,7 +751,18 @@ function submitTypeText() {
 
 function sendTypeText(text, tx, ty) {
   const record = isRecording;
-  const data = { text, target_x: tx, target_y: ty };
+  const t = typeTextSelectedTarget;
+  const data = {
+    text,
+    target_x: t?.x ?? tx,
+    target_y: t?.y ?? ty,
+    ...(t && t.type !== "coordinate" ? {
+      target_type: t.type,
+      target_value: t.value,
+      target_bounds: t.bounds ?? null,
+      target_selector_quality: t.selector_quality ?? null,
+    } : {}),
+  };
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type: "type_text", ...data, record }));
     return;
@@ -744,7 +774,28 @@ function sendTypeText(text, tx, ty) {
   }
 }
 
-typeBtn.addEventListener("click", () => openTypeOverlay());
+typeBtn.addEventListener("click", () => {
+  if (isRecording) {
+    if (awaitingTypeTarget) {
+      // Toggle off — cancel target picking
+      awaitingTypeTarget = false;
+      typeTextSelectedTarget = null;
+      typeBtn.classList.remove("active");
+      hideVerifyPhaseLabel();
+      clearVerifyBbox();
+      return;
+    }
+    awaitingTypeTarget = true;
+    typeTextSelectedTarget = null;
+    typeBtn.classList.add("active");
+    verifyPhaseLabel.innerHTML = '<span class="vpl-mode">⌨️ TYPE</span><span class="vpl-phase">TARGET</span>';
+    verifyPhaseSidebar.style.display = "flex";
+    verifyDoneBtn.style.display = "none";
+    verifyContextBadge.style.display = "none";
+  } else {
+    openTypeOverlay();
+  }
+});
 textCancelBtn.addEventListener("click", () => closeTypeOverlay());
 textSendBtn.addEventListener("click", () => submitTypeText());
 textInputField.addEventListener("keydown", e => {
@@ -1137,6 +1188,22 @@ async function handleVerifyTargetPick(fx, fy) {
   }
 }
 
+async function handleTypeTargetPick(fx, fy) {
+  const { x, y } = toDevice(fx, fy);
+  showRipple(fx, fy);
+  let info = { found: false };
+  try { info = await api("GET", `/api/element_info?x=${x}&y=${y}`); } catch (_) {}
+  typeTextSelectedTarget = info.found
+    ? { x, y, type: info.type, value: info.value, bounds: info.bounds ?? null, selector_quality: info.selector_quality ?? null }
+    : { x, y, type: "coordinate" };
+  if (info.found && info.bounds) drawVerifyBbox(info.bounds);
+  awaitingTypeTarget = false;
+  typeBtn.classList.remove("active");
+  verifyPhaseSidebar.style.display = "none";
+  verifyContextBadge.style.display = "none";
+  openTypeOverlay();
+}
+
 verifyDoneBtn.addEventListener("click", () => {
   console.debug("[Done] _screenshotDiffCtx=", _screenshotDiffCtx, "verifyMode=", verifyMode, "verifyPhase=", verifyPhase, "verifyTarget=", verifyTarget);
   if (_screenshotDiffCtx !== null) {
@@ -1484,12 +1551,15 @@ function renderSteps() {
         : `${(s.rotation ?? 0).toFixed(1)}° @ (${c.x},${c.y})`;
     } else if (s.action === "type_text") {
       cls = "t-name";
-      typeStr = "type";
       const t = s.target;
       const txt = s.text ?? "";
-      valStr = t && t.type !== "coordinate"
-        ? `"${txt}" → ${t.type}: ${t.value}`
-        : `"${txt}"`;
+      if (t && t.type !== "coordinate") {
+        typeStr = "value to selected element";
+        valStr = `"${txt}" → ${t.value}`;
+      } else {
+        typeStr = "type";
+        valStr = `"${txt}"`;
+      }
     } else if (s.action === "home") {
       cls = "t-gesture";
       typeStr = "home";
