@@ -10,7 +10,8 @@ let steps = [];
 let _treeElements = []; // cached from last /api/tree fetch
 let ws = null;let fingerMode = "single";  // "single" | "two" | "multi"
 let gestureMode = "normal"; // "normal" | "pinch" | "rotate"
-let dragMode    = "scroll"; // "scroll" | "swipe" | "drag"
+let dragMode    = "scroll"; // "scroll" | "swipe" | "drag" | "paint"
+let pollPauseUntil = 0; // timestamp(ms): pause status/tree polling during heavy gestures
 let awaitingScrollTarget = false;
 let awaitingSwipeTarget  = false;
 let typeTextTarget = { x: 0, y: 0 }; // device coords of last single tap (text target, non-recording fallback)
@@ -110,15 +111,32 @@ window.addEventListener("load", async () => {
     _updateUnitTestCount();
   }
   await checkStatus();
-  setInterval(checkStatus, 2000);
+  setInterval(() => {
+    if (isPollPaused()) return;
+    checkStatus();
+  }, 2000);
   setInterval(pollSteps, 800);
-  if (unitTestMode) setInterval(pollUnitTestStatus, 1500);
+  if (unitTestMode) {
+    setInterval(() => {
+      if (isPollPaused()) return;
+      pollUnitTestStatus();
+    }, 1500);
+  }
   // Keep element tree warm for instant hover hit-test
   setInterval(async () => {
+    if (isPollPaused()) return;
     const data = await api("GET", "/api/tree").catch(() => null);
     if (data?.elements) _treeElements = data.elements;
   }, 2000);
 });
+
+function pausePolling(ms) {
+  pollPauseUntil = Math.max(pollPauseUntil, Date.now() + Math.max(0, ms));
+}
+
+function isPollPaused() {
+  return Date.now() < pollPauseUntil;
+}
 // ── Finger mode ─────────────────────────────────────────────────────────
 fingerBtns.forEach(btn => {
   btn.addEventListener("click", () => {
@@ -171,7 +189,7 @@ dragModeBtns.forEach(btn => {
   });
 });
 
-const DRAG_MODE_CYCLE = ["scroll", "drag", "swipe"];
+const DRAG_MODE_CYCLE = ["scroll", "drag", "swipe", "paint"];
 
 function cycleDragMode() {
   const idx = DRAG_MODE_CYCLE.indexOf(dragMode);
@@ -443,6 +461,11 @@ const MOVE_THRESHOLD = 10;   // px display — below = tap
 const LONG_PRESS_MS  = 500;  // ms hold without move → long press / drag
 const DBL_TAP_MS     = 400;  // ms window to accumulate taps
 const DBL_TAP_DIST   = 30;   // px display
+const PAINT_MIN_DIST  = 4.0; // px display — ignore jitter between paint samples
+const PAINT_MIN_GAP   = 28;  // ms between paint samples
+const PAINT_KEEP_TURN_DEG = 16; // keep points on meaningful direction changes
+const PAINT_MAX_POINTS = 600;
+const PAINT_TARGET_SEND_POINTS = 48; // final payload target for recording/replay
 
 let gst = null;   // active gesture state
 let tapSeq = { count: 0, x: 0, y: 0, timer: null };
@@ -469,6 +492,10 @@ clickLayer.addEventListener("pointerdown", e => {
     t0: Date.now(),
     moved: false,
     isDrag: false,
+    points: [{ x: e.offsetX, y: e.offsetY, t: 0 }],
+    lastPointTs: Date.now(),
+    prevVecX: null,
+    prevVecY: null,
     longTimer: setTimeout(() => {
       if (gst && !gst.moved) {
         gst.isDrag = true;
@@ -501,10 +528,15 @@ clickLayer.addEventListener("pointermove", e => {
     clearGestureOverlay();
   }
   if (gst.moved) {
-    const snapped = (dragMode === "scroll" || dragMode === "swipe")
-      ? snapCardinal(gst.sx, gst.sy, e.offsetX, e.offsetY)
-      : { ex: e.offsetX, ey: e.offsetY };
-    drawSwipePreview(gst.sx, gst.sy, snapped.ex, snapped.ey);
+    if (dragMode === "paint") {
+      maybeAddPaintPoint(gst, e.offsetX, e.offsetY);
+      drawPaintPreview(gst.points, e.offsetX, e.offsetY);
+    } else {
+      const snapped = (dragMode === "scroll" || dragMode === "swipe")
+        ? snapCardinal(gst.sx, gst.sy, e.offsetX, e.offsetY)
+        : { ex: e.offsetX, ey: e.offsetY };
+      drawSwipePreview(gst.sx, gst.sy, snapped.ex, snapped.ey);
+    }
   }
 });
 
@@ -516,7 +548,7 @@ clickLayer.addEventListener("pointerup", e => {
 
   const ex = e.offsetX, ey = e.offsetY;
   const elapsed = Date.now() - gst.t0;
-  const { sx, sy, moved, isDrag } = gst;
+  const { sx, sy, moved, isDrag, points, t0 } = gst;
   gst = null;
 
   if (!moved) {
@@ -530,7 +562,8 @@ clickLayer.addEventListener("pointerup", e => {
     const dur = Math.min(Math.max(elapsed, 200), 1500);
     if (dragMode === "scroll")     onScroll(sx, sy, ex, ey, dur);
     else if (dragMode === "drag")  onDrag(sx, sy, ex, ey);
-    else                           onSwipe(sx, sy, ex, ey, dur);
+    else if (dragMode === "swipe") onSwipe(sx, sy, ex, ey, dur);
+    else                            onPaint(sx, sy, ex, ey, elapsed, points, t0);
   }
 });
 
@@ -698,6 +731,112 @@ function onDrag(sx, sy, ex, ey) {
   sendGesture("drag", { x1: s.x, y1: s.y, x2: e2.x, y2: e2.y, duration: 1000 });
 }
 
+function simplifyPaintPointsForSend(points, maxPoints = PAINT_TARGET_SEND_POINTS) {
+  if (!Array.isArray(points) || points.length <= maxPoints) return points.slice();
+
+  function perpDist(p, a, b) {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    if (dx === 0 && dy === 0) return Math.hypot(p.x - a.x, p.y - a.y);
+    const t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy);
+    const px = a.x + t * dx;
+    const py = a.y + t * dy;
+    return Math.hypot(p.x - px, p.y - py);
+  }
+
+  function rdp(pts, eps) {
+    if (pts.length < 3) return pts;
+    let maxD = -1;
+    let idx = -1;
+    for (let i = 1; i < pts.length - 1; i++) {
+      const d = perpDist(pts[i], pts[0], pts[pts.length - 1]);
+      if (d > maxD) {
+        maxD = d;
+        idx = i;
+      }
+    }
+    if (maxD > eps && idx > 0) {
+      const left = rdp(pts.slice(0, idx + 1), eps);
+      const right = rdp(pts.slice(idx), eps);
+      return left.slice(0, -1).concat(right);
+    }
+    return [pts[0], pts[pts.length - 1]];
+  }
+
+  let eps = 1.0;
+  let simplified = points;
+  for (let i = 0; i < 8; i++) {
+    const cand = rdp(points, eps);
+    simplified = cand;
+    if (cand.length <= maxPoints) break;
+    eps *= 1.6;
+  }
+
+  if (simplified.length > maxPoints) {
+    const stride = Math.max(1, Math.ceil((simplified.length - 1) / (maxPoints - 1)));
+    const sampled = [];
+    for (let i = 0; i < simplified.length; i += stride) sampled.push(simplified[i]);
+    if (sampled[sampled.length - 1] !== simplified[simplified.length - 1]) {
+      sampled.push(simplified[simplified.length - 1]);
+    }
+    simplified = sampled;
+  }
+
+  return simplified;
+}
+
+function onPaint(sx, sy, ex, ey, elapsed, points, t0) {
+  const duration = Math.min(Math.max(elapsed, 200), 5000);
+  // Reduce WDA contention while paint executes.
+  pausePolling(Math.max(6000, duration + 3000));
+  const sampled = Array.isArray(points) && points.length ? points.slice() : [{ x: sx, y: sy, t: 0 }];
+  const endT = Math.max(0, Date.now() - t0);
+  const last = sampled[sampled.length - 1];
+  if (!last || Math.hypot(last.x - ex, last.y - ey) >= 1.0) {
+    sampled.push({ x: ex, y: ey, t: endT });
+  }
+  const simplified = simplifyPaintPointsForSend(sampled, PAINT_TARGET_SEND_POINTS);
+  const compact = simplified.slice(0, PAINT_MAX_POINTS).map((pt) => {
+    const p = toDevice(pt.x, pt.y);
+    return { x: p.x, y: p.y, t: Math.max(0, Math.round(pt.t || 0)) };
+  });
+  drawPaintPreview(sampled, ex, ey);
+  showGestureTrail(sx, sy, ex, ey);
+  sendGesture("paint", {
+    start_x: compact[0]?.x ?? toDevice(sx, sy).x,
+    start_y: compact[0]?.y ?? toDevice(sx, sy).y,
+    points: compact,
+    duration,
+  });
+}
+
+function maybeAddPaintPoint(state, x, y) {
+  if (!state || !Array.isArray(state.points) || state.points.length >= PAINT_MAX_POINTS) return;
+  const now = Date.now();
+  const last = state.points[state.points.length - 1];
+  const vx = x - last.x;
+  const vy = y - last.y;
+  const dist = Math.hypot(vx, vy);
+  const dt = now - state.lastPointTs;
+
+  let keepForTurn = false;
+  if (state.prevVecX !== null && state.prevVecY !== null) {
+    const prevMag = Math.hypot(state.prevVecX, state.prevVecY);
+    const currMag = Math.hypot(vx, vy);
+    if (prevMag > 0.01 && currMag > 0.01) {
+      const cos = Math.max(-1, Math.min(1, (state.prevVecX * vx + state.prevVecY * vy) / (prevMag * currMag)));
+      const turnDeg = Math.acos(cos) * 180 / Math.PI;
+      keepForTurn = turnDeg >= PAINT_KEEP_TURN_DEG;
+    }
+  }
+
+  if (!keepForTurn && dist < PAINT_MIN_DIST && dt < PAINT_MIN_GAP) return;
+  state.points.push({ x, y, t: now - state.t0 });
+  state.lastPointTs = now;
+  state.prevVecX = vx;
+  state.prevVecY = vy;
+}
+
 // ── Send gesture ───────────────────────────────────────────────────────────────
 function sendGesture(type, data) {
   const record = isRecording;
@@ -707,13 +846,17 @@ function sendGesture(type, data) {
     return;
   }
 
-  // HTTP fallback — recording endpoints own gesture execution, so never double-call
-  const execEp = { tap: "/api/tap", double_tap: "/api/double_tap", triple_tap: "/api/triple_tap", five_tap: "/api/five_tap", long_press: "/api/long_press", two_finger_tap: "/api/two_finger_tap", multi_finger_tap: "/api/multi_finger_tap", pinch: "/api/pinch", rotate: "/api/rotate", scroll: "/api/scroll", swipe: "/api/swipe", drag: "/api/drag" };
-  const recEp  = { tap: "/api/record", double_tap: "/api/record/double_tap", triple_tap: "/api/record/triple_tap", five_tap: "/api/record/five_tap", long_press: "/api/record/long_press", two_finger_tap: "/api/record/two_finger_tap", multi_finger_tap: "/api/record/multi_finger_tap", pinch: "/api/record/pinch", rotate: "/api/record/rotate", scroll: "/api/record/scroll", swipe: "/api/record/swipe", drag: "/api/record/drag" };
+  // HTTP fallback.
+  const execEp = { tap: "/api/tap", double_tap: "/api/double_tap", triple_tap: "/api/triple_tap", five_tap: "/api/five_tap", long_press: "/api/long_press", two_finger_tap: "/api/two_finger_tap", multi_finger_tap: "/api/multi_finger_tap", pinch: "/api/pinch", rotate: "/api/rotate", scroll: "/api/scroll", swipe: "/api/swipe", drag: "/api/drag", paint: "/api/paint" };
+  const recEp  = { tap: "/api/record", double_tap: "/api/record/double_tap", triple_tap: "/api/record/triple_tap", five_tap: "/api/record/five_tap", long_press: "/api/record/long_press", two_finger_tap: "/api/record/two_finger_tap", multi_finger_tap: "/api/record/multi_finger_tap", pinch: "/api/record/pinch", rotate: "/api/record/rotate", scroll: "/api/record/scroll", swipe: "/api/record/swipe", drag: "/api/record/drag", paint: "/api/record/paint" };
 
   if (record) {
-    // Screenshot must be taken before the gesture fires: await record (screenshot),
-    // then fire gesture. The exec endpoint is still needed to actually run the gesture.
+    // Paint is execute+record in one request to reduce start latency.
+    if (type === "paint") {
+      api("POST", recEp[type], data);
+      return;
+    }
+    // Other gestures: await record path first, then execute.
     api("POST", recEp[type], data).then(() => api("POST", execEp[type], data));
   } else {
     api("POST", execEp[type], data);
@@ -1356,7 +1499,7 @@ function clearGestureOverlay() {
 }
 
 function drawSwipePreview(x1, y1, x2, y2) {
-  const modeColors = { scroll: "#50fa7b", swipe: "#4a9eff", drag: "#ffb86c" };
+  const modeColors = { scroll: "#50fa7b", swipe: "#4a9eff", drag: "#ffb86c", paint: "#ff79c6" };
   const color = modeColors[dragMode] || "#4a9eff";
   const dashArr = dragMode === "drag" ? "5,3" : "8,4";
   const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
@@ -1376,8 +1519,24 @@ function drawSwipePreview(x1, y1, x2, y2) {
       font-size="11" font-weight="700" font-family="monospace" pointer-events="none">${label}</text>`;
 }
 
+function drawPaintPreview(points, cursorX, cursorY) {
+  if (!Array.isArray(points) || !points.length) return;
+  const color = "#ff79c6";
+  const tmp = points.slice();
+  const last = tmp[tmp.length - 1];
+  if (!last || Math.hypot(last.x - cursorX, last.y - cursorY) > 0.5) {
+    tmp.push({ x: cursorX, y: cursorY });
+  }
+  const pts = tmp.map(p => `${p.x},${p.y}`).join(" ");
+  gestureSvg.innerHTML = `
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.95" />
+    <circle cx="${tmp[0].x}" cy="${tmp[0].y}" r="4" fill="${color}" opacity="0.8"/>
+    <circle cx="${tmp[tmp.length - 1].x}" cy="${tmp[tmp.length - 1].y}" r="3" fill="${color}" opacity="0.9"/>
+  `;
+}
+
 function showGestureTrail(x1, y1, x2, y2) {
-  const modeColors = { scroll: "#50fa7b", swipe: "#4a9eff", drag: "#ffb86c" };
+  const modeColors = { scroll: "#50fa7b", swipe: "#4a9eff", drag: "#ffb86c", paint: "#ff79c6" };
   const color = modeColors[dragMode] || "#4a9eff";
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.style.cssText = "position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible";

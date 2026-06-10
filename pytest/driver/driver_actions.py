@@ -16,7 +16,7 @@ import base64
 import urllib.request
 import urllib.parse
 from datetime import datetime
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 from appium.webdriver.common.appiumby import AppiumBy
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
@@ -1044,6 +1044,163 @@ class DriverActions:
             from_value, from_pct_x, from_pct_y, to_value, to_pct_x, to_pct_y,
         )
 
+    @step("Paint in element")
+    def paint_in_element(
+        self,
+        by: str,
+        value: str,
+        points_pct: List[Tuple[float, float, int]],
+        duration_ms: int = 1000,
+        timeout: int = DEFAULT_WAIT,
+        container_by: Optional[str] = None,
+        container_value: Optional[str] = None,
+        container_w: int = 0,
+        container_h: int = 0,
+    ) -> None:
+        """Replay a recorded paint path inside one element.
+
+        points_pct entries are (x_pct, y_pct, t_ms) captured during recording.
+        Replays as one continuous touch sequence (down once, move through all points, up once).
+        """
+        import time
+        if not points_pct:
+            logger.warning("paint_in_element: no points provided")
+            return
+        # Fast path: try immediate lookup first to reduce pre-stroke latency.
+        # Fallback keeps previous behavior when the element is not instantly available.
+        try:
+            el = self.driver.find_element(by, value)
+        except Exception:
+            el = self.wait_for_visible(by, value, timeout, container_by, container_value, container_w, container_h)
+        rect = el.rect
+        ex, ey = rect["x"], rect["y"]
+        ew, eh = max(1.0, rect["width"]), max(1.0, rect["height"])
+        abs_points: List[Tuple[int, int, int]] = []
+        for px, py, t_ms in points_pct:
+            ax = round(ex + ew * float(px) / 100.0)
+            ay = round(ey + eh * float(py) / 100.0)
+            tt = max(0, int(t_ms))
+            if abs_points and abs_points[-1][0] == ax and abs_points[-1][1] == ay:
+                # Collapse consecutive identical points to shrink action payload,
+                # while keeping the latest timestamp for pause duration.
+                abs_points[-1] = (ax, ay, tt)
+            else:
+                abs_points.append((ax, ay, tt))
+        if len(abs_points) < 2:
+            logger.warning("paint_in_element: insufficient points (%d)", len(abs_points))
+            return
+
+        # Replay optimization: keep recorded points intact, but execute with fewer
+        # geometric control points to reduce driver/WDA action overhead.
+        def _perp_dist(p: Tuple[int, int, int], a: Tuple[int, int, int], b: Tuple[int, int, int]) -> float:
+            ax, ay = a[0], a[1]
+            bx, by = b[0], b[1]
+            px, py = p[0], p[1]
+            dx, dy = bx - ax, by - ay
+            if dx == 0 and dy == 0:
+                return ((px - ax) ** 2 + (py - ay) ** 2) ** 0.5
+            t = ((px - ax) * dx + (py - ay) * dy) / float(dx * dx + dy * dy)
+            proj_x = ax + t * dx
+            proj_y = ay + t * dy
+            return ((px - proj_x) ** 2 + (py - proj_y) ** 2) ** 0.5
+
+        def _rdp(pts: List[Tuple[int, int, int]], eps: float) -> List[Tuple[int, int, int]]:
+            if len(pts) < 3:
+                return pts
+            first, last = pts[0], pts[-1]
+            max_d = -1.0
+            max_i = -1
+            for i in range(1, len(pts) - 1):
+                d = _perp_dist(pts[i], first, last)
+                if d > max_d:
+                    max_d = d
+                    max_i = i
+            if max_d > eps and max_i > 0:
+                left = _rdp(pts[: max_i + 1], eps)
+                right = _rdp(pts[max_i:], eps)
+                return left[:-1] + right
+            return [first, last]
+
+        replay_points = abs_points
+        max_replay_points = 36
+        if len(abs_points) > max_replay_points:
+            eps = 0.8
+            simplified = abs_points
+            for _ in range(8):
+                candidate = _rdp(abs_points, eps)
+                simplified = candidate
+                if len(candidate) <= max_replay_points:
+                    break
+                eps *= 1.5
+            if len(simplified) > max_replay_points:
+                step = max(1, len(simplified) // (max_replay_points - 1))
+                sampled = simplified[::step]
+                if sampled[-1] != simplified[-1]:
+                    sampled.append(simplified[-1])
+                simplified = sampled
+            replay_points = simplified
+        logger.info("paint_in_element: control points %d -> %d", len(abs_points), len(replay_points))
+
+        seg_count = len(replay_points) - 1
+        default_seg = max(16, int(duration_ms / max(1, seg_count)))
+        raw_segs: List[int] = []
+        prev_t = replay_points[0][2]
+        for _, _, t in replay_points[1:]:
+            raw_segs.append((t - prev_t) if t > prev_t else default_seg)
+            prev_t = max(prev_t, t)
+
+
+        # Cap replay duration to reduce pre-stroke delay while preserving relative rhythm.
+        raw_total = sum(raw_segs)
+        target_total = min(max(700, int(duration_ms)), 1800)
+        if raw_total > 0:
+            scale = target_total / raw_total
+            seg_durations_ms = [max(8, int(round(seg * scale))) for seg in raw_segs]
+        else:
+            seg_durations_ms = [max(8, default_seg)] * seg_count
+        touch_steps: list[dict] = [
+            {"type": "pointerMove", "duration": 0, "x": replay_points[0][0], "y": replay_points[0][1]},
+            {"type": "pointerDown", "button": 0},
+        ]
+        for (x, y, _), seg_ms in zip(replay_points[1:], seg_durations_ms):
+            touch_steps.append({"type": "pointerMove", "duration": max(8, int(seg_ms)), "x": x, "y": y})
+        touch_steps.append({"type": "pointerUp", "button": 0})
+
+        payload = [{
+            "type": "pointer",
+            "id": "paint_finger",
+            "parameters": {"pointerType": "touch"},
+            "actions": touch_steps,
+        }]
+
+        try:
+            # Send one continuous W3C action chain so the stroke is not split into small drags.
+            self.driver.execute("actions", {"actions": payload})
+            logger.info("paint_in_element: replayed %d points on %s (continuous)", len(abs_points), value)
+        except Exception as exc:
+            # Fallback for drivers that don't accept raw W3C payload via execute().
+            logger.warning("paint_in_element: continuous action failed (%s), fallback to segmented drags", exc)
+            prev_x, prev_y, prev_t2 = replay_points[0]
+            for (x, y, t), seg_ms in zip(replay_points[1:], seg_durations_ms):
+                seg_duration = max(0.08, min(1.6, seg_ms / 1000.0))
+                self.driver.execute_script(
+                    "mobile: dragFromToForDuration",
+                    {
+                        "fromX": prev_x,
+                        "fromY": prev_y,
+                        "toX": x,
+                        "toY": y,
+                        "duration": seg_duration,
+                    },
+                )
+                prev_x, prev_y, prev_t2 = x, y, max(prev_t2, t)
+            logger.info("paint_in_element: replayed %d points on %s (fallback)", len(abs_points), value)
+        finally:
+            try:
+                self.driver.release_actions()
+            except Exception:
+                pass
+        logger.info(f'execute action done: time.time()={time.time()}')
     # ──────────────────────────────────────────
     # Pinch & Rotate
     # ──────────────────────────────────────────

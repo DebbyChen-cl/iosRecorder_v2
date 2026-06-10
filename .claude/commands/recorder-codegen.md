@@ -84,7 +84,7 @@ When the file is missing or invalid JSON, codegen falls back to defaults.
     #   "selector_quality": "id" | "id_indexed" | "id_eq_label" | "label_only" | "xpath_only",  # optional
     #   "bounds": {"x": int, "y": int, "w": int, "h": int},  # device points, optional (new)
     # }
-  "duration":         int,    # milliseconds (long_press, swipe, drag, pinch)
+  "duration":         int,    # milliseconds (long_press, swipe, drag, pinch, paint)
   "scale":            float,  # pinch scale
   "rotation":         float,  # degrees — passed directly to actions.rotate() (no conversion in codegen)
   "text":             str,    # type_text
@@ -110,6 +110,12 @@ When the file is missing or invalid JSON, codegen falls back to defaults.
     # velocity is computed as: int(distance_px * 1000 / duration_ms), clamped to [50, 2000].
   "scroll_target":    dict,   # scroll: target element to scroll until visible
   "start_target":     dict,   # swipe/drag: element at the gesture start point
+  "paint_points_pct": list,   # paint: sampled stroke points relative to target bounds
+    # [
+    #   {"x_pct": float, "y_pct": float, "t_ms": int},
+    #   ...
+    # ]
+    # Stored in 0–100 percent so replay remains stable across device sizes.
   # ── Pre-gesture screenshot (set for every recorded step; stripped from GET /api/steps) ──
   "pre_screenshot":      str,   # base64 PNG captured before the action is sent to the device
   "pre_screenshot_size": dict,  # {"width": int, "height": int} — device screen dimensions
@@ -133,6 +139,7 @@ When the file is missing or invalid JSON, codegen falls back to defaults.
   - `[Verify] ...` for all assertion actions (verify_visible, verify_text, screenshot)
 - **Fallback `# comment`** when no element matched — code must always be valid Python
 - **Duration**: long_press and drag convert ms → seconds: `round(ms / 1000, 2)`
+- **Paint replay**: `paint` steps generate `actions.paint_in_element(...)` with `paint_points_pct` as `(x_pct, y_pct, t_ms)` tuples
 - **Pinch velocity**: `max(0.1, |scale - 1| / (duration_ms / 1000))` — derived from recorded duration
 - **Swipe velocity**: stored in step dict at record time; codegen reads directly from `step["velocity"]`
 - **Rotation**: degrees passed as-is; `DriverActions.rotate()` converts to radians internally

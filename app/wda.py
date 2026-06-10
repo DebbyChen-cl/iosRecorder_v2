@@ -409,6 +409,40 @@ class WDAClient:
             timeout=(duration_ms + 800) / 1000 + 4,
         )
 
+    async def paint(self, points: list[dict], duration_ms: int = 1000) -> bool:
+        """Draw a free-form stroke using one continuous touch path.
+
+        points: [{"x": int|float, "y": int|float, "t": int_ms}, ...]
+        """
+        if not points:
+            return False
+        norm: list[tuple[int, int, int]] = []
+        for p in points:
+            norm.append((
+                int(float(p.get("x", 0))),
+                int(float(p.get("y", 0))),
+                max(0, int(p.get("t", 0))),
+            ))
+        if len(norm) == 1:
+            x, y, _ = norm[0]
+            norm.append((x, y, max(16, int(duration_ms))))
+
+        default_seg = max(16, int(duration_ms / max(1, len(norm) - 1)))
+        touch_steps: list[dict] = [
+            {"type": "pointerMove", "duration": 0, "x": norm[0][0], "y": norm[0][1]},
+            {"type": "pointerDown", "button": 0},
+        ]
+        prev_t = norm[0][2]
+        for x, y, t in norm[1:]:
+            seg = t - prev_t if t > prev_t else default_seg
+            touch_steps.append({"type": "pointerMove", "duration": max(8, seg), "x": x, "y": y})
+            prev_t = max(prev_t, t)
+        touch_steps.append({"type": "pointerUp", "button": 0})
+        # Paint can contain many segments and WDA often needs extra settle time.
+        # Use a larger buffer to avoid false ReadTimeout on valid long strokes.
+        timeout_s = max(12.0, (max(duration_ms, prev_t) / 1000.0) + 15.0)
+        return await self._actions(self._touch_actions(touch_steps), timeout=timeout_s)
+
     async def get_source(self) -> Optional[ET.Element]:
         """Fetch page source, coalescing concurrent calls.
 

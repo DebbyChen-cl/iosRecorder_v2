@@ -1,0 +1,479 @@
+{
+  "captured_at": "2026-06-10T10:02:47",
+  "case_name": "Paint2",
+  "entries": [
+    {
+      "input": {
+        "action": "paint",
+        "start_x": 162.0,
+        "start_y": 448.0,
+        "points": [
+          {
+            "x": 162.0,
+            "y": 448.0,
+            "t": 0
+          },
+          {
+            "x": 152.0,
+            "y": 451.0,
+            "t": 150
+          },
+          {
+            "x": 100.0,
+            "y": 454.0,
+            "t": 366
+          },
+          {
+            "x": 79.0,
+            "y": 450.0,
+            "t": 483
+          },
+          {
+            "x": 63.0,
+            "y": 443.0,
+            "t": 533
+          },
+          {
+            "x": 52.0,
+            "y": 435.0,
+            "t": 566
+          },
+          {
+            "x": 48.0,
+            "y": 431.0,
+            "t": 616
+          },
+          {
+            "x": 44.0,
+            "y": 421.0,
+            "t": 683
+          },
+          {
+            "x": 35.0,
+            "y": 382.0,
+            "t": 916
+          },
+          {
+            "x": 33.0,
+            "y": 363.0,
+            "t": 1033
+          },
+          {
+            "x": 36.0,
+            "y": 358.0,
+            "t": 1067
+          },
+          {
+            "x": 47.0,
+            "y": 346.0,
+            "t": 1117
+          },
+          {
+            "x": 82.0,
+            "y": 322.0,
+            "t": 1184
+          },
+          {
+            "x": 92.0,
+            "y": 318.0,
+            "t": 1217
+          },
+          {
+            "x": 103.0,
+            "y": 315.0,
+            "t": 1284
+          },
+          {
+            "x": 164.0,
+            "y": 307.0,
+            "t": 1434
+          },
+          {
+            "x": 191.0,
+            "y": 307.0,
+            "t": 1567
+          },
+          {
+            "x": 207.0,
+            "y": 312.0,
+            "t": 1651
+          },
+          {
+            "x": 214.0,
+            "y": 315.0,
+            "t": 1684
+          },
+          {
+            "x": 246.0,
+            "y": 342.0,
+            "t": 1801
+          },
+          {
+            "x": 261.0,
+            "y": 361.0,
+            "t": 1951
+          },
+          {
+            "x": 262.0,
+            "y": 373.0,
+            "t": 2018
+          },
+          {
+            "x": 252.0,
+            "y": 397.0,
+            "t": 2101
+          },
+          {
+            "x": 240.0,
+            "y": 412.0,
+            "t": 2168
+          },
+          {
+            "x": 223.0,
+            "y": 422.0,
+            "t": 2251
+          },
+          {
+            "x": 216.0,
+            "y": 425.0,
+            "t": 2285
+          },
+          {
+            "x": 170.0,
+            "y": 448.0,
+            "t": 2952
+          }
+        ],
+        "duration": 3791
+      },
+      "output": {
+        "action": "paint",
+        "coords": {
+          "x": 162.0,
+          "y": 448.0
+        },
+        "duration": 3791,
+        "timestamp": 1781056956.8734589,
+        "target": {
+          "type": "xpath",
+          "value": "//XCUIElementTypeOther[@name=\"AIReplaceViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage/XCUIElementTypeOther/XCUIElementTypeOther[2]",
+          "selector_quality": "xpath_only",
+          "xpath": "//XCUIElementTypeOther[@name=\"AIReplaceViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage/XCUIElementTypeOther/XCUIElementTypeOther[2]",
+          "offset_pct": {
+            "x": 50.6,
+            "y": 86.8
+          },
+          "bounds": {
+            "x": 0,
+            "y": 87,
+            "w": 320,
+            "h": 416
+          }
+        },
+        "paint_points_pct": [
+          {
+            "x_pct": 50.6,
+            "y_pct": 86.8,
+            "t_ms": 0
+          },
+          {
+            "x_pct": 47.5,
+            "y_pct": 87.5,
+            "t_ms": 150
+          },
+          {
+            "x_pct": 31.2,
+            "y_pct": 88.2,
+            "t_ms": 366
+          },
+          {
+            "x_pct": 24.7,
+            "y_pct": 87.3,
+            "t_ms": 483
+          },
+          {
+            "x_pct": 19.7,
+            "y_pct": 85.6,
+            "t_ms": 533
+          },
+          {
+            "x_pct": 16.2,
+            "y_pct": 83.7,
+            "t_ms": 566
+          },
+          {
+            "x_pct": 15.0,
+            "y_pct": 82.7,
+            "t_ms": 616
+          },
+          {
+            "x_pct": 13.8,
+            "y_pct": 80.3,
+            "t_ms": 683
+          },
+          {
+            "x_pct": 10.9,
+            "y_pct": 70.9,
+            "t_ms": 916
+          },
+          {
+            "x_pct": 10.3,
+            "y_pct": 66.3,
+            "t_ms": 1033
+          },
+          {
+            "x_pct": 11.2,
+            "y_pct": 65.1,
+            "t_ms": 1067
+          },
+          {
+            "x_pct": 14.7,
+            "y_pct": 62.3,
+            "t_ms": 1117
+          },
+          {
+            "x_pct": 25.6,
+            "y_pct": 56.5,
+            "t_ms": 1184
+          },
+          {
+            "x_pct": 28.8,
+            "y_pct": 55.5,
+            "t_ms": 1217
+          },
+          {
+            "x_pct": 32.2,
+            "y_pct": 54.8,
+            "t_ms": 1284
+          },
+          {
+            "x_pct": 51.2,
+            "y_pct": 52.9,
+            "t_ms": 1434
+          },
+          {
+            "x_pct": 59.7,
+            "y_pct": 52.9,
+            "t_ms": 1567
+          },
+          {
+            "x_pct": 64.7,
+            "y_pct": 54.1,
+            "t_ms": 1651
+          },
+          {
+            "x_pct": 66.9,
+            "y_pct": 54.8,
+            "t_ms": 1684
+          },
+          {
+            "x_pct": 76.9,
+            "y_pct": 61.3,
+            "t_ms": 1801
+          },
+          {
+            "x_pct": 81.6,
+            "y_pct": 65.9,
+            "t_ms": 1951
+          },
+          {
+            "x_pct": 81.9,
+            "y_pct": 68.8,
+            "t_ms": 2018
+          },
+          {
+            "x_pct": 78.8,
+            "y_pct": 74.5,
+            "t_ms": 2101
+          },
+          {
+            "x_pct": 75.0,
+            "y_pct": 78.1,
+            "t_ms": 2168
+          },
+          {
+            "x_pct": 69.7,
+            "y_pct": 80.5,
+            "t_ms": 2251
+          },
+          {
+            "x_pct": 67.5,
+            "y_pct": 81.2,
+            "t_ms": 2285
+          },
+          {
+            "x_pct": 53.1,
+            "y_pct": 86.8,
+            "t_ms": 2952
+          }
+        ]
+      },
+      "hierarchy_file": "hierarchy_000.xml"
+    }
+  ],
+  "steps": [
+    {
+      "action": "paint",
+      "coords": {
+        "x": 162.0,
+        "y": 448.0
+      },
+      "duration": 3791,
+      "timestamp": 1781056956.8734589,
+      "target": {
+        "type": "xpath",
+        "value": "//XCUIElementTypeOther[@name=\"AIReplaceViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage/XCUIElementTypeOther/XCUIElementTypeOther[2]",
+        "selector_quality": "xpath_only",
+        "xpath": "//XCUIElementTypeOther[@name=\"AIReplaceViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage/XCUIElementTypeOther/XCUIElementTypeOther[2]",
+        "offset_pct": {
+          "x": 50.6,
+          "y": 86.8
+        },
+        "bounds": {
+          "x": 0,
+          "y": 87,
+          "w": 320,
+          "h": 416
+        }
+      },
+      "paint_points_pct": [
+        {
+          "x_pct": 50.6,
+          "y_pct": 86.8,
+          "t_ms": 0
+        },
+        {
+          "x_pct": 47.5,
+          "y_pct": 87.5,
+          "t_ms": 150
+        },
+        {
+          "x_pct": 31.2,
+          "y_pct": 88.2,
+          "t_ms": 366
+        },
+        {
+          "x_pct": 24.7,
+          "y_pct": 87.3,
+          "t_ms": 483
+        },
+        {
+          "x_pct": 19.7,
+          "y_pct": 85.6,
+          "t_ms": 533
+        },
+        {
+          "x_pct": 16.2,
+          "y_pct": 83.7,
+          "t_ms": 566
+        },
+        {
+          "x_pct": 15.0,
+          "y_pct": 82.7,
+          "t_ms": 616
+        },
+        {
+          "x_pct": 13.8,
+          "y_pct": 80.3,
+          "t_ms": 683
+        },
+        {
+          "x_pct": 10.9,
+          "y_pct": 70.9,
+          "t_ms": 916
+        },
+        {
+          "x_pct": 10.3,
+          "y_pct": 66.3,
+          "t_ms": 1033
+        },
+        {
+          "x_pct": 11.2,
+          "y_pct": 65.1,
+          "t_ms": 1067
+        },
+        {
+          "x_pct": 14.7,
+          "y_pct": 62.3,
+          "t_ms": 1117
+        },
+        {
+          "x_pct": 25.6,
+          "y_pct": 56.5,
+          "t_ms": 1184
+        },
+        {
+          "x_pct": 28.8,
+          "y_pct": 55.5,
+          "t_ms": 1217
+        },
+        {
+          "x_pct": 32.2,
+          "y_pct": 54.8,
+          "t_ms": 1284
+        },
+        {
+          "x_pct": 51.2,
+          "y_pct": 52.9,
+          "t_ms": 1434
+        },
+        {
+          "x_pct": 59.7,
+          "y_pct": 52.9,
+          "t_ms": 1567
+        },
+        {
+          "x_pct": 64.7,
+          "y_pct": 54.1,
+          "t_ms": 1651
+        },
+        {
+          "x_pct": 66.9,
+          "y_pct": 54.8,
+          "t_ms": 1684
+        },
+        {
+          "x_pct": 76.9,
+          "y_pct": 61.3,
+          "t_ms": 1801
+        },
+        {
+          "x_pct": 81.6,
+          "y_pct": 65.9,
+          "t_ms": 1951
+        },
+        {
+          "x_pct": 81.9,
+          "y_pct": 68.8,
+          "t_ms": 2018
+        },
+        {
+          "x_pct": 78.8,
+          "y_pct": 74.5,
+          "t_ms": 2101
+        },
+        {
+          "x_pct": 75.0,
+          "y_pct": 78.1,
+          "t_ms": 2168
+        },
+        {
+          "x_pct": 69.7,
+          "y_pct": 80.5,
+          "t_ms": 2251
+        },
+        {
+          "x_pct": 67.5,
+          "y_pct": 81.2,
+          "t_ms": 2285
+        },
+        {
+          "x_pct": 53.1,
+          "y_pct": 86.8,
+          "t_ms": 2952
+        }
+      ]
+    }
+  ],
+  "codegen_output": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"Paint2\")\ndef test_Paint2(actions: DriverActions):\n    with step(\"[Action] Paint on //XCUIElementTypeOther[@name=\\\"AIReplaceViewController\\\"]/XCUIElementTypeOther[2]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage/XCUIElementTypeOther/XCUIElementTypeOther[2] (27 points)\"):\n        actions.paint_in_element(AppiumBy.XPATH, '//XCUIElementTypeOther[@name=\"AIReplaceViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage/XCUIElementTypeOther/XCUIElementTypeOther[2]', [(50.6, 86.8, 0), (47.5, 87.5, 150), (31.2, 88.2, 366), (24.7, 87.3, 483), (19.7, 85.6, 533), (16.2, 83.7, 566), (15.0, 82.7, 616), (13.8, 80.3, 683), (10.9, 70.9, 916), (10.3, 66.3, 1033), (11.2, 65.1, 1067), (14.7, 62.3, 1117), (25.6, 56.5, 1184), (28.8, 55.5, 1217), (32.2, 54.8, 1284), (51.2, 52.9, 1434), (59.7, 52.9, 1567), (64.7, 54.1, 1651), (66.9, 54.8, 1684), (76.9, 61.3, 1801), (81.6, 65.9, 1951), (81.9, 68.8, 2018), (78.8, 74.5, 2101), (75.0, 78.1, 2168), (69.7, 80.5, 2251), (67.5, 81.2, 2285), (53.1, 86.8, 2952)], duration_ms=3791)\n    assert True\n"
+}

@@ -412,3 +412,13 @@ def test_gen5_LongPress8_20260609_164342_step_002():
     code = generate_script([step], "test_case")
     answer = _load_or_store("LongPress8_20260609_164342", "step_002_t5", code)
     assert code == answer
+
+
+# ── Paint2_20260610_100247 ────────────────────────────────────────────────────
+
+def test_gen5_Paint2_20260610_100247_step_000():
+    cap = json.loads((_FIXTURE_DIR / "Paint2_20260610_100247" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][0]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("Paint2_20260610_100247", "step_000_t5", code)
+    assert code == answer

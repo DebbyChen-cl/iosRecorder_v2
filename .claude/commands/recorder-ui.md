@@ -24,7 +24,7 @@ style.css    → BEM-like class naming
 | Channel | Used For |
 |---------|----------|
 | **WebSocket** `/ws/tap` | Live tap events during recording (low latency) |
-| **REST** `POST /api/record/*` | All other gestures sent to recording engine |
+| **REST** `POST /api/record/*` | All other gestures sent to recording engine (including `paint`) |
 | **REST** `POST /api/terminate_app` | Force-quit an app on device (non-recording) |
 | **REST** `GET/DELETE /api/steps` | Step list management |
 | **REST** `POST /api/export` | Generate and download pytest code |
@@ -34,7 +34,7 @@ style.css    → BEM-like class naming
 
 - Finger mode buttons: `data-finger="single"` / `"two"` / `"multi"` — toggle `.active` class
 - Gesture buttons: `#pinchBtn`, `#rotateBtn` — enter a dedicated gesture mode
-- Drag mode buttons: `data-drag="scroll"` / `"drag"` / `"swipe"` — control how mouse drag is interpreted
+- Drag mode buttons: `data-drag="scroll"` / `"drag"` / `"swipe"` / `"paint"` — control how mouse drag is interpreted
 
 ## Canvas Gesture Preview
 
@@ -43,10 +43,15 @@ The `<canvas>` element overlays the device screen image.
 - Clear canvas after the gesture is sent
 - Pinch preview: two circles + line between them
 - Swipe/scroll/drag preview: arrow path
+- Paint preview: free-form polyline path sampled from pointermove points
 - **Swipe and scroll gestures are snapped to cardinal directions (0°/90°/180°/270°) in `pointermove` preview and in `onSwipe`/`onScroll` before sending** — use `snapCardinal()` helper
-- Drag mode is free-angle (no snapping)
+- Drag/Paint modes are free-angle (no snapping)
 - **Pinch/rotate mode hover**: yellow element highlight is shown while hovering before the overlay is placed (`!pgst`); also shown while hovering over `pgstSvg` without dragging a dot (`activeDotIdx === null`); cleared on `pointerdown` (placement) and `pointerleave`
 - **Pinch `duration`**: recorded from `pointerdown` on a side dot to `pointerup`; sent in the payload as `duration` (ms, min 100); used to derive `velocity` in codegen
+- **Paint points**: frontend sends `start_x/start_y`, `duration`, and `points: [{x,y,t}]` to backend; recording stores points relative to the start element as percentages
+- **Paint point simplification**: before send, frontend simplifies sampled paint points (RDP + capped sampling) to reduce payload/action size while preserving stroke shape
+- **Paint HTTP fallback**: when WebSocket is unavailable and recording is on, frontend sends only `POST /api/record/paint`; backend freezes start-element snapshot, executes paint immediately, then records asynchronously
+- **Paint polling pause**: while a paint gesture is being sent/executed, frontend temporarily pauses `/api/status`, warm `/api/tree`, and `/api/unit_test/status` polling to reduce WDA contention
 
 ## Adding a New Gesture Button
 

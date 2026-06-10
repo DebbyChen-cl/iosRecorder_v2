@@ -317,6 +317,17 @@ class DragReq(BaseModel):
     x1: float; y1: float; x2: float; y2: float
     duration: int = 1000
 
+class PaintPoint(BaseModel):
+    x: float
+    y: float
+    t: int = 0
+
+class PaintReq(BaseModel):
+    start_x: float
+    start_y: float
+    points: List[PaintPoint]
+    duration: int = 1000
+
 class LongPressReq(BaseModel):
     x: float
     y: float
@@ -593,6 +604,13 @@ async def api_drag(req: DragReq):
     return {"ok": True}
 
 
+@app.post("/api/paint")
+async def api_paint(req: PaintReq):
+    pts = [p.dict() for p in req.points]
+    asyncio.create_task(wda.paint(pts, req.duration))
+    return {"ok": True}
+
+
 # ── Recording (async path) ────────────────────────────────────────────────────
 
 @app.post("/api/record")
@@ -762,21 +780,45 @@ async def record_drag(req: DragReq):
     return {"ok": True}
 
 
+@app.post("/api/record/paint")
+async def record_paint(req: PaintReq):
+    # Paint fast-path: freeze pre-gesture cache snapshot, execute immediately,
+    # then persist the step in background.
+    snapshot = _cache.get("root")
+    pre_ss = _latest_mjpeg_frame_b64
+    points = [p.dict() for p in req.points]
+    await wda.paint(points, req.duration)
+    asyncio.create_task(
+        _record_paint(
+            req.start_x,
+            req.start_y,
+            points,
+            req.duration,
+            snapshot=snapshot,
+            pre_screenshot=pre_ss,
+            snapshot_only=True,
+        )
+    )
+    return {"ok": True}
+
+
 # ── Recording helpers ──────────────────────────────────────────────────────────
 
-def _build_target(x: float, y: float, el, root=None) -> dict:
+def _build_target(x: float, y: float, el, root=None, structural_log: bool = True) -> dict:
     """Build step target dict with selector + offset_pct + quality + bounds + xpath."""
     sel_type, sel_val = build_selector(el)
     xpath = build_xpath(el)
     if root is not None and sel_type == "xpath":
         unwrapped = _ht_unwrap(root)
         path = _ht_find_path(unwrapped, el)
-        logger.info(f"[structural] el={el.tag} root={unwrapped.tag} path_len={len(path) if path else 'None(not found)'}")
-        if path:
-            for i, p in enumerate(path):
-                logger.info(f"  [{i}] {p.tag} name={p.attrib.get('name','')[:40]!r}")
+        if structural_log:
+            logger.info(f"[structural] el={el.tag} root={unwrapped.tag} path_len={len(path) if path else 'None(not found)'}")
+            if path:
+                for i, p in enumerate(path):
+                    logger.info(f"  [{i}] {p.tag} name={p.attrib.get('name','')[:40]!r}")
         structural = _ht_structural_xpath(el, unwrapped)
-        logger.info(f"[structural] result={structural}")
+        if structural_log:
+            logger.info(f"[structural] result={structural}")
         if structural:
             sel_val = structural
             xpath = structural
@@ -805,18 +847,24 @@ async def _take_pre_gesture_screenshot() -> Optional[str]:
     the MJPEG stream hasn't delivered a frame yet (e.g. on first action
     after startup).
     """
+    t0 = time.perf_counter()
     if _latest_mjpeg_frame_b64:
-        logger.debug("Pre-gesture screenshot: using cached MJPEG frame")
+        logger.info("Pre-gesture screenshot source=mjpeg elapsed=%.1fms", (time.perf_counter() - t0) * 1000)
         return _latest_mjpeg_frame_b64
     # Fallback: ask WDA directly (cancels in-flight source fetch first)
     if wda._source_task is not None and not wda._source_task.done():
         wda._source_task.cancel()
         wda._source_task = None
-        logger.debug("Cancelled in-flight source fetch for screenshot priority")
+        logger.info("Pre-gesture screenshot: cancelled in-flight source fetch")
     prev_flag = wda._action_in_progress
     wda._action_in_progress = True
     try:
         b64 = await wda.get_screenshot()
+        logger.info(
+            "Pre-gesture screenshot source=wda elapsed=%.1fms ok=%s",
+            (time.perf_counter() - t0) * 1000,
+            bool(b64),
+        )
         return b64.strip() if b64 else None
     finally:
         wda._action_in_progress = prev_flag
@@ -1294,6 +1342,58 @@ async def _record_drag(x1: float, y1: float, x2: float, y2: float, duration: int
     logger.info(f"Recorded drag: {step.get('start_target')} → {step.get('end_target')}")
 
 
+async def _record_paint(
+    start_x: float,
+    start_y: float,
+    points: List[dict],
+    duration: int,
+    snapshot=None,
+    pre_screenshot: Optional[str] = None,
+    snapshot_only: bool = False,
+):
+    root = snapshot if snapshot is not None else (None if snapshot_only else await _cached_tree())
+    step: dict = {
+        "action": "paint",
+        "coords": {"x": start_x, "y": start_y},
+        "duration": duration,
+        "timestamp": time.time(),
+    }
+    if root is not None:
+        el = hit_test(start_x, start_y, root)
+        if el is not None:
+            step["target"] = _build_target(start_x, start_y, el, root, structural_log=False)
+            bounds = step["target"].get("bounds") or {}
+            bx, by = float(bounds.get("x", 0)), float(bounds.get("y", 0))
+            bw, bh = float(bounds.get("w", 0)), float(bounds.get("h", 0))
+            if bw > 0 and bh > 0:
+                inv_w = 100.0 / bw
+                inv_h = 100.0 / bh
+
+                def _pct(v: float) -> float:
+                    return max(0.0, min(100.0, round(v, 1)))
+
+                rel_points = [
+                    {
+                        "x_pct": _pct((float(pt.get("x", start_x)) - bx) * inv_w),
+                        "y_pct": _pct((float(pt.get("y", start_y)) - by) * inv_h),
+                        "t_ms": max(0, int(pt.get("t", 0))),
+                    }
+                    for pt in points
+                ]
+                if rel_points:
+                    step["paint_points_pct"] = rel_points
+        else:
+            step["target"] = {"type": "coordinate", "x": start_x, "y": start_y}
+    else:
+        step["target"] = {"type": "coordinate", "x": start_x, "y": start_y}
+    if pre_screenshot:
+        step["pre_screenshot"] = pre_screenshot
+        step["pre_screenshot_size"] = dict(wda._last_screen_size)
+    _steps.append(step)
+    _unit_test_capture({"action": "paint", "start_x": start_x, "start_y": start_y, "points": points, "duration": duration}, step, root)
+    logger.info(f"Recorded paint: {len(step.get('paint_points_pct', []))} points on {step.get('target')}")
+
+
 async def _cached_tree():
     """Return the cached hierarchy. _hierarchy_loop keeps it continuously fresh.
     Falls back to a direct fetch only when the cache is empty (startup/reconnect).
@@ -1505,6 +1605,28 @@ async def ws_handler(ws: WebSocket):
                     asyncio.create_task(_record_drag(x1, y1, x2, y2, dur, snapshot=snapshot, pre_screenshot=pre_ss))
                 else:
                     asyncio.create_task(wda.drag(x1, y1, x2, y2, dur))
+
+            elif t == "paint":
+                sx, sy = float(data.get("start_x", 0)), float(data.get("start_y", 0))
+                points = data.get("points", []) or []
+                dur = int(data.get("duration", 1000))
+                pre_ss = _latest_mjpeg_frame_b64 if rec else None
+                snapshot = _cache.get("root") if rec else None
+                if rec:
+                    await wda.paint(points, dur)
+                    asyncio.create_task(
+                        _record_paint(
+                            sx,
+                            sy,
+                            points,
+                            dur,
+                            snapshot=snapshot,
+                            pre_screenshot=pre_ss,
+                            snapshot_only=True,
+                        )
+                    )
+                else:
+                    asyncio.create_task(wda.paint(points, dur))
 
             elif t == "type_text":
                 text = data.get("text", "")

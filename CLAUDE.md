@@ -50,7 +50,7 @@ iosRecorder_v2/
 ### Step dict schema (recorded by main.py, consumed by codegen.py)
 ```python
 {
-  "action":    str,             # "tap" | "swipe" | "long_press" | "verify_visible" | ...
+  "action":    str,             # "tap" | "swipe" | "paint" | "long_press" | "verify_visible" | ...
   "coords":    dict,            # x, y  (single point) or x1,y1,x2,y2 (gesture)
   "target":    dict | None,     # { "type": "accessibility id"|"name"|"xpath"|"coordinate",
                                 #   "value": str,
@@ -59,7 +59,7 @@ iosRecorder_v2/
                                 #   "bounds": {"x":int,"y":int,"w":int,"h":int} }  ← optional (device pts)
   "timestamp": str,
   # action-specific extras:
-  "duration":  int,             # ms (long_press, swipe, drag)
+  "duration":  int,             # ms (long_press, swipe, drag, paint)
   "scale":     float,           # pinch
   "rotation":  float,           # degrees (rotate)
   "text":      str,             # type_text
@@ -70,6 +70,8 @@ iosRecorder_v2/
                                 # coordinate (type, value, selector_quality, bounds); used by
                                 # codegen to pass container_by/container_value/container_w/container_h
                                 # to find_element() for auto-scroll fallback during playback
+  "paint_points_pct": list,     # paint: free-form stroke points relative to target element bounds
+                                # [ {"x_pct": float, "y_pct": float, "t_ms": int}, ... ]
 }
 ```
 
@@ -103,7 +105,7 @@ iosRecorder_v2/
 
 ### Frontend ↔ Backend communication
 - **WebSocket** `/ws/tap` — low-latency tap events during live recording
-- **REST** — everything else (swipe, drag, scroll, verify, export, config)
+- **REST** — everything else (swipe, drag, paint, scroll, verify, export, config)
 - **MJPEG** `/api/stream` — live device screen video
 
 ## Dynamic Skill Loading

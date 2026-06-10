@@ -321,6 +321,31 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
         return (f"[Action] Drag ({x1},{y1}) → ({x2},{y2})",
                 [f"actions.drag_coordinates({x1}, {y1}, {x2}, {y2}, duration={dur})"])
 
+    # ── paint ─────────────────────────────────────────────────────────────────
+    if action == "paint":
+        points = step.get("paint_points_pct") or []
+        dur_ms = int(step.get("duration", 1000))
+        if has_el and points:
+            by, val = _locator(t)
+            p_list: list[str] = []
+            for p in points:
+                p_list.append(f"({float(p.get('x_pct', 50.0))}, {float(p.get('y_pct', 50.0))}, {int(p.get('t_ms', 0))})")
+            points_arg = "[" + ", ".join(p_list) + "]"
+            return (
+                f"[Action] Paint on {val} ({len(points)} points)",
+                [f"actions.paint_in_element({by}, '{val}', {points_arg}, duration_ms={dur_ms})"],
+            )
+        if has_el:
+            by, val = _locator(t)
+            return (
+                f"[Action] Paint on {val}",
+                [f"# paint on {val} — no paint_points_pct recorded"],
+            )
+        return (
+            f"[Action] Paint at ({int(c.get('x', 0))},{int(c.get('y', 0))})",
+            [f"# paint at ({int(c.get('x', 0))},{int(c.get('y', 0))}) — no element matched"],
+        )
+
     # ── type text ─────────────────────────────────────────────────────────────
     if action == "type_text":
         text = _q(step.get("text", ""))
