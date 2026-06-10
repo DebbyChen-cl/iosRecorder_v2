@@ -18,7 +18,7 @@ iosRecorder_v2/
 │   ├── codegen.py          # Converts recorded steps → pytest code
 │   ├── hittest.py          # Score-based element detection at a coordinate
 │   ├── selector.py         # Builds the most stable selector for an element
-│   ├── unit_test_gen.py    # Generates test_gen1..5 pytest files from --unit_test captures
+│   ├── unit_test_gen.py    # Generates test_gen1..5 + test_gen3b pytest files from --unit_test captures
 │   └── wda.py              # Async HTTP client for WebDriver Agent
 ├── static/                 # Vanilla JS/HTML/CSS frontend UI
 │   ├── index.html          # Main recorder page

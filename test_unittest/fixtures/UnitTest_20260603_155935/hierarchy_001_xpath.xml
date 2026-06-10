@@ -1,0 +1,68 @@
+<XCUIElementTypeApplication type="XCUIElementTypeApplication" name="PhotoDirector" label="PhotoDirector" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="" processId="727" bundleId="com.cyberlink.photodirector">
+  <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="" />
+    </XCUIElementTypeOther>
+    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="1" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+            <XCUIElementTypeOther type="XCUIElementTypeOther" name="photodirector.PHPhotoPickViewController" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="38" index="0" traits="" />
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="38" width="320" height="36" index="1" traits="">
+                <XCUIElementTypeButton type="XCUIElementTypeButton" name="btnBack" label="btn picker back n" enabled="true" visible="true" accessible="true" x="7" y="41" width="30" height="30" index="0" traits="Button" />
+                <XCUIElementTypeButton type="XCUIElementTypeButton" name="btnCamera" label="btn picker camera n" enabled="true" visible="true" accessible="true" x="145" y="41" width="30" height="30" index="1" traits="Button" />
+              </XCUIElementTypeOther>
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="74" width="320" height="33" index="2" traits="">
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="74" width="294" height="33" index="0" traits="">
+                  <XCUIElementTypeButton type="XCUIElementTypeButton" value="1" name="btnAlbum" label="PhotoDirector" enabled="true" visible="true" accessible="true" x="13" y="74" width="147" height="31" index="0" traits="Selected, Button">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="PhotoDirector" name="PhotoDirector" label="PhotoDirector" enabled="true" visible="true" accessible="false" x="25" y="79" width="96" height="21" index="0" traits="StaticText" />
+                  </XCUIElementTypeButton>
+                  <XCUIElementTypeButton type="XCUIElementTypeButton" name="btnStock" label="Stock" enabled="true" visible="true" accessible="true" x="160" y="74" width="147" height="31" index="1" traits="Button">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Stock" name="Stock" label="Stock" enabled="true" visible="true" accessible="false" x="211" y="79" width="45" height="21" index="0" traits="StaticText" />
+                  </XCUIElementTypeButton>
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="105" width="294" height="2" index="2" traits="">
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="105" width="147" height="2" index="0" traits="" />
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeOther>
+              </XCUIElementTypeOther>
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="107" width="320" height="557" index="3" traits="">
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="107" width="320" height="557" index="0" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="107" width="320" height="557" index="0" traits="">
+                    <XCUIElementTypeCollectionView type="XCUIElementTypeCollectionView" name="photoCollectionView" enabled="true" visible="true" accessible="false" x="0" y="107" width="320" height="557" index="0" traits="">
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="false" x="13" y="123" width="96" height="96" index="0" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="123" width="96" height="96" index="0" traits="">
+                          <XCUIElementTypeImage type="XCUIElementTypeImage" enabled="true" visible="true" accessible="false" x="13" y="123" width="96" height="96" index="0" traits="Image" />
+                          <XCUIElementTypeButton type="XCUIElementTypeButton" name="icon photo enlarge n" label="icon photo enlarge n" enabled="true" visible="true" accessible="true" x="85" y="195" width="20" height="21" index="1" traits="Button" />
+                        </XCUIElementTypeOther>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeCell type="XCUIElementTypeCell" name="photoCell-1" enabled="true" visible="true" accessible="false" x="112" y="123" width="96" height="96" index="1" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="112" y="123" width="96" height="96" index="0" traits="">
+                          <XCUIElementTypeImage type="XCUIElementTypeImage" enabled="true" visible="true" accessible="false" x="112" y="123" width="96" height="96" index="0" traits="Image" />
+                          <XCUIElementTypeButton type="XCUIElementTypeButton" name="icon photo enlarge n" label="icon photo enlarge n" enabled="true" visible="true" accessible="true" x="184" y="195" width="21" height="21" index="1" traits="Button" />
+                        </XCUIElementTypeOther>
+                      </XCUIElementTypeCell>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 1 page" label="Vertical scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="287" y="107" width="30" height="557" index="2" traits="Adjustable">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="314" y="644" width="3" height="17" index="0" traits="" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="0" y="631" width="320" height="30" index="3" traits="Adjustable">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="297" y="658" width="20" height="3" index="0" traits="" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 1 page" label="Vertical scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="287" y="107" width="30" height="557" index="4" traits="Adjustable">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="314" y="644" width="3" height="17" index="0" traits="" />
+                      </XCUIElementTypeOther>
+                      <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="0" y="631" width="320" height="30" index="5" traits="Adjustable">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="297" y="658" width="20" height="3" index="0" traits="" />
+                      </XCUIElementTypeOther>
+                    </XCUIElementTypeCollectionView>
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeOther>
+              </XCUIElementTypeOther>
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="664" width="320" height="29" index="4" traits="" />
+            </XCUIElementTypeOther>
+          </XCUIElementTypeOther>
+        </XCUIElementTypeOther>
+      </XCUIElementTypeOther>
+    </XCUIElementTypeOther>
+  </XCUIElementTypeWindow>
+</XCUIElementTypeApplication>

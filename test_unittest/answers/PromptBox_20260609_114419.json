@@ -33,5 +33,24 @@
     "quality": "id",
     "is_problematic": false
   },
-  "step_000_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Verify] promptTextField text equals 'aaa'\"):\n        actions.verify_text(AppiumBy.ACCESSIBILITY_ID, 'promptTextField', 'aaa')\n    assert True\n"
+  "step_000_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Verify] promptTextField text equals 'aaa'\"):\n        actions.verify_text(AppiumBy.ACCESSIBILITY_ID, 'promptTextField', 'aaa')\n    assert True\n",
+  "step_000_t3b": {
+    "action": "verify_get_text",
+    "coords": {
+      "x": 41.0,
+      "y": 372.0
+    },
+    "expected_text": "aaa",
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"AIReplaceViewController\"]/XCUIElementTypeOther[4]",
+      "selector_quality": "xpath_only",
+      "bounds": {
+        "x": 0,
+        "y": 354,
+        "w": 320,
+        "h": 64
+      }
+    }
+  }
 }

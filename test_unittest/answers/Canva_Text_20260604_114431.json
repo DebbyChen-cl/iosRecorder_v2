@@ -158,5 +158,62 @@
   "step_000_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap btn_text_sub_menu_n at (76.0%, 64.0%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_text_sub_menu_n', 76.0, 64.0, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='effectMenuCollectionViewPresenterCollectionView', container_w=124, container_h=65)\n    assert True\n",
   "step_001_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap //XCUIElementTypeImage at (38.1%, 50.8%)\"):\n        actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeImage', 38.1, 50.8)\n    assert True\n",
   "step_002_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Type 'Text Test' into //XCUIElementTypeImage\"):\n        actions.type_text_by_locator(AppiumBy.XPATH, '//XCUIElementTypeImage', 'Text Test')\n    assert True\n",
-  "step_003_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap applyButton at (39.4%, 50.0%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'applyButton', 39.4, 50.0)\n    assert True\n"
+  "step_003_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap applyButton at (39.4%, 50.0%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'applyButton', 39.4, 50.0)\n    assert True\n",
+  "step_000_t3b": {
+    "action": "tap",
+    "coords": {
+      "x": 137.0,
+      "y": 511.0
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "offset_pct": {
+        "x": 42.8,
+        "y": 75.6
+      },
+      "bounds": {
+        "x": 0,
+        "y": 38,
+        "w": 320,
+        "h": 626
+      }
+    },
+    "scroll_container": {
+      "type": "accessibility id",
+      "value": "effectMenuCollectionViewPresenterCollectionView",
+      "selector_quality": "id",
+      "bounds": {
+        "x": 98,
+        "y": 483,
+        "w": 124,
+        "h": 65
+      }
+    }
+  },
+  "step_003_t3b": {
+    "action": "tap",
+    "coords": {
+      "x": 297.0,
+      "y": 337.0
+    },
+    "target": {
+      "type": "accessibility id",
+      "value": "leaveButton",
+      "selector_quality": "id",
+      "xpath": "//XCUIElementTypeButton[@name='leaveButton']",
+      "offset_pct": {
+        "x": 46.7,
+        "y": 35.5
+      },
+      "bounds": {
+        "x": 283,
+        "y": 326,
+        "w": 30,
+        "h": 31
+      }
+    }
+  }
 }

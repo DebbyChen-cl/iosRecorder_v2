@@ -96,5 +96,115 @@
   },
   "step_000_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap btnSettings at (48.0%, 50.0%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnSettings', 48.0, 50.0)\n    assert True\n",
   "step_001_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap About at (46.2%, 41.2%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'About', 46.2, 41.2, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name=\"photodirector.SettingPageViewController\"]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeCollectionView', container_w=320, container_h=521)\n    assert True\n",
-  "step_002_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Five tap developerButton at (44.4%, 29.7%)\"):\n        actions.five_tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'developerButton', 44.4, 29.7)\n    assert True\n"
+  "step_002_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Five tap developerButton at (44.4%, 29.7%)\"):\n        actions.five_tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'developerButton', 44.4, 29.7)\n    assert True\n",
+  "step_000_t3b": {
+    "action": "tap",
+    "coords": {
+      "x": 287.0,
+      "y": 61.0
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"LauncherProViewController\"]/XCUIElementTypeOther[3]/XCUIElementTypeButton[2]",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeOther[@name=\"LauncherProViewController\"]/XCUIElementTypeOther[3]/XCUIElementTypeButton[2]",
+      "offset_pct": {
+        "x": 48.0,
+        "y": 50.0
+      },
+      "bounds": {
+        "x": 275,
+        "y": 48,
+        "w": 25,
+        "h": 26
+      }
+    }
+  },
+  "step_001_t3b": {
+    "action": "tap",
+    "coords": {
+      "x": 50.0,
+      "y": 388.0
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeImage[@name=\"SettingPageHelpCenterCell-1\"]/XCUIElementTypeOther[2]/XCUIElementTypeStaticText",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeImage[@name=\"SettingPageHelpCenterCell-1\"]/XCUIElementTypeOther[2]/XCUIElementTypeStaticText",
+      "offset_pct": {
+        "x": 46.2,
+        "y": 41.2
+      },
+      "bounds": {
+        "x": 32,
+        "y": 381,
+        "w": 39,
+        "h": 17
+      }
+    },
+    "scroll_container": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"photodirector.SettingPageViewController\"]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeCollectionView",
+      "selector_quality": "xpath_only",
+      "bounds": {
+        "x": 0,
+        "y": 87,
+        "w": 320,
+        "h": 521
+      }
+    }
+  },
+  "step_002_t1": {
+    "action": "five_tap",
+    "coords": {
+      "x": 29.0,
+      "y": 100.0
+    }
+  },
+  "step_002_t3": {
+    "action": "five_tap",
+    "coords": {
+      "x": 29.0,
+      "y": 100.0
+    },
+    "target": {
+      "type": "accessibility id",
+      "value": "developerButton",
+      "selector_quality": "id",
+      "xpath": "//XCUIElementTypeButton[@name='developerButton']",
+      "offset_pct": {
+        "x": 44.4,
+        "y": 29.7
+      },
+      "bounds": {
+        "x": 13,
+        "y": 89,
+        "w": 36,
+        "h": 37
+      }
+    }
+  },
+  "step_002_t3b": {
+    "action": "five_tap",
+    "coords": {
+      "x": 29.0,
+      "y": 100.0
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"photodirector.AboutProViewController\"]/XCUIElementTypeOther[4]/XCUIElementTypeButton",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AboutProViewController\"]/XCUIElementTypeOther[4]/XCUIElementTypeButton",
+      "offset_pct": {
+        "x": 44.4,
+        "y": 29.7
+      },
+      "bounds": {
+        "x": 13,
+        "y": 89,
+        "w": 36,
+        "h": 37
+      }
+    }
+  }
 }

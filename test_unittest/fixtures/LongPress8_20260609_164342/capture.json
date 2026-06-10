@@ -7,7 +7,13 @@
         "action": "verify_screenshot_diff",
         "target_x": 58.0,
         "target_y": 440.0,
-        "phase": "before"
+        "phase": "before",
+        "bounds": {
+          "x": 0,
+          "y": 110,
+          "w": 320,
+          "h": 416
+        }
       },
       "output": {
         "action": "verify_screenshot_diff",
@@ -35,7 +41,8 @@
           }
         }
       },
-      "hierarchy_file": "hierarchy_000.xml"
+      "hierarchy_file": "hierarchy_000.xml",
+      "hierarchy_file_xpath": "hierarchy_000_xpath.xml"
     },
     {
       "input": {
@@ -80,14 +87,21 @@
           }
         }
       },
-      "hierarchy_file": "hierarchy_001.xml"
+      "hierarchy_file": "hierarchy_001.xml",
+      "hierarchy_file_xpath": "hierarchy_001_xpath.xml"
     },
     {
       "input": {
         "action": "verify_screenshot_diff",
         "target_x": 58.0,
         "target_y": 440.0,
-        "phase": "after"
+        "phase": "after",
+        "bounds": {
+          "x": 0,
+          "y": 110,
+          "w": 320,
+          "h": 416
+        }
       },
       "output": {
         "action": "verify_screenshot_diff",
@@ -116,7 +130,8 @@
           }
         }
       },
-      "hierarchy_file": "hierarchy_002.xml"
+      "hierarchy_file": "hierarchy_002.xml",
+      "hierarchy_file_xpath": "hierarchy_002_xpath.xml"
     }
   ],
   "steps": [

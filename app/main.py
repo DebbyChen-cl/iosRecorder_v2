@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import copy
 import hashlib
 import json
 import logging
@@ -558,7 +559,7 @@ async def api_element_info(x: float, y: float):
     el = hit_test(x, y, root)
     if el is None:
         return {"found": False, "cache_ready": True}
-    sel_type, sel_val = build_selector(el)
+    sel_type, sel_val = _resolve_selector(el, root)
     a = el.attrib
     text = a.get("value", "") or a.get("label", "") or a.get("name", "")
     # hit_test deprioritises XCUIElementTypeTextView (it's a TAP_CONTAINER_TAG),
@@ -804,6 +805,42 @@ async def record_paint(req: PaintReq):
 
 # ── Recording helpers ──────────────────────────────────────────────────────────
 
+def _resolve_selector(el: ET.Element, root) -> tuple:
+    """Like build_selector, but upgrades a bare //{tag} xpath to a full structural xpath."""
+    sel_type, sel_val = build_selector(el)
+    if sel_type == "xpath" and root is not None:
+        structural = _ht_structural_xpath(el, _ht_unwrap(root))
+        if structural:
+            return "xpath", structural
+    return sel_type, sel_val
+
+
+def _make_xpath_variant_xml(root: ET.Element, step: dict) -> Optional[str]:
+    """Return a copy of the hierarchy XML with name/label stripped from the step's target element.
+
+    Produces an xpath-only variant so unit tests exercise the structural xpath code path
+    even for elements that normally have a stable accessibility id.
+    Returns None when the target is already xpath_only, has no bounds, or cannot be found.
+    """
+    target = step.get("target") or step.get("start_target")
+    if not target or target.get("type") in ("coordinate", None):
+        return None
+    if target.get("selector_quality") == "xpath_only":
+        return None
+    bounds = target.get("bounds")
+    if not bounds:
+        return None
+    bx, by, bw, bh = bounds["x"], bounds["y"], bounds["w"], bounds["h"]
+    root_copy = copy.deepcopy(root)
+    for node in _ht_unwrap(root_copy).iter():
+        r = _el_rect(node)
+        if r and int(r[0]) == bx and int(r[1]) == by and int(r[2]) == bw and int(r[3]) == bh:
+            node.attrib.pop("name", None)
+            node.attrib.pop("label", None)
+            break
+    return ET.tostring(root_copy, encoding="unicode")
+
+
 def _build_target(x: float, y: float, el, root=None, structural_log: bool = True) -> dict:
     """Build step target dict with selector + offset_pct + quality + bounds + xpath."""
     sel_type, sel_val = build_selector(el)
@@ -873,11 +910,16 @@ async def _take_pre_gesture_screenshot() -> Optional[str]:
 def _unit_test_capture(input_params: dict, step: dict, root=None):
     if not _UNIT_TEST_MODE:
         return
-    _unit_test_entries.append({
+    entry: dict = {
         "input": input_params,
         "output": {k: v for k, v in step.items() if k not in _STRIP_STEP_KEYS},
         "hierarchy_xml": ET.tostring(root, encoding="unicode") if root is not None else None,
-    })
+    }
+    if root is not None:
+        xpath_xml = _make_xpath_variant_xml(root, step)
+        if xpath_xml:
+            entry["hierarchy_xml_xpath"] = xpath_xml
+    _unit_test_entries.append(entry)
 
 
 async def _record_point(action: str, x: float, y: float, snapshot=None, pre_screenshot: Optional[str] = None):
@@ -961,7 +1003,7 @@ async def _record_pinch(x: float, y: float, scale: float, spread: int, duration:
     if root is not None:
         el = hit_test(x, y, root)
         if el is not None:
-            sel_type, sel_val = build_selector(el)
+            sel_type, sel_val = _resolve_selector(el, root)
             t: dict = {"type": sel_type, "value": sel_val, "selector_quality": get_selector_quality(el)}
             r = _el_rect(el)
             if r:
@@ -985,7 +1027,7 @@ async def _record_rotate(x: float, y: float, rotation: float, spread: int, snaps
     if root is not None:
         el = hit_test(x, y, root)
         if el is not None:
-            sel_type, sel_val = build_selector(el)
+            sel_type, sel_val = _resolve_selector(el, root)
             t: dict = {"type": sel_type, "value": sel_val, "selector_quality": get_selector_quality(el)}
             r = _el_rect(el)
             if r:
@@ -1090,7 +1132,7 @@ async def _record_swipe_target(x: float, y: float):
             if root is not None:
                 el = hit_test(x, y, root)
                 if el is not None:
-                    sel_type, sel_val = build_selector(el)
+                    sel_type, sel_val = _resolve_selector(el, root)
                     _steps[i]["swipe_target"] = {"type": sel_type, "value": sel_val}
                 else:
                     _steps[i]["swipe_target"] = {"type": "coordinate", "x": x, "y": y}
@@ -1183,7 +1225,7 @@ async def _record_verify_visible(tx: float, ty: float, not_visible: bool, snapsh
         # Fallback: use pre-action snapshot so the element is captured before it disappears
         el = hit_test(tx, ty, snapshot)
         if el is not None:
-            sel_type, sel_val = build_selector(el)
+            sel_type, sel_val = _resolve_selector(el, snapshot)
             t2: dict = {"type": sel_type, "value": sel_val, "selector_quality": get_selector_quality(el)}
             r = _el_rect(el)
             if r:
@@ -1197,7 +1239,7 @@ async def _record_verify_visible(tx: float, ty: float, not_visible: bool, snapsh
         if root is not None:
             el = hit_test(tx, ty, root)
             if el is not None:
-                sel_type, sel_val = build_selector(el)
+                sel_type, sel_val = _resolve_selector(el, root)
                 t2: dict = {"type": sel_type, "value": sel_val, "selector_quality": get_selector_quality(el)}
                 r = _el_rect(el)
                 if r:
@@ -1221,7 +1263,7 @@ async def _record_verify_get_text(tx: float, ty: float, expected_text: str, pre_
     if root is not None:
         el = hit_test(tx, ty, root)
         if el is not None:
-            sel_type, sel_val = build_selector(el)
+            sel_type, sel_val = _resolve_selector(el, root)
             t: dict = {"type": sel_type, "value": sel_val, "selector_quality": get_selector_quality(el)}
             r = _el_rect(el)
             if r:
@@ -1245,7 +1287,7 @@ async def _record_verify_screenshot_gt(tx: float, ty: float, screenshot_name: st
     if root is not None:
         el = hit_test(tx, ty, root)
         if el is not None:
-            sel_type, sel_val = build_selector(el)
+            sel_type, sel_val = _resolve_selector(el, root)
             t: dict = {"type": sel_type, "value": sel_val, "selector_quality": get_selector_quality(el)}
             r = _el_rect(el)
             if r:
@@ -1255,7 +1297,7 @@ async def _record_verify_screenshot_gt(tx: float, ty: float, screenshot_name: st
         step["pre_screenshot"] = pre_screenshot
         step["pre_screenshot_size"] = dict(wda._last_screen_size)
     _steps.append(step)
-    _unit_test_capture({"action": "verify_screenshot_gt", "target_x": tx, "target_y": ty, "screenshot_name": screenshot_name}, step, root)
+    _unit_test_capture({"action": "verify_screenshot_gt", "target_x": tx, "target_y": ty, "screenshot_name": screenshot_name, "bounds": bounds}, step, root)
     logger.info(f"Recorded verify_screenshot_gt: {screenshot_name}")
 
 
@@ -1269,7 +1311,7 @@ async def _record_verify_screenshot_diff(tx: float, ty: float, bounds: dict, pha
     if root is not None:
         el = hit_test(tx, ty, root)
         if el is not None:
-            sel_type, sel_val = build_selector(el)
+            sel_type, sel_val = _resolve_selector(el, root)
             t: dict = {"type": sel_type, "value": sel_val, "selector_quality": get_selector_quality(el)}
             r = _el_rect(el)
             if r:
@@ -1279,7 +1321,7 @@ async def _record_verify_screenshot_diff(tx: float, ty: float, bounds: dict, pha
         step["pre_screenshot"] = pre_screenshot
         step["pre_screenshot_size"] = dict(wda._last_screen_size)
     _steps.append(step)
-    _unit_test_capture({"action": "verify_screenshot_diff", "target_x": tx, "target_y": ty, "phase": phase}, step, root)
+    _unit_test_capture({"action": "verify_screenshot_diff", "target_x": tx, "target_y": ty, "phase": phase, "bounds": bounds}, step, root)
     logger.info(f"Recorded verify_screenshot_diff ({phase}, expected={expected_result})")
 
 
@@ -1306,7 +1348,7 @@ async def _record_move(action: str, x1: float, y1: float, x2: float, y2: float, 
     if root is not None:
         el = hit_test_for_swipe(x1, y1, root) if action == "swipe" else hit_test(x1, y1, root)
         if el is not None:
-            sel_type, sel_val = build_selector(el)
+            sel_type, sel_val = _resolve_selector(el, root)
             step["start_target"] = {"type": sel_type, "value": sel_val, "selector_quality": get_selector_quality(el)}
     if pre_screenshot:
         step["pre_screenshot"] = pre_screenshot
@@ -1944,8 +1986,9 @@ async def unit_test_save(req: UnitTestSaveReq):
     # Save each entry's hierarchy as a separate XML file; strip inline XML from the JSON
     entries_clean = []
     xml_count = 0
+    xpath_xml_count = 0
     for i, entry in enumerate(_unit_test_entries):
-        entry_copy = {k: v for k, v in entry.items() if k != "hierarchy_xml"}
+        entry_copy = {k: v for k, v in entry.items() if k not in ("hierarchy_xml", "hierarchy_xml_xpath")}
         if entry.get("hierarchy_xml"):
             xml_name = f"hierarchy_{i:03d}.xml"
             (save_dir / xml_name).write_text(entry["hierarchy_xml"], encoding="utf-8")
@@ -1953,6 +1996,11 @@ async def unit_test_save(req: UnitTestSaveReq):
             xml_count += 1
         else:
             entry_copy["hierarchy_file"] = None
+        if entry.get("hierarchy_xml_xpath"):
+            xml_name_xpath = f"hierarchy_{i:03d}_xpath.xml"
+            (save_dir / xml_name_xpath).write_text(entry["hierarchy_xml_xpath"], encoding="utf-8")
+            entry_copy["hierarchy_file_xpath"] = xml_name_xpath
+            xpath_xml_count += 1
         entries_clean.append(entry_copy)
 
     steps_clean = [{k: v for k, v in s.items() if k not in _STRIP_STEP_KEYS} for s in _steps]
@@ -1974,8 +2022,10 @@ async def unit_test_save(req: UnitTestSaveReq):
     saved = [f"{rel_dir}/capture.json"]
     if xml_count:
         saved.append(f"{rel_dir}/hierarchy_000.xml … _{xml_count - 1:03d}.xml  ({xml_count} files)")
+    if xpath_xml_count:
+        saved.append(f"{rel_dir}/  + {xpath_xml_count} xpath-variant hierarchy file(s)")
     saved.extend(gen_paths)
-    logger.info(f"Unit test capture saved: {save_dir.name}/ ({len(_unit_test_entries)} entries, {xml_count} XMLs, {len(gen_paths)} test files)")
+    logger.info(f"Unit test capture saved: {save_dir.name}/ ({len(_unit_test_entries)} entries, {xml_count} XMLs, {xpath_xml_count} xpath-variant XMLs, {len(gen_paths)} test files)")
     return {"ok": True, "saved_paths": saved, "entry_count": len(_unit_test_entries)}
 
 

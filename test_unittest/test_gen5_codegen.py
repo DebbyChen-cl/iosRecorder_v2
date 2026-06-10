@@ -25,7 +25,7 @@ def _call_record_fn(inp: dict):
     """Directly invoke the recorder's _record_* function for the given input."""
     action = inp["action"]
     root = m._cache.get("root")
-    if action in ("tap", "double_tap", "triple_tap", "two_finger_tap"):
+    if action in ("tap", "double_tap", "triple_tap", "two_finger_tap", "five_tap"):
         asyncio.run(m._record_point(action, inp["x"], inp["y"], root))
     elif action == "long_press":
         asyncio.run(m._record_long_press(inp["x"], inp["y"], inp.get("duration", 1000), root))
@@ -421,4 +421,131 @@ def test_gen5_Paint2_20260610_100247_step_000():
     step = {k: v for k, v in cap["entries"][0]["output"].items() if k != "timestamp"}
     code = generate_script([step], "test_case")
     answer = _load_or_store("Paint2_20260610_100247", "step_000_t5", code)
+    assert code == answer
+
+
+# ── UnitTest2_20260603_145436 ─────────────────────────────────────────────────
+
+def test_gen5_UnitTest2_20260603_145436_step_000():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest2_20260603_145436" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][0]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("UnitTest2_20260603_145436", "step_000_t5", code)
+    assert code == answer
+
+def test_gen5_UnitTest2_20260603_145436_step_001():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest2_20260603_145436" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][1]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("UnitTest2_20260603_145436", "step_001_t5", code)
+    assert code == answer
+
+def test_gen5_UnitTest2_20260603_145436_step_002():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest2_20260603_145436" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][2]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("UnitTest2_20260603_145436", "step_002_t5", code)
+    assert code == answer
+
+
+# ── UnitTest2_20260604_094117 ─────────────────────────────────────────────────
+
+def test_gen5_UnitTest2_20260604_094117_step_000():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest2_20260604_094117" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][0]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("UnitTest2_20260604_094117", "step_000_t5", code)
+    assert code == answer
+
+def test_gen5_UnitTest2_20260604_094117_step_001():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest2_20260604_094117" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][1]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("UnitTest2_20260604_094117", "step_001_t5", code)
+    assert code == answer
+
+def test_gen5_UnitTest2_20260604_094117_step_002():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest2_20260604_094117" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][2]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("UnitTest2_20260604_094117", "step_002_t5", code)
+    assert code == answer
+
+def test_gen5_UnitTest2_20260604_094117_step_003():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest2_20260604_094117" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][3]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("UnitTest2_20260604_094117", "step_003_t5", code)
+    assert code == answer
+
+
+# ── UnitTest_20260603_155935 ──────────────────────────────────────────────────
+
+def test_gen5_UnitTest_20260603_155935_step_000():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest_20260603_155935" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][0]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("UnitTest_20260603_155935", "step_000_t5", code)
+    assert code == answer
+
+def test_gen5_UnitTest_20260603_155935_step_001():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest_20260603_155935" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][1]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("UnitTest_20260603_155935", "step_001_t5", code)
+    assert code == answer
+
+def test_gen5_UnitTest_20260603_155935_step_002():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest_20260603_155935" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][2]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("UnitTest_20260603_155935", "step_002_t5", code)
+    assert code == answer
+
+
+# ── UnitTest_20260603_163842 ──────────────────────────────────────────────────
+
+def test_gen5_UnitTest_20260603_163842_step_000():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest_20260603_163842" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][0]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("UnitTest_20260603_163842", "step_000_t5", code)
+    assert code == answer
+
+def test_gen5_UnitTest_20260603_163842_step_001():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest_20260603_163842" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][1]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("UnitTest_20260603_163842", "step_001_t5", code)
+    assert code == answer
+
+def test_gen5_UnitTest_20260603_163842_step_002():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest_20260603_163842" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][2]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("UnitTest_20260603_163842", "step_002_t5", code)
+    assert code == answer
+
+
+# ── UnitTest_20260603_165335 ──────────────────────────────────────────────────
+
+def test_gen5_UnitTest_20260603_165335_step_000():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest_20260603_165335" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][0]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("UnitTest_20260603_165335", "step_000_t5", code)
+    assert code == answer
+
+def test_gen5_UnitTest_20260603_165335_step_001():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest_20260603_165335" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][1]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("UnitTest_20260603_165335", "step_001_t5", code)
+    assert code == answer
+
+def test_gen5_UnitTest_20260603_165335_step_002():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest_20260603_165335" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][2]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("UnitTest_20260603_165335", "step_002_t5", code)
     assert code == answer

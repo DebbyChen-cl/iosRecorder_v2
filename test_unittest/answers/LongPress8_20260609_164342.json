@@ -67,5 +67,91 @@
   },
   "step_000_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Verify] Capture 'screenshot' before screenshot\"):\n        actions.capture_for_preview('screenshot', 'before', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView')\n    with step(\"[Verify] Screenshot comparisons\"):\n        actions.run_screenshot_comparisons(threshold=0.95)\n    assert True\n",
   "step_001_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Long press ic edit compare n at (69.0%, 51.7%)\"):\n        actions.long_press_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic edit compare n', 69.0, 51.7, duration=1.0, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView', container_w=320, container_h=476)\n    assert True\n",
-  "step_002_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Verify] Capture 'screenshot' after screenshot\"):\n        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', expected_result='different', threshold=0.95)\n    with step(\"[Verify] Screenshot comparisons\"):\n        actions.run_screenshot_comparisons(threshold=0.95)\n    assert True\n"
+  "step_002_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Verify] Capture 'screenshot' after screenshot\"):\n        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', expected_result='different', threshold=0.95)\n    with step(\"[Verify] Screenshot comparisons\"):\n        actions.run_screenshot_comparisons(threshold=0.95)\n    assert True\n",
+  "step_001_t3b": {
+    "action": "long_press",
+    "coords": {
+      "x": 303.0,
+      "y": 526.0
+    },
+    "duration": 1000,
+    "target": {
+      "type": "accessibility id",
+      "value": "EditingImageView_ImageView",
+      "selector_quality": "id",
+      "xpath": "//XCUIElementTypeImage[@name='EditingImageView_ImageView']",
+      "offset_pct": {
+        "x": 94.7,
+        "y": 100.0
+      },
+      "bounds": {
+        "x": 0,
+        "y": 110,
+        "w": 320,
+        "h": 416
+      }
+    },
+    "scroll_container": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView",
+      "selector_quality": "xpath_only",
+      "bounds": {
+        "x": 0,
+        "y": 80,
+        "w": 320,
+        "h": 476
+      }
+    }
+  },
+  "step_000_t3b": {
+    "action": "verify_screenshot_diff",
+    "phase": "before",
+    "coords": {
+      "x": 58.0,
+      "y": 440.0
+    },
+    "bounds": {
+      "x": 0,
+      "y": 110,
+      "w": 320,
+      "h": 416
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "selector_quality": "xpath_only",
+      "bounds": {
+        "x": 0,
+        "y": 38,
+        "w": 320,
+        "h": 626
+      }
+    }
+  },
+  "step_002_t3b": {
+    "action": "verify_screenshot_diff",
+    "phase": "after",
+    "coords": {
+      "x": 58.0,
+      "y": 440.0
+    },
+    "bounds": {
+      "x": 0,
+      "y": 110,
+      "w": 320,
+      "h": 416
+    },
+    "expected_result": "same",
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "selector_quality": "xpath_only",
+      "bounds": {
+        "x": 0,
+        "y": 38,
+        "w": 320,
+        "h": 626
+      }
+    }
+  }
 }

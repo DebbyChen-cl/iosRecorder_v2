@@ -25,7 +25,7 @@ def _call_record_fn(inp: dict):
     """Directly invoke the recorder's _record_* function for the given input."""
     action = inp["action"]
     root = m._cache.get("root")
-    if action in ("tap", "double_tap", "triple_tap", "two_finger_tap"):
+    if action in ("tap", "double_tap", "triple_tap", "two_finger_tap", "five_tap"):
         asyncio.run(m._record_point(action, inp["x"], inp["y"], root))
     elif action == "long_press":
         asyncio.run(m._record_long_press(inp["x"], inp["y"], inp.get("duration", 1000), root))
@@ -689,4 +689,290 @@ def test_gen1_LongPress8_20260609_164342_step_001():
     if "coords" in step:
         result["coords"] = step["coords"]
     answer = _load_or_store("LongPress8_20260609_164342", "step_001_t1", result)
+    assert result == answer
+
+# ── UnitTest2_20260603_145436 ─────────────────────────────────────────────────
+
+def test_gen1_UnitTest2_20260603_145436_step_000():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest2_20260603_145436" / "capture.json").read_text())
+    entry = cap["entries"][0]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "UnitTest2_20260603_145436" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("UnitTest2_20260603_145436", "step_000_t1", result)
+    assert result == answer
+
+def test_gen1_UnitTest2_20260603_145436_step_001():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest2_20260603_145436" / "capture.json").read_text())
+    entry = cap["entries"][1]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "UnitTest2_20260603_145436" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("UnitTest2_20260603_145436", "step_001_t1", result)
+    assert result == answer
+
+def test_gen1_UnitTest2_20260603_145436_step_002():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest2_20260603_145436" / "capture.json").read_text())
+    entry = cap["entries"][2]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "UnitTest2_20260603_145436" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("UnitTest2_20260603_145436", "step_002_t1", result)
+    assert result == answer
+
+
+# ── UnitTest2_20260604_094117 ─────────────────────────────────────────────────
+
+def test_gen1_UnitTest2_20260604_094117_step_000():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest2_20260604_094117" / "capture.json").read_text())
+    entry = cap["entries"][0]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "UnitTest2_20260604_094117" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("UnitTest2_20260604_094117", "step_000_t1", result)
+    assert result == answer
+
+def test_gen1_UnitTest2_20260604_094117_step_001():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest2_20260604_094117" / "capture.json").read_text())
+    entry = cap["entries"][1]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "UnitTest2_20260604_094117" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("UnitTest2_20260604_094117", "step_001_t1", result)
+    assert result == answer
+
+def test_gen1_UnitTest2_20260604_094117_step_002():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest2_20260604_094117" / "capture.json").read_text())
+    entry = cap["entries"][2]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "UnitTest2_20260604_094117" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("UnitTest2_20260604_094117", "step_002_t1", result)
+    assert result == answer
+
+def test_gen1_UnitTest2_20260604_094117_step_003():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest2_20260604_094117" / "capture.json").read_text())
+    entry = cap["entries"][3]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "UnitTest2_20260604_094117" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("UnitTest2_20260604_094117", "step_003_t1", result)
+    assert result == answer
+
+
+# ── UnitTest_20260603_155935 ──────────────────────────────────────────────────
+
+def test_gen1_UnitTest_20260603_155935_step_000():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest_20260603_155935" / "capture.json").read_text())
+    entry = cap["entries"][0]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "UnitTest_20260603_155935" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("UnitTest_20260603_155935", "step_000_t1", result)
+    assert result == answer
+
+def test_gen1_UnitTest_20260603_155935_step_001():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest_20260603_155935" / "capture.json").read_text())
+    entry = cap["entries"][1]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "UnitTest_20260603_155935" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("UnitTest_20260603_155935", "step_001_t1", result)
+    assert result == answer
+
+def test_gen1_UnitTest_20260603_155935_step_002():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest_20260603_155935" / "capture.json").read_text())
+    entry = cap["entries"][2]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "UnitTest_20260603_155935" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("UnitTest_20260603_155935", "step_002_t1", result)
+    assert result == answer
+
+
+# ── UnitTest_20260603_163842 ──────────────────────────────────────────────────
+
+def test_gen1_UnitTest_20260603_163842_step_000():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest_20260603_163842" / "capture.json").read_text())
+    entry = cap["entries"][0]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "UnitTest_20260603_163842" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("UnitTest_20260603_163842", "step_000_t1", result)
+    assert result == answer
+
+def test_gen1_UnitTest_20260603_163842_step_001():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest_20260603_163842" / "capture.json").read_text())
+    entry = cap["entries"][1]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "UnitTest_20260603_163842" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("UnitTest_20260603_163842", "step_001_t1", result)
+    assert result == answer
+
+def test_gen1_UnitTest_20260603_163842_step_002():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest_20260603_163842" / "capture.json").read_text())
+    entry = cap["entries"][2]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "UnitTest_20260603_163842" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("UnitTest_20260603_163842", "step_002_t1", result)
+    assert result == answer
+
+
+# ── UnitTest_20260603_165335 ──────────────────────────────────────────────────
+
+def test_gen1_UnitTest_20260603_165335_step_000():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest_20260603_165335" / "capture.json").read_text())
+    entry = cap["entries"][0]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "UnitTest_20260603_165335" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("UnitTest_20260603_165335", "step_000_t1", result)
+    assert result == answer
+
+def test_gen1_UnitTest_20260603_165335_step_001():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest_20260603_165335" / "capture.json").read_text())
+    entry = cap["entries"][1]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "UnitTest_20260603_165335" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("UnitTest_20260603_165335", "step_001_t1", result)
+    assert result == answer
+
+def test_gen1_UnitTest_20260603_165335_step_002():
+    cap = json.loads((_FIXTURE_DIR / "UnitTest_20260603_165335" / "capture.json").read_text())
+    entry = cap["entries"][2]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "UnitTest_20260603_165335" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("UnitTest_20260603_165335", "step_002_t1", result)
+    assert result == answer
+
+def test_gen1_tap_5_20260608_155442_step_002():
+    cap = json.loads((_FIXTURE_DIR / "tap_5_20260608_155442" / "capture.json").read_text())
+    entry = cap["entries"][2]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "tap_5_20260608_155442" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("tap_5_20260608_155442", "step_002_t1", result)
     assert result == answer

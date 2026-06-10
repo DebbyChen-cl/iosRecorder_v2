@@ -1,0 +1,118 @@
+<XCUIElementTypeApplication type="XCUIElementTypeApplication" name="PhotoDirector" label="PhotoDirector" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="" processId="1137" bundleId="com.cyberlink.photodirector">
+  <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="" />
+    </XCUIElementTypeOther>
+    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="1" traits="">
+      <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+          <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+            <XCUIElementTypeOther type="XCUIElementTypeOther" name="photodirector.AboutProViewController" enabled="true" visible="true" accessible="false" x="0" y="0" width="320" height="693" index="0" traits="">
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="320" height="38" index="0" traits="" />
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="38" width="320" height="39" index="1" traits="">
+                <XCUIElementTypeButton type="XCUIElementTypeButton" name="btnBack" label="ic back n" enabled="true" visible="true" accessible="true" x="8" y="40" width="21" height="35" index="0" traits="Button" />
+                <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="About" name="About" label="About" enabled="true" visible="true" accessible="true" x="0" y="49" width="320" height="17" index="1" traits="StaticText" />
+              </XCUIElementTypeOther>
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="77" width="320" height="616" index="2" traits="" />
+              <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="13" y="89" width="294" height="199" index="3" traits="">
+                <XCUIElementTypeButton type="XCUIElementTypeButton" enabled="true" visible="true" accessible="true" x="13" y="89" width="36" height="37" index="0" traits="Button">
+                  <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="false" accessible="false" x="13" y="89" width="0" height="1" index="0" traits="StaticText" />
+                </XCUIElementTypeButton>
+                <XCUIElementTypeImage type="XCUIElementTypeImage" name="logo_round" enabled="true" visible="true" accessible="false" x="115" y="105" width="90" height="90" index="1" traits="Image" />
+                <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="PhotoDirector" name="PhotoDirector" label="PhotoDirector" enabled="true" visible="true" accessible="true" x="48" y="215" width="224" height="47" index="2" traits="StaticText" />
+              </XCUIElementTypeOther>
+              <XCUIElementTypeCollectionView type="XCUIElementTypeCollectionView" enabled="true" visible="true" accessible="false" x="0" y="297" width="320" height="318" index="4" traits="">
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="-16" y="-337" width="352" height="785" index="0" traits="" />
+                <XCUIElementTypeCell type="XCUIElementTypeCell" value="20.14.0" name="UICollectionViewListCell-0" label="Version:" enabled="true" visible="true" accessible="true" x="24" y="297" width="272" height="45" index="1" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="24" y="297" width="272" height="45" index="0" traits="">
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="24" y="297" width="272" height="45" index="0" traits="" />
+                  </XCUIElementTypeOther>
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="297" width="272" height="45" index="1" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Version:" name="Version:" label="Version:" enabled="true" visible="true" accessible="false" x="40" y="311" width="53" height="18" index="0" traits="StaticText" />
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="20.14.0" name="20.14.0" label="20.14.0" enabled="true" visible="true" accessible="false" x="233" y="311" width="47" height="18" index="1" traits="StaticText" />
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeCell>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="341" width="272" height="1" index="2" traits="" />
+                <XCUIElementTypeCell type="XCUIElementTypeCell" value="DailyBuild" name="UICollectionViewListCell-1" label="SR number:" enabled="true" visible="true" accessible="true" x="24" y="341" width="272" height="45" index="3" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="24" y="341" width="272" height="45" index="0" traits="">
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="24" y="341" width="272" height="45" index="0" traits="" />
+                  </XCUIElementTypeOther>
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="341" width="272" height="45" index="1" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="SR number:" name="SR number:" label="SR number:" enabled="true" visible="true" accessible="false" x="40" y="355" width="76" height="18" index="0" traits="StaticText" />
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="DailyBuild" name="DailyBuild" label="DailyBuild" enabled="true" visible="true" accessible="false" x="216" y="355" width="64" height="18" index="1" traits="StaticText" />
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeCell>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="385" width="272" height="1" index="4" traits="" />
+                <XCUIElementTypeCell type="XCUIElementTypeCell" value="2606052309.99 (64)" name="UICollectionViewListCell-2" label="Build number:" enabled="true" visible="true" accessible="true" x="24" y="385" width="272" height="45" index="5" traits="">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="24" y="385" width="272" height="45" index="0" traits="">
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="24" y="385" width="272" height="45" index="0" traits="" />
+                  </XCUIElementTypeOther>
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="385" width="272" height="45" index="1" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Build number:" name="Build number:" label="Build number:" enabled="true" visible="true" accessible="false" x="40" y="399" width="90" height="18" index="0" traits="StaticText" />
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="2606052309.99 (64)" name="2606052309.99 (64)" label="2606052309.99 (64)" enabled="true" visible="true" accessible="false" x="141" y="399" width="139" height="18" index="1" traits="StaticText" />
+                  </XCUIElementTypeOther>
+                </XCUIElementTypeCell>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="-16" y="447" width="352" height="831" index="6" traits="" />
+                <XCUIElementTypeImage type="XCUIElementTypeImage" name="UICollectionViewListCell-0" label="Privacy Policy" enabled="true" visible="true" accessible="true" x="24" y="447" width="272" height="45" index="7" traits="Image">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="447" width="272" height="45" index="0" traits="">
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="447" width="272" height="45" index="0" traits="" />
+                  </XCUIElementTypeOther>
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="447" width="236" height="45" index="1" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Privacy Policy" name="Privacy Policy" label="Privacy Policy" enabled="true" visible="true" accessible="false" x="40" y="461" width="90" height="17" index="0" traits="StaticText" />
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="2606052309.99 (64)" name="2606052309.99 (64)" label="2606052309.99 (64)" enabled="true" visible="false" accessible="false" x="141" y="461" width="139" height="17" index="1" traits="StaticText" />
+                  </XCUIElementTypeOther>
+                  <XCUIElementTypeImage type="XCUIElementTypeImage" name="ic_chevron_right" enabled="true" visible="true" accessible="false" x="258" y="457" width="24" height="25" index="2" traits="Image" />
+                </XCUIElementTypeImage>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="491" width="272" height="1" index="8" traits="" />
+                <XCUIElementTypeImage type="XCUIElementTypeImage" name="UICollectionViewListCell-1" label="Terms of Service" enabled="true" visible="true" accessible="true" x="24" y="491" width="272" height="45" index="9" traits="Image">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="491" width="272" height="45" index="0" traits="">
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="491" width="272" height="45" index="0" traits="" />
+                  </XCUIElementTypeOther>
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="491" width="236" height="45" index="1" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Terms of Service" name="Terms of Service" label="Terms of Service" enabled="true" visible="true" accessible="false" x="40" y="505" width="109" height="17" index="0" traits="StaticText" />
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="2606052309.99 (64)" name="2606052309.99 (64)" label="2606052309.99 (64)" enabled="true" visible="false" accessible="false" x="141" y="505" width="139" height="17" index="1" traits="StaticText" />
+                  </XCUIElementTypeOther>
+                  <XCUIElementTypeImage type="XCUIElementTypeImage" name="ic_chevron_right" enabled="true" visible="true" accessible="false" x="258" y="501" width="24" height="25" index="2" traits="Image" />
+                </XCUIElementTypeImage>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="535" width="272" height="1" index="10" traits="" />
+                <XCUIElementTypeImage type="XCUIElementTypeImage" name="UICollectionViewListCell-2" label="Open source license" enabled="true" visible="true" accessible="true" x="24" y="535" width="272" height="45" index="11" traits="Image">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="535" width="272" height="45" index="0" traits="">
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="535" width="272" height="45" index="0" traits="" />
+                  </XCUIElementTypeOther>
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="535" width="236" height="45" index="1" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Open source license" name="Open source license" label="Open source license" enabled="true" visible="true" accessible="false" x="40" y="549" width="132" height="17" index="0" traits="StaticText" />
+                  </XCUIElementTypeOther>
+                  <XCUIElementTypeImage type="XCUIElementTypeImage" name="ic_chevron_right" enabled="true" visible="true" accessible="false" x="258" y="545" width="24" height="25" index="2" traits="Image" />
+                </XCUIElementTypeImage>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="579" width="272" height="1" index="12" traits="" />
+                <XCUIElementTypeImage type="XCUIElementTypeImage" name="UICollectionViewListCell-3" label="Open font license" enabled="true" visible="true" accessible="true" x="24" y="579" width="272" height="45" index="13" traits="Image">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="579" width="272" height="45" index="0" traits="">
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="579" width="272" height="45" index="0" traits="" />
+                  </XCUIElementTypeOther>
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="24" y="579" width="236" height="45" index="1" traits="">
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Open font license" name="Open font license" label="Open font license" enabled="true" visible="true" accessible="false" x="40" y="593" width="114" height="17" index="0" traits="StaticText" />
+                    <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="DailyBuild" name="DailyBuild" label="DailyBuild" enabled="true" visible="false" accessible="false" x="216" y="593" width="64" height="17" index="1" traits="StaticText" />
+                  </XCUIElementTypeOther>
+                  <XCUIElementTypeImage type="XCUIElementTypeImage" name="ic_chevron_right" enabled="true" visible="true" accessible="false" x="258" y="589" width="24" height="25" index="2" traits="Image" />
+                </XCUIElementTypeImage>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 2 pages" label="Vertical scroll bar, 2 pages" enabled="true" visible="true" accessible="false" x="287" y="297" width="30" height="318" index="14" traits="Adjustable">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="314" y="566" width="3" height="8" index="0" traits="" />
+                </XCUIElementTypeOther>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="0" y="581" width="320" height="31" index="15" traits="Adjustable">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="310" y="608" width="7" height="4" index="0" traits="" />
+                </XCUIElementTypeOther>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Vertical scroll bar, 2 pages" label="Vertical scroll bar, 2 pages" enabled="true" visible="true" accessible="false" x="287" y="297" width="30" height="318" index="16" traits="Adjustable">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="314" y="566" width="3" height="8" index="0" traits="" />
+                </XCUIElementTypeOther>
+                <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="0" y="581" width="320" height="31" index="17" traits="Adjustable">
+                  <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="310" y="608" width="7" height="4" index="0" traits="" />
+                </XCUIElementTypeOther>
+              </XCUIElementTypeCollectionView>
+              <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Copyright (c) 2026 CyberLink Corp.&#10;All rights reserved." name="Copyright (c) 2026 CyberLink Corp.&#10;All rights reserved." label="Copyright (c) 2026 CyberLink Corp.&#10;All rights reserved." enabled="true" visible="true" accessible="true" x="13" y="624" width="294" height="27" index="5" traits="StaticText" />
+            </XCUIElementTypeOther>
+          </XCUIElementTypeOther>
+        </XCUIElementTypeOther>
+      </XCUIElementTypeOther>
+    </XCUIElementTypeOther>
+  </XCUIElementTypeWindow>
+</XCUIElementTypeApplication>

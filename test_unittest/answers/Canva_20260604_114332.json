@@ -425,5 +425,187 @@
   "step_005_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap //XCUIElementTypeImage at (50.0%, 60.3%)\"):\n        actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeImage', 50.0, 60.3, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[3]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[4]/XCUIElementTypeCollectionView[2]', container_w=306, container_h=242)\n    assert True\n",
   "step_006_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Drag //XCUIElementTypeImage (72.9%,75.9%) → //XCUIElementTypeOther (81.9%,76.3%)\"):\n        actions.drag_within_elements(AppiumBy.XPATH, '//XCUIElementTypeImage', 72.9, 75.9, AppiumBy.XPATH, '//XCUIElementTypeOther', 81.9, 76.3, duration=1.0)\n    assert True\n",
   "step_007_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap btn_ok_n at (80.6%, 33.3%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_ok_n', 80.6, 33.3)\n    assert True\n",
-  "step_008_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap OK at (68.2%, 47.4%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'OK', 68.2, 47.4)\n    assert True\n"
+  "step_008_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap OK at (68.2%, 47.4%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'OK', 68.2, 47.4)\n    assert True\n",
+  "step_000_t3b": {
+    "action": "tap",
+    "coords": {
+      "x": 93.0,
+      "y": 296.0
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"edit\"]/XCUIElementTypeOther/XCUIElementTypeStaticText",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeOther[@name=\"edit\"]/XCUIElementTypeOther/XCUIElementTypeStaticText",
+      "offset_pct": {
+        "x": 17.9,
+        "y": 52.6
+      },
+      "bounds": {
+        "x": 88,
+        "y": 286,
+        "w": 28,
+        "h": 19
+      }
+    },
+    "scroll_container": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"LauncherProViewController\"]/XCUIElementTypeScrollView",
+      "selector_quality": "xpath_only",
+      "bounds": {
+        "x": 0,
+        "y": 84,
+        "w": 320,
+        "h": 539
+      }
+    }
+  },
+  "step_001_t3b": {
+    "action": "tap",
+    "coords": {
+      "x": 28.0,
+      "y": 174.0
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeCollectionView[@name=\"photoCollectionView\"]/XCUIElementTypeCell[1]/XCUIElementTypeOther/XCUIElementTypeImage",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeCollectionView[@name=\"photoCollectionView\"]/XCUIElementTypeCell[1]/XCUIElementTypeOther/XCUIElementTypeImage",
+      "offset_pct": {
+        "x": 15.6,
+        "y": 53.1
+      },
+      "bounds": {
+        "x": 13,
+        "y": 123,
+        "w": 96,
+        "h": 96
+      }
+    },
+    "scroll_container": {
+      "type": "accessibility id",
+      "value": "photoCollectionView",
+      "selector_quality": "id",
+      "bounds": {
+        "x": 0,
+        "y": 107,
+        "w": 320,
+        "h": 557
+      }
+    }
+  },
+  "step_003_t3b": {
+    "action": "tap",
+    "coords": {
+      "x": 265.0,
+      "y": 587.0
+    },
+    "target": {
+      "type": "accessibility id",
+      "value": "btt_tool_mask",
+      "selector_quality": "id",
+      "xpath": "//XCUIElementTypeImage[@name='btt_tool_mask']",
+      "offset_pct": {
+        "x": 43.9,
+        "y": 43.1
+      },
+      "bounds": {
+        "x": 222,
+        "y": 556,
+        "w": 98,
+        "h": 72
+      }
+    },
+    "scroll_container": {
+      "type": "accessibility id",
+      "value": "EditViewControllerBottomBarCollectionView",
+      "selector_quality": "id",
+      "bounds": {
+        "x": 0,
+        "y": 556,
+        "w": 320,
+        "h": 72
+      }
+    }
+  },
+  "step_004_t3b": {
+    "action": "tap",
+    "coords": {
+      "x": 188.0,
+      "y": 510.0
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "offset_pct": {
+        "x": 58.8,
+        "y": 75.4
+      },
+      "bounds": {
+        "x": 0,
+        "y": 38,
+        "w": 320,
+        "h": 626
+      }
+    },
+    "scroll_container": {
+      "type": "accessibility id",
+      "value": "effectMenuCollectionViewPresenterCollectionView",
+      "selector_quality": "id",
+      "bounds": {
+        "x": 98,
+        "y": 483,
+        "w": 124,
+        "h": 65
+      }
+    }
+  },
+  "step_007_t3b": {
+    "action": "tap",
+    "coords": {
+      "x": 300.0,
+      "y": 640.0
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[4]/XCUIElementTypeButton[5]",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[4]/XCUIElementTypeButton[5]",
+      "offset_pct": {
+        "x": 80.6,
+        "y": 33.3
+      },
+      "bounds": {
+        "x": 271,
+        "y": 628,
+        "w": 36,
+        "h": 36
+      }
+    }
+  },
+  "step_008_t3b": {
+    "action": "tap",
+    "coords": {
+      "x": 223.0,
+      "y": 397.0
+    },
+    "target": {
+      "type": "accessibility id",
+      "value": "Join PhotoDirector Premium to unlock the current effect.",
+      "selector_quality": "id_eq_label",
+      "xpath": "//XCUIElementTypeStaticText[@name='Join PhotoDirector Premium to unlock the current effect.']",
+      "offset_pct": {
+        "x": 82.8,
+        "y": 84.8
+      },
+      "bounds": {
+        "x": 64,
+        "y": 369,
+        "w": 192,
+        "h": 33
+      }
+    }
+  }
 }

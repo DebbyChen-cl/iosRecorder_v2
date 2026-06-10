@@ -1,0 +1,272 @@
+{
+  "step_000_t1": {
+    "action": "tap",
+    "coords": {
+      "x": 281.0,
+      "y": 637.0
+    }
+  },
+  "step_001_t1": {
+    "action": "tap",
+    "coords": {
+      "x": 28.0,
+      "y": 58.0
+    }
+  },
+  "step_002_t1": {
+    "action": "tap",
+    "coords": {
+      "x": 25.0,
+      "y": 61.0
+    }
+  },
+  "step_003_t1": {
+    "action": "tap",
+    "coords": {
+      "x": 37.0,
+      "y": 637.0
+    }
+  },
+  "step_000_t2": {
+    "type": "accessibility id",
+    "value": "btnMyCredit"
+  },
+  "step_001_t2": {
+    "type": "accessibility id",
+    "value": "btnNotification"
+  },
+  "step_002_t2": {
+    "type": "accessibility id",
+    "value": "Back"
+  },
+  "step_003_t2": {
+    "type": "accessibility id",
+    "value": "btnHome"
+  },
+  "step_000_t3": {
+    "action": "tap",
+    "coords": {
+      "x": 281.0,
+      "y": 637.0
+    },
+    "target": {
+      "type": "accessibility id",
+      "value": "btnMyCredit",
+      "selector_quality": "id",
+      "xpath": "//XCUIElementTypeButton[@name='btnMyCredit']",
+      "offset_pct": {
+        "x": 42.9,
+        "y": 34.1
+      },
+      "bounds": {
+        "x": 257,
+        "y": 623,
+        "w": 56,
+        "h": 41
+      }
+    },
+    "scroll_container": {
+      "type": "accessibility id",
+      "value": "launcherTrendyViewConfigCollectionView",
+      "selector_quality": "id",
+      "bounds": {
+        "x": 13,
+        "y": 615,
+        "w": 294,
+        "h": 119
+      }
+    }
+  },
+  "step_001_t3": {
+    "action": "tap",
+    "coords": {
+      "x": 28.0,
+      "y": 58.0
+    },
+    "target": {
+      "type": "accessibility id",
+      "value": "btnNotification",
+      "selector_quality": "id",
+      "xpath": "//XCUIElementTypeButton[@name='btnNotification']",
+      "offset_pct": {
+        "x": 75.0,
+        "y": 52.4
+      },
+      "bounds": {
+        "x": 13,
+        "y": 47,
+        "w": 20,
+        "h": 21
+      }
+    }
+  },
+  "step_002_t3": {
+    "action": "tap",
+    "coords": {
+      "x": 25.0,
+      "y": 61.0
+    },
+    "target": {
+      "type": "accessibility id",
+      "value": "Back",
+      "selector_quality": "id_eq_label",
+      "xpath": "//XCUIElementTypeButton[@name='Back']",
+      "offset_pct": {
+        "x": 48.6,
+        "y": 52.3
+      },
+      "bounds": {
+        "x": 8,
+        "y": 38,
+        "w": 35,
+        "h": 44
+      }
+    }
+  },
+  "step_003_t3": {
+    "action": "tap",
+    "coords": {
+      "x": 37.0,
+      "y": 637.0
+    },
+    "target": {
+      "type": "accessibility id",
+      "value": "btnHome",
+      "selector_quality": "id",
+      "xpath": "//XCUIElementTypeButton[@name='btnHome']",
+      "offset_pct": {
+        "x": 53.6,
+        "y": 34.1
+      },
+      "bounds": {
+        "x": 7,
+        "y": 623,
+        "w": 56,
+        "h": 41
+      }
+    }
+  },
+  "step_000_t3b": {
+    "action": "tap",
+    "coords": {
+      "x": 281.0,
+      "y": 637.0
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"LauncherProViewController\"]/XCUIElementTypeOther[5]/XCUIElementTypeOther[2]/XCUIElementTypeButton[5]",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeOther[@name=\"LauncherProViewController\"]/XCUIElementTypeOther[5]/XCUIElementTypeOther[2]/XCUIElementTypeButton[5]",
+      "offset_pct": {
+        "x": 42.9,
+        "y": 34.1
+      },
+      "bounds": {
+        "x": 257,
+        "y": 623,
+        "w": 56,
+        "h": 41
+      }
+    },
+    "scroll_container": {
+      "type": "accessibility id",
+      "value": "launcherTrendyViewConfigCollectionView",
+      "selector_quality": "id",
+      "bounds": {
+        "x": 13,
+        "y": 615,
+        "w": 294,
+        "h": 119
+      }
+    }
+  },
+  "step_001_t3b": {
+    "action": "tap",
+    "coords": {
+      "x": 28.0,
+      "y": 58.0
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"photodirector.MyCreditViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeButton[1]",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeOther[@name=\"photodirector.MyCreditViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeButton[1]",
+      "offset_pct": {
+        "x": 75.0,
+        "y": 52.4
+      },
+      "bounds": {
+        "x": 13,
+        "y": 47,
+        "w": 20,
+        "h": 21
+      }
+    }
+  },
+  "step_002_t3b": {
+    "action": "tap",
+    "coords": {
+      "x": 25.0,
+      "y": 61.0
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeNavigationBar[@name=\"Notices\"]/XCUIElementTypeButton",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeNavigationBar[@name=\"Notices\"]/XCUIElementTypeButton",
+      "offset_pct": {
+        "x": 48.6,
+        "y": 52.3
+      },
+      "bounds": {
+        "x": 8,
+        "y": 38,
+        "w": 35,
+        "h": 44
+      }
+    }
+  },
+  "step_003_t3b": {
+    "action": "tap",
+    "coords": {
+      "x": 37.0,
+      "y": 637.0
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"photodirector.MyCreditViewController\"]/XCUIElementTypeOther[4]/XCUIElementTypeOther/XCUIElementTypeButton[1]",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeOther[@name=\"photodirector.MyCreditViewController\"]/XCUIElementTypeOther[4]/XCUIElementTypeOther/XCUIElementTypeButton[1]",
+      "offset_pct": {
+        "x": 53.6,
+        "y": 34.1
+      },
+      "bounds": {
+        "x": 7,
+        "y": 623,
+        "w": 56,
+        "h": 41
+      }
+    }
+  },
+  "step_000_t4": {
+    "quality": "id",
+    "is_problematic": false
+  },
+  "step_001_t4": {
+    "quality": "id",
+    "is_problematic": false
+  },
+  "step_002_t4": {
+    "quality": "id_eq_label",
+    "is_problematic": true
+  },
+  "step_003_t4": {
+    "quality": "id",
+    "is_problematic": false
+  },
+  "step_000_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap btnMyCredit at (42.9%, 34.1%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnMyCredit', 42.9, 34.1, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='launcherTrendyViewConfigCollectionView', container_w=294, container_h=119)\n    assert True\n",
+  "step_001_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap btnNotification at (75.0%, 52.4%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnNotification', 75.0, 52.4)\n    assert True\n",
+  "step_002_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap Back at (48.6%, 52.3%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Back', 48.6, 52.3)\n    assert True\n",
+  "step_003_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap btnHome at (53.6%, 34.1%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnHome', 53.6, 34.1)\n    assert True\n"
+}

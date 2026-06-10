@@ -43,7 +43,8 @@
           }
         }
       },
-      "hierarchy_file": "hierarchy_000.xml"
+      "hierarchy_file": "hierarchy_000.xml",
+      "hierarchy_file_xpath": "hierarchy_000_xpath.xml"
     },
     {
       "input": {
@@ -86,7 +87,8 @@
           }
         }
       },
-      "hierarchy_file": "hierarchy_001.xml"
+      "hierarchy_file": "hierarchy_001.xml",
+      "hierarchy_file_xpath": "hierarchy_001_xpath.xml"
     },
     {
       "input": {
@@ -162,7 +164,8 @@
           }
         }
       },
-      "hierarchy_file": "hierarchy_003.xml"
+      "hierarchy_file": "hierarchy_003.xml",
+      "hierarchy_file_xpath": "hierarchy_003_xpath.xml"
     },
     {
       "input": {
@@ -205,7 +208,8 @@
           }
         }
       },
-      "hierarchy_file": "hierarchy_004.xml"
+      "hierarchy_file": "hierarchy_004.xml",
+      "hierarchy_file_xpath": "hierarchy_004_xpath.xml"
     },
     {
       "input": {
@@ -334,7 +338,8 @@
           }
         }
       },
-      "hierarchy_file": "hierarchy_007.xml"
+      "hierarchy_file": "hierarchy_007.xml",
+      "hierarchy_file_xpath": "hierarchy_007_xpath.xml"
     },
     {
       "input": {
@@ -366,7 +371,8 @@
           }
         }
       },
-      "hierarchy_file": "hierarchy_008.xml"
+      "hierarchy_file": "hierarchy_008.xml",
+      "hierarchy_file_xpath": "hierarchy_008_xpath.xml"
     }
   ],
   "steps": [

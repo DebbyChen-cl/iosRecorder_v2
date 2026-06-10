@@ -224,5 +224,214 @@
   "step_003_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Drag centerSlider (49.6%,51.6%) → slider (88.1%,50.0%)\"):\n        actions.drag_within_elements(AppiumBy.ACCESSIBILITY_ID, 'centerSlider', 49.6, 51.6, AppiumBy.ACCESSIBILITY_ID, 'slider', 88.1, 50.0, duration=1.0)\n    assert True\n",
   "step_004_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Action] Tap btn_ok_n at (88.9%, 44.4%)\"):\n        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_ok_n', 88.9, 44.4)\n    assert True\n",
   "step_005_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Verify] Capture 'screenshot' after screenshot\"):\n        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', expected_result='different', threshold=0.95)\n    with step(\"[Verify] Screenshot comparisons\"):\n        actions.run_screenshot_comparisons(threshold=0.95)\n    assert True\n",
-  "step_006_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Verify] Capture 'Verify_GT_Diff_Step07' for GT comparison\"):\n        actions.capture_for_gt('Verify_GT_Diff_Step07', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', threshold=0.95)\n    with step(\"[Verify] Screenshot comparisons\"):\n        actions.run_screenshot_comparisons(threshold=0.95)\n    assert True\n"
+  "step_006_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Verify] Capture 'Verify_GT_Diff_Step07' for GT comparison\"):\n        actions.capture_for_gt('Verify_GT_Diff_Step07', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', threshold=0.95)\n    with step(\"[Verify] Screenshot comparisons\"):\n        actions.run_screenshot_comparisons(threshold=0.95)\n    assert True\n",
+  "step_001_t3b": {
+    "action": "tap",
+    "coords": {
+      "x": 145.0,
+      "y": 587.0
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "offset_pct": {
+        "x": 45.3,
+        "y": 87.7
+      },
+      "bounds": {
+        "x": 0,
+        "y": 38,
+        "w": 320,
+        "h": 626
+      }
+    },
+    "scroll_container": {
+      "type": "accessibility id",
+      "value": "EditViewControllerBottomBarCollectionView",
+      "selector_quality": "id",
+      "bounds": {
+        "x": 0,
+        "y": 556,
+        "w": 320,
+        "h": 72
+      }
+    }
+  },
+  "step_002_t3b": {
+    "action": "tap",
+    "coords": {
+      "x": 187.0,
+      "y": 507.0
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "offset_pct": {
+        "x": 58.4,
+        "y": 74.9
+      },
+      "bounds": {
+        "x": 0,
+        "y": 38,
+        "w": 320,
+        "h": 626
+      }
+    },
+    "scroll_container": {
+      "type": "accessibility id",
+      "value": "effectMenuCollectionViewPresenterCollectionView",
+      "selector_quality": "id",
+      "bounds": {
+        "x": 98,
+        "y": 483,
+        "w": 124,
+        "h": 65
+      }
+    }
+  },
+  "step_003_t3b": {
+    "action": "drag",
+    "coords": {
+      "x1": 133.0,
+      "y1": 558.0,
+      "x2": 224.0,
+      "y2": 557.0
+    },
+    "duration": 1000,
+    "start_target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"slider\"]/XCUIElementTypeSlider",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeOther[@name=\"slider\"]/XCUIElementTypeSlider",
+      "offset_pct": {
+        "x": 49.6,
+        "y": 51.6
+      },
+      "bounds": {
+        "x": 14,
+        "y": 542,
+        "w": 240,
+        "h": 31
+      }
+    },
+    "end_target": {
+      "type": "accessibility id",
+      "value": "slider",
+      "selector_quality": "id",
+      "xpath": "//XCUIElementTypeOther[@name='slider']",
+      "offset_pct": {
+        "x": 88.1,
+        "y": 50.0
+      },
+      "bounds": {
+        "x": 16,
+        "y": 542,
+        "w": 236,
+        "h": 30
+      }
+    }
+  },
+  "step_004_t3b": {
+    "action": "tap",
+    "coords": {
+      "x": 303.0,
+      "y": 644.0
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"cancelDoneButtonView\"]/XCUIElementTypeButton[2]",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeOther[@name=\"cancelDoneButtonView\"]/XCUIElementTypeButton[2]",
+      "offset_pct": {
+        "x": 88.9,
+        "y": 44.4
+      },
+      "bounds": {
+        "x": 271,
+        "y": 628,
+        "w": 36,
+        "h": 36
+      }
+    }
+  },
+  "step_000_t3b": {
+    "action": "verify_screenshot_diff",
+    "phase": "before",
+    "coords": {
+      "x": 38.0,
+      "y": 412.0
+    },
+    "bounds": {
+      "x": 0,
+      "y": 158,
+      "w": 320,
+      "h": 320
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "selector_quality": "xpath_only",
+      "bounds": {
+        "x": 0,
+        "y": 38,
+        "w": 320,
+        "h": 626
+      }
+    }
+  },
+  "step_005_t3b": {
+    "action": "verify_screenshot_diff",
+    "phase": "after",
+    "coords": {
+      "x": 38.0,
+      "y": 412.0
+    },
+    "bounds": {
+      "x": 0,
+      "y": 158,
+      "w": 320,
+      "h": 320
+    },
+    "expected_result": "same",
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "selector_quality": "xpath_only",
+      "bounds": {
+        "x": 0,
+        "y": 38,
+        "w": 320,
+        "h": 626
+      }
+    }
+  },
+  "step_006_t3b": {
+    "action": "verify_screenshot_gt",
+    "coords": {
+      "x": 59.0,
+      "y": 422.0
+    },
+    "screenshot_name": "Verify_GT_Diff_Step07",
+    "bounds": {
+      "x": 0,
+      "y": 158,
+      "w": 320,
+      "h": 320
+    },
+    "target": {
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "selector_quality": "xpath_only",
+      "bounds": {
+        "x": 0,
+        "y": 38,
+        "w": 320,
+        "h": 626
+      }
+    }
+  }
 }

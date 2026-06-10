@@ -43,7 +43,8 @@
           }
         }
       },
-      "hierarchy_file": "hierarchy_000.xml"
+      "hierarchy_file": "hierarchy_000.xml",
+      "hierarchy_file_xpath": "hierarchy_000_xpath.xml"
     },
     {
       "input": {
@@ -77,7 +78,8 @@
           }
         }
       },
-      "hierarchy_file": "hierarchy_001.xml"
+      "hierarchy_file": "hierarchy_001.xml",
+      "hierarchy_file_xpath": "hierarchy_001_xpath.xml"
     }
   ],
   "steps": [

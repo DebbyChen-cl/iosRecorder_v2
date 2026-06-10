@@ -49,7 +49,9 @@ def wait_for_stable_hierarchy(fn):
     """
     Decorator: after the wrapped action completes, repeatedly poll
     page_source until it stops changing (hierarchy is stable).
-    Only runs when the DriverActions instance has stability_check = True.
+    Only runs when the DriverActions instance has stability_check = True,
+    and only at the outermost call level — nested decorated calls are skipped
+    so the check fires exactly once per top-level action.
 
     Tunable via the instance attributes:
         stability_interval  (float, seconds) – gap between two snapshots
@@ -57,10 +59,17 @@ def wait_for_stable_hierarchy(fn):
     """
     @functools.wraps(fn)
     def wrapper(self, *args, **kwargs):
-        result = fn(self, *args, **kwargs)
-        if getattr(self, "stability_check", False):
+        # Track nesting depth so only the outermost call triggers the check.
+        depth = getattr(self, "_stability_depth", 0)
+        self._stability_depth = depth + 1
+        try:
+            result = fn(self, *args, **kwargs)
+        finally:
+            self._stability_depth -= 1
+
+        if self._stability_depth == 0 and getattr(self, "stability_check", False):
             interval = getattr(self, "stability_interval", 0.4)
-            timeout  = getattr(self, "stability_timeout",  10.0)
+            timeout  = getattr(self, "stability_timeout",  120.0)
             deadline = time.monotonic() + timeout
             prev = self.driver.page_source
             while time.monotonic() < deadline:
@@ -110,13 +119,13 @@ class DriverActions:
         # changing after every decorated action.
         # WARNING: page_source is slow (~0.5–2 s per call). Only enable when
         # flakiness caused by async UI updates outweighs the extra time cost.
-        self.stability_check: bool = False
+        self.stability_check: bool = True
 
         # How long to wait between two page_source snapshots (seconds).
-        self.stability_interval: float = 0.4
+        self.stability_interval: float = 0.2
 
         # Maximum time to keep polling before giving up and continuing (seconds).
-        self.stability_timeout: float = 10.0
+        self.stability_timeout: float = 120.0
         # ──────────────────────────────────────────────────────────────────
 
         # ── Screenshot comparison queues ───────────────────────────────────
@@ -1321,6 +1330,12 @@ class DriverActions:
         label = msg or f"({by}, {value!r})"
         raise AssertionError(f"verify_not_visible FAILED – element is still visible after {timeout}s: {label}")
 
+    _TEXT_INPUT_TAGS = (
+        "XCUIElementTypeTextField",
+        "XCUIElementTypeTextView",
+        "XCUIElementTypeSecureTextField",
+    )
+
     @step("Verify element text")
     def verify_text(
         self,
@@ -1334,10 +1349,31 @@ class DriverActions:
         Raises AssertionError with a clear diff message on mismatch.
         """
         element = self.wait_for_visible(by, value, timeout)
-        # XCUIElementTypeTextView (and other text inputs) expose their content
-        # via the `value` attribute; `element.text` maps to the accessibility
-        # label which is often empty for programmatic text views.
-        actual = element.text or element.get_attribute("value") or ""
+        # Mirror recording: try value (typed content) then label.
+        actual = element.get_attribute("value") or element.text or ""
+        # Mirror recording: only search relatives when BOTH value and label are empty.
+        if not actual:
+            # Fallback 1: element is a child inside a text input — walk ancestors.
+            for tag in self._TEXT_INPUT_TAGS:
+                try:
+                    anc = element.find_element(AppiumBy.XPATH, f"ancestor::{tag}[1]")
+                    actual = anc.get_attribute("value") or ""
+                    if actual:
+                        break
+                except Exception:
+                    continue
+        if not actual:
+            # Fallback 2: element wraps a text input — search descendants.
+            for tag in self._TEXT_INPUT_TAGS:
+                for desc in element.find_elements(AppiumBy.CLASS_NAME, tag):
+                    actual = desc.get_attribute("value") or ""
+                    if actual:
+                        break
+                if actual:
+                    break
+        # name is the last resort — only reached when no text content was found anywhere.
+        if not actual:
+            actual = element.get_attribute("name") or ""
         assert actual == expected, (
             f"verify_text FAILED for ({by}, {value!r})\n"
             f"  expected : {expected!r}\n"

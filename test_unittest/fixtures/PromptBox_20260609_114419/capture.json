@@ -29,7 +29,8 @@
           }
         }
       },
-      "hierarchy_file": "hierarchy_000.xml"
+      "hierarchy_file": "hierarchy_000.xml",
+      "hierarchy_file_xpath": "hierarchy_000_xpath.xml"
     }
   ],
   "steps": [

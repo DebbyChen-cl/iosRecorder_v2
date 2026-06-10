@@ -24,6 +24,7 @@ _FILES = {
     3: ("test_gen3_step_json.py",        "Test 3 — Full step JSON: call recorder directly, verify step dict output"),
     4: ("test_gen4_selector_quality.py", "Test 4 — Selector quality / is-problematic flag"),
     5: ("test_gen5_codegen.py",          "Test 5 — Codegen: step → generated Python code"),
+    6: ("test_gen3b_xpath_variant.py",   "Test 3b — XPath-variant: element id stripped, verifies structural xpath is produced"),
 }
 
 
@@ -58,7 +59,7 @@ def _file_header(desc: str) -> str:
         '    """Directly invoke the recorder\'s _record_* function for the given input."""',
         '    action = inp["action"]',
         '    root = m._cache.get("root")',
-        '    if action in ("tap", "double_tap", "triple_tap", "two_finger_tap"):',
+        '    if action in ("tap", "double_tap", "triple_tap", "two_finger_tap", "five_tap"):',
         '        asyncio.run(m._record_point(action, inp["x"], inp["y"], root))',
         '    elif action == "long_press":',
         '        asyncio.run(m._record_long_press(inp["x"], inp["y"], inp.get("duration", 1000), root))',
@@ -223,7 +224,29 @@ def {fn}():
 """
 
 
-_BODY_FNS = {1: _body_t1, 2: _body_t2, 3: _body_t3, 4: _body_t4, 5: _body_t5}
+def _body_t3_xpath(fk: str, i: int) -> str:
+    fn = f"test_gen3b_{fk}_step_{i:03d}"
+    sk = f"step_{i:03d}_t3b"
+    return f"""
+def {fn}():
+    cap = json.loads((_FIXTURE_DIR / "{fk}" / "capture.json").read_text())
+    entry = cap["entries"][{i}]
+    hfile = entry.get("hierarchy_file_xpath")
+    if not hfile:
+        pytest.skip("no xpath-variant hierarchy for this step")
+    inp = entry["input"]
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "{fk}" / hfile).read_text())
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {{k: v for k, v in step.items() if k not in _STRIP_KEYS}}
+    answer = _load_or_store("{fk}", "{sk}", result)
+    assert result == answer
+"""
+
+
+_BODY_FNS = {1: _body_t1, 2: _body_t2, 3: _body_t3, 4: _body_t4, 5: _body_t5, 6: _body_t3_xpath}
 
 _SCREENSHOT_ACTIONS = frozenset({"verify_screenshot_gt", "verify_screenshot_diff"})
 
@@ -235,6 +258,8 @@ def _should_skip(test_num: int, entry: dict) -> bool:
     if test_num in (1, 3):
         inp = entry.get("input", {})
         return inp.get("action") in _SCREENSHOT_ACTIONS and "bounds" not in inp
+    if test_num == 6:
+        return not entry.get("hierarchy_file_xpath")
     return False
 
 
