@@ -58,7 +58,7 @@ def test_<safe_name>(actions: DriverActions):
 - `wait_for_invisible(by, value, timeout=30)` — wait until element disappears
 - `is_element_present(by, value, timeout=3)` — non-throwing boolean check
 
-- `find_element(by, value, timeout=DEFAULT_WAIT, container_by=None, container_value=None, container_w=0, container_h=0)` — wait for element; when container params are provided and element is absent or < 50 % visible, calls `_find_with_scroll()` automatically. All `*_by_locator`, `*_within_element`, `verify_visible`, and `swipe_on_element` forward these params here, so scroll fallback applies uniformly to every action.
+- `find_element(by, value, timeout=DEFAULT_WAIT, container_by=None, container_value=None, container_w=0, container_h=0)` — wait for element; when container params are provided, searches **within the container first** (scoped), then falls back to a global search if the element is not found inside the container. This prevents picking a duplicate element outside the intended container. If no visible element (≥ 50 %) is found by either path, calls `_find_with_scroll()` automatically. All `*_by_locator`, `*_within_element`, `verify_visible`, and `swipe_on_element` forward these params here, so scroll fallback applies uniformly to every action.
 
 ### Tap Variants
 - `tap(element)` — tap a WebElement

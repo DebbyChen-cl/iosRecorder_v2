@@ -167,11 +167,25 @@ class DriverActions:
         """
         if container_by and container_value:
             try:
-                el = WebDriverWait(self.driver, min(5, timeout)).until(
-                    EC.presence_of_element_located((by, value))
+                container_el = WebDriverWait(self.driver, min(5, timeout)).until(
+                    EC.presence_of_element_located((container_by, container_value))
                 )
-                if self._visible_fraction(el) >= 0.5:
-                    return el
+                # Scoped search first to avoid picking a duplicate element outside container
+                scoped_el = None
+                try:
+                    scoped_el = container_el.find_element(by, value)
+                except NoSuchElementException:
+                    pass
+                if scoped_el is not None and self._visible_fraction(scoped_el) >= 0.5:
+                    return scoped_el
+                # Scoped didn't find a visible element; fall back to global search
+                if scoped_el is None:
+                    try:
+                        global_el = self.driver.find_element(by, value)
+                        if self._visible_fraction(global_el) >= 0.5:
+                            return global_el
+                    except NoSuchElementException:
+                        pass
             except TimeoutException:
                 pass
             return self._find_with_scroll(
@@ -405,16 +419,17 @@ class DriverActions:
 
         # Scroll forward until element ≥ 50 % visible
         for attempt in range(max_scrolls):
-            if self.is_element_present(by, value, timeout=2):
-                el = WebDriverWait(self.driver, 2).until(
-                    EC.presence_of_element_located((by, value))
-                )
+            try:
+                container_el = self.driver.find_element(container_by, container_value)
+                el = container_el.find_element(by, value)
                 if self._visible_fraction(el) >= 0.5:
                     logger.info(
                         "_find_with_scroll: found (%s, %r) after %d scrolls",
                         by, value, attempt,
                     )
                     return el
+            except NoSuchElementException:
+                pass
             self._scroll_container_once(container_by, container_value, forward_dir)
 
         raise NoSuchElementException(

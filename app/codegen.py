@@ -93,7 +93,13 @@ def _by(selector_type: str) -> str:
 
 def _q(value: str) -> str:
     """Escape a string for use inside single-quoted Python string literals."""
-    return value.replace("\\", "\\\\").replace("'", "\\'")
+    return (
+        value
+        .replace("\\", "\\\\")
+        .replace("'", "\\'")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+    )
 
 
 def _locator(target: dict) -> tuple[str, str]:
@@ -236,7 +242,7 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
         if has_el:
             by, val = _locator(t)
             return (f"[Action] Pinch {val} scale={scale}",
-                    [f"actions.pinch(actions.find_element({by}, '{_q(val)}'), scale={scale}, velocity={velocity})"])
+                    [f"actions.pinch(actions.find_element({by}, '{val}'), scale={scale}, velocity={velocity})"])
         return (f"[Action] Pinch at ({c.get('x')},{c.get('y')}) scale={scale}",
                 [f"# pinch at ({c.get('x')},{c.get('y')}) scale={scale} — no element matched"])
 
@@ -246,7 +252,7 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
         if has_el:
             by, val = _locator(t)
             return (f"[Action] Rotate {val} {deg}°",
-                    [f"actions.rotate(actions.find_element({by}, '{_q(val)}'), rotation={deg})"])
+                    [f"actions.rotate(actions.find_element({by}, '{val}'), rotation={deg})"])
         return (f"[Action] Rotate at ({c.get('x')},{c.get('y')})",
                 [f"# rotate at ({c.get('x')},{c.get('y')}) — no element matched"])
 
@@ -381,7 +387,7 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
             by, val = _locator(t)
             sc_kw = _sc_kwargs(step.get("scroll_container"))
             return (f"[Verify] {val} is visible",
-                    [f"actions.verify_visible({by}, '{_q(val)}'{sc_kw})"])
+                    [f"actions.verify_visible({by}, '{val}'{sc_kw})"])
         return (f"[Verify] element visible at ({c.get('x')},{c.get('y')})",
                 [f"# verify_visible at ({c.get('x')},{c.get('y')}) — no element matched"])
 
@@ -390,7 +396,7 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
         if has_el:
             by, val = _locator(t)
             return (f"[Verify] {val} is not visible",
-                    [f"actions.verify_not_visible({by}, '{_q(val)}')"])
+                    [f"actions.verify_not_visible({by}, '{val}')"])
         return (f"[Verify] element not visible at ({c.get('x')},{c.get('y')})",
                 [f"# verify_not_visible at ({c.get('x')},{c.get('y')}) — no element matched"])
 
@@ -649,7 +655,7 @@ def generate_script(steps: List[dict], case_name: str = "") -> str:
     has_screenshots = any(s.get("action") in _screenshot_actions for s in steps)
     for s in steps:
         label, code_lines = _action_call(s)
-        safe_label = label.replace("\\", "\\\\").replace('"', '\\"')
+        safe_label = label.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r")
         body_lines.append(f'    with step("{safe_label}"):')
         for line in code_lines:
             body_lines.append(f"        {line}")
