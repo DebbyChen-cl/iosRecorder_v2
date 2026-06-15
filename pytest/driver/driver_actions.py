@@ -771,6 +771,10 @@ class DriverActions:
         *distance_pts* is the exact swipe distance in logical points from the
         original recording. When omitted, falls back to 40 % of element dimension.
         """
+        from selenium.webdriver.common.actions.action_builder import ActionBuilder
+        from selenium.webdriver.common.actions import interaction
+        from selenium.webdriver.common.actions.pointer_input import PointerInput
+
         element = self.find_element(by, value, container_by=container_by, container_value=container_value, container_w=container_w, container_h=container_h)
         rect = element.rect  # {x, y, width, height}
 
@@ -790,23 +794,25 @@ class DriverActions:
         end_x = start_x + dx_map.get(direction, 0.0)
         end_y = start_y + dy_map.get(direction, 0.0)
 
-        self.driver.execute_script(
-            "mobile: dragFromToWithVelocity",
-            {
-                "fromX": int(start_x),
-                "fromY": int(start_y),
-                "toX":   int(end_x),
-                "toY":   int(end_y),
-                "velocity": velocity,
-                "pressDuration": 0.05,
-                "holdDuration":  0.05,
-            },
-        )
+        # Use W3C pointer actions (same as WDA during recording) so the finger
+        # lifts while still in motion, preserving momentum for page-turn triggers.
+        # mobile: dragFromToWithVelocity holds at the endpoint before lifting,
+        # zeroing out velocity and preventing iOS scroll views from flipping pages.
+        # move_to_location() hardcodes 250 ms; use create_pointer_move() directly
+        # to set the exact duration derived from the recorded velocity.
+        duration_ms = max(100, int(distance_pts * 1000 / velocity)) if (distance_pts and velocity > 0) else 400
+        pointer = PointerInput(interaction.POINTER_TOUCH, "touch")
+        pointer.create_pointer_move(duration=0, x=int(start_x), y=int(start_y), origin="viewport")
+        pointer.create_pointer_down()
+        pointer.create_pointer_move(duration=duration_ms, x=int(end_x), y=int(end_y), origin="viewport")
+        pointer.create_pointer_up(0)
+        ActionBuilder(self.driver, mouse=pointer).perform()
+
         logger.info(
-            "swipe_on_element: %r direction=%s velocity=%.1f dist=%s start=(%.1f%%,%.1f%%)",
+            "swipe_on_element: %r direction=%s velocity=%.1f dist=%s start=(%.1f%%,%.1f%%) dur=%dms",
             value, direction, velocity,
             f"{distance_pts:.1f}pts" if distance_pts is not None else "40%",
-            from_pct_x, from_pct_y,
+            from_pct_x, from_pct_y, duration_ms,
         )
 
     @step("Scroll")

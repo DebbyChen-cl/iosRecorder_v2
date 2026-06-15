@@ -1348,8 +1348,7 @@ async def _record_move(action: str, x1: float, y1: float, x2: float, y2: float, 
     if root is not None:
         el = hit_test_for_swipe(x1, y1, root) if action == "swipe" else hit_test(x1, y1, root)
         if el is not None:
-            sel_type, sel_val = _resolve_selector(el, root)
-            step["start_target"] = {"type": sel_type, "value": sel_val, "selector_quality": get_selector_quality(el)}
+            step["start_target"] = _build_target(x1, y1, el, root, structural_log=False)
     if pre_screenshot:
         step["pre_screenshot"] = pre_screenshot
         step["pre_screenshot_size"] = dict(wda._last_screen_size)

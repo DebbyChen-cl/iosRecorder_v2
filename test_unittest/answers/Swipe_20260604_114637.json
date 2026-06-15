@@ -26,7 +26,10 @@
     "start_target": {
       "type": "accessibility id",
       "value": "LauncherTrendyCell-2",
-      "selector_quality": "id_indexed"
+      "selector_quality": "id_indexed",
+      "xpath": "//XCUIElementTypeCell[@name='LauncherTrendyCell-2']",
+      "offset_pct": {"x": 30.4, "y": 78.9},
+      "bounds": {"x": 231, "y": 369, "w": 102, "h": 123}
     }
   },
   "step_000_t4": {
