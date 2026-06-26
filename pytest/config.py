@@ -13,7 +13,7 @@ IOS_CAPABILITIES = {
     "appium:udid": "00008020-001E49603CE9002E",          # e.g. "00008101-001234AB3456001E"
     "appium:deviceName": "Amber 的 iPhone",    # e.g. "John's iPhone 15"
     # ------ App ------
-    "appium:bundleId": "com.cyberlink.photodirector",   # already installed app
+    "appium:bundleId": "com.cyberlink.ios.powerdirector",   # already installed app
     # "appium:app": "/path/to/your.ipa",        # or install from .ipa
     # ------ Code signing (required for physical device) ------
     "appium:xcodeOrgId": "PRFSC7SPL9",           # 10-char Team ID from Apple Developer Portal

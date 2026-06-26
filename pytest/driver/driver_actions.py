@@ -90,26 +90,26 @@ def _hierarchy_stability_signature(
     ignored_attributes=DEFAULT_STABILITY_IGNORED_ATTRIBUTES,
     dynamic_text_patterns=DEFAULT_STABILITY_DYNAMIC_TEXT_PATTERNS,
 ) -> str:
-    """Return a hash for UI structure while ignoring playback/progress churn."""
-    ignored = frozenset(ignored_attributes)
-    patterns = _compile_stability_patterns(dynamic_text_patterns)
+    """Return a hash based on structural identity only (no content fields)."""
     try:
         root = ET.fromstring(page_source)
     except ET.ParseError:
         return hashlib.md5(page_source.encode("utf-8")).hexdigest()
 
     parts = []
-    for el in root.iter():
-        attrs = []
-        for key, value in sorted(el.attrib.items()):
-            if key in ignored:
-                continue
-            if key in {"name", "label"} and _is_dynamic_stability_text(value, patterns):
-                attrs.append((key, "<dynamic>"))
-            else:
-                attrs.append((key, value))
-        parts.append(f"{el.tag}|{attrs}")
-    return hashlib.md5("\n".join(parts).encode("utf-8")).hexdigest()
+
+    def _walk(el: ET.Element, path: str) -> None:
+        children = list(el)
+        # Structural identity only: tree position + element type + child count.
+        parts.append(f"{path}|{el.tag}|c={len(children)}")
+        for idx, child in enumerate(children):
+            _walk(child, f"{path}.{idx}")
+
+    _walk(root, "0")
+    digest = hashlib.md5("\n".join(parts).encode("utf-8")).hexdigest()
+    element_count = sum(1 for _ in root.iter())
+    # Keep count alongside structural digest for optional fallback handling.
+    return f"n={element_count}|{digest}"
 
 
 def wait_for_stable_hierarchy(fn):
@@ -131,6 +131,15 @@ def wait_for_stable_hierarchy(fn):
     """
     @functools.wraps(fn)
     def wrapper(self, *args, **kwargs):
+        def _split_sig(sig: str) -> tuple[Optional[int], str]:
+            if isinstance(sig, str) and sig.startswith("n=") and "|" in sig:
+                head, tail = sig.split("|", 1)
+                try:
+                    return int(head[2:]), tail
+                except ValueError:
+                    return None, sig
+            return None, sig
+
         # Track nesting depth so only the outermost call triggers the check.
         depth = getattr(self, "_stability_depth", 0)
         self._stability_depth = depth + 1
@@ -143,15 +152,23 @@ def wait_for_stable_hierarchy(fn):
             interval = getattr(self, "stability_interval", 0.4)
             timeout = getattr(self, "stability_timeout", 120.0)
             min_wait = getattr(self, "stability_min_wait", 0.8)
+            # Minimal safeguard: require at least 1 consecutive stable signature.
             required_samples = max(1, int(getattr(self, "stability_required_samples", 3)))
+            count_fallback_enabled = bool(getattr(self, "stability_count_fallback_enabled", True))
+            count_fallback_after = float(getattr(self, "stability_count_fallback_after", 2.0))
+            count_required_samples = max(2, int(getattr(self, "stability_count_required_samples", 2)))
             started_at = time.monotonic()
             deadline = time.monotonic() + timeout
             prev = self._hierarchy_stability_signature(self.driver.page_source)
+            prev_count, prev_digest = _split_sig(prev)
             stable_samples = 0
+            stable_count_samples = 0
             while time.monotonic() < deadline:
                 time.sleep(interval)
                 curr = self._hierarchy_stability_signature(self.driver.page_source)
-                if curr == prev:
+                curr_count, curr_digest = _split_sig(curr)
+
+                if curr_digest == prev_digest:
                     stable_samples += 1
                     if (
                         stable_samples >= required_samples
@@ -161,7 +178,25 @@ def wait_for_stable_hierarchy(fn):
                         break
                 else:
                     stable_samples = 0
+
+                if curr_count is not None and prev_count is not None and curr_count == prev_count:
+                    stable_count_samples += 1
+                    if (
+                        count_fallback_enabled
+                        and stable_count_samples >= count_required_samples
+                        and time.monotonic() - started_at >= max(min_wait, count_fallback_after)
+                    ):
+                        logger.info(
+                            "[stability] fallback by stable element count after action '%s'",
+                            fn.__name__,
+                        )
+                        break
+                else:
+                    stable_count_samples = 0
+
                 prev = curr
+                prev_count = curr_count
+                prev_digest = curr_digest
             else:
                 logger.warning(
                     "[stability] hierarchy did not stabilise within %.1fs after '%s'",
@@ -216,7 +251,13 @@ class DriverActions:
         # transition. Playback/progress churn is ignored by the signature, so
         # require a short settle window and several matching samples.
         self.stability_min_wait: float = 0.8
-        self.stability_required_samples: int = 3
+        self.stability_required_samples: int = 1
+        # Fallback for continuously changing screens (e.g. playing videos):
+        # if full structural identity keeps changing, allow release when
+        # element count remains stable for a short period.
+        self.stability_count_fallback_enabled: bool = True
+        self.stability_count_fallback_after: float = 2.0
+        self.stability_count_required_samples: int = 2
 
         # Compare a normalized hierarchy signature instead of the raw XML.
         # Playback/progress values can change forever while the tappable UI is

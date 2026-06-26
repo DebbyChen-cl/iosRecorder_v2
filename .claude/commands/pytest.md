@@ -135,13 +135,27 @@ def my_gesture(self, element: WebElement, param: float = 1.0) -> None:
 
 ## Stability Check
 
-`DriverActions.stability_check = False` by default (off).
+`DriverActions.stability_check = True` by default (on).
 
-Set to `True` only when tests are flaky due to async UI animations:
+Stability currently uses a structural-identity signature (tree position + element type
++ child-count), and ignores content fields such as name/label/value.
+
+Minimal safeguard is enabled: at least 1 consecutive matching signature is required
+before release.
+
+For continuously changing screens (for example, video playback), a fallback is enabled:
+if structural identity keeps changing, release is allowed when element count remains
+stable for a short period.
+
+You can tune behavior per test when needed:
 ```python
 actions.stability_check = True
 actions.stability_interval = 0.4  # seconds between polls
 actions.stability_timeout = 10.0  # give up after this long
+actions.stability_required_samples = 1
+actions.stability_count_fallback_enabled = True
+actions.stability_count_fallback_after = 2.0
+actions.stability_count_required_samples = 2
 ```
 
 This polls `page_source` after each decorated action — expensive (~0.5–2s per call). Only enable when needed.
