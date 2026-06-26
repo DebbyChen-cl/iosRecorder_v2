@@ -1260,3 +1260,111 @@ def test_gen2_UnitTest_20260603_165335_step_002():
         result = {"type": "coordinate", "value": None}
     answer = _load_or_store("UnitTest_20260603_165335", "step_002_t2", result)
     assert result == answer
+
+
+# ── Canva_20260626_141605 ─────────────────────────────────────────────────────
+
+def test_gen2_Canva_20260626_141605_step_000():
+    cap = json.loads((_FIXTURE_DIR / "Canva_20260626_141605" / "capture.json").read_text())
+    entry = cap["entries"][0]
+    hfile = entry.get("hierarchy_file")
+    if not hfile:
+        pytest.skip("no hierarchy for this step")
+    inp = entry["input"]
+    x = inp.get("x", inp.get("x1", inp.get("target_x")))
+    y = inp.get("y", inp.get("y1", inp.get("target_y")))
+    if x is None or y is None:
+        pytest.skip("no coordinates for this step")
+    root = ET.fromstring((_FIXTURE_DIR / "Canva_20260626_141605" / hfile).read_text())
+    el = hit_test(x, y, root)
+    if el is not None:
+        sel_type, sel_val = build_selector(el)
+        result = {"type": sel_type, "value": sel_val}
+    else:
+        result = {"type": "coordinate", "value": None}
+    answer = _load_or_store("Canva_20260626_141605", "step_000_t2", result)
+    assert result == answer
+
+def test_gen2_Canva_20260626_141605_step_001():
+    cap = json.loads((_FIXTURE_DIR / "Canva_20260626_141605" / "capture.json").read_text())
+    entry = cap["entries"][1]
+    hfile = entry.get("hierarchy_file")
+    if not hfile:
+        pytest.skip("no hierarchy for this step")
+    inp = entry["input"]
+    x = inp.get("x", inp.get("x1", inp.get("target_x")))
+    y = inp.get("y", inp.get("y1", inp.get("target_y")))
+    if x is None or y is None:
+        pytest.skip("no coordinates for this step")
+    root = ET.fromstring((_FIXTURE_DIR / "Canva_20260626_141605" / hfile).read_text())
+    el = hit_test(x, y, root)
+    if el is not None:
+        sel_type, sel_val = build_selector(el)
+        result = {"type": sel_type, "value": sel_val}
+    else:
+        result = {"type": "coordinate", "value": None}
+    answer = _load_or_store("Canva_20260626_141605", "step_001_t2", result)
+    assert result == answer
+
+def test_gen2_Canva_20260626_141605_step_002():
+    cap = json.loads((_FIXTURE_DIR / "Canva_20260626_141605" / "capture.json").read_text())
+    entry = cap["entries"][2]
+    hfile = entry.get("hierarchy_file")
+    if not hfile:
+        pytest.skip("no hierarchy for this step")
+    inp = entry["input"]
+    x = inp.get("x", inp.get("x1", inp.get("target_x")))
+    y = inp.get("y", inp.get("y1", inp.get("target_y")))
+    if x is None or y is None:
+        pytest.skip("no coordinates for this step")
+    root = ET.fromstring((_FIXTURE_DIR / "Canva_20260626_141605" / hfile).read_text())
+    el = hit_test(x, y, root)
+    if el is not None:
+        sel_type, sel_val = build_selector(el)
+        result = {"type": sel_type, "value": sel_val}
+    else:
+        result = {"type": "coordinate", "value": None}
+    answer = _load_or_store("Canva_20260626_141605", "step_002_t2", result)
+    assert result == answer
+
+def test_gen2_Canva_20260626_141605_step_003():
+    cap = json.loads((_FIXTURE_DIR / "Canva_20260626_141605" / "capture.json").read_text())
+    entry = cap["entries"][3]
+    hfile = entry.get("hierarchy_file")
+    if not hfile:
+        pytest.skip("no hierarchy for this step")
+    inp = entry["input"]
+    x = inp.get("x", inp.get("x1", inp.get("target_x")))
+    y = inp.get("y", inp.get("y1", inp.get("target_y")))
+    if x is None or y is None:
+        pytest.skip("no coordinates for this step")
+    root = ET.fromstring((_FIXTURE_DIR / "Canva_20260626_141605" / hfile).read_text())
+    el = hit_test(x, y, root)
+    if el is not None:
+        sel_type, sel_val = build_selector(el)
+        result = {"type": sel_type, "value": sel_val}
+    else:
+        result = {"type": "coordinate", "value": None}
+    answer = _load_or_store("Canva_20260626_141605", "step_003_t2", result)
+    assert result == answer
+
+def test_gen2_Canva_20260626_141605_step_004():
+    cap = json.loads((_FIXTURE_DIR / "Canva_20260626_141605" / "capture.json").read_text())
+    entry = cap["entries"][4]
+    hfile = entry.get("hierarchy_file")
+    if not hfile:
+        pytest.skip("no hierarchy for this step")
+    inp = entry["input"]
+    x = inp.get("x", inp.get("x1", inp.get("target_x")))
+    y = inp.get("y", inp.get("y1", inp.get("target_y")))
+    if x is None or y is None:
+        pytest.skip("no coordinates for this step")
+    root = ET.fromstring((_FIXTURE_DIR / "Canva_20260626_141605" / hfile).read_text())
+    el = hit_test(x, y, root)
+    if el is not None:
+        sel_type, sel_val = build_selector(el)
+        result = {"type": sel_type, "value": sel_val}
+    else:
+        result = {"type": "coordinate", "value": None}
+    answer = _load_or_store("Canva_20260626_141605", "step_004_t2", result)
+    assert result == answer

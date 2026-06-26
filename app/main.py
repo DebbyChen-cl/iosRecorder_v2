@@ -98,6 +98,24 @@ _UNIT_TEST_MODE = os.environ.get("RECORDER_UNIT_TEST") == "1"
 _unit_test_entries: List[dict] = []
 
 
+def _needs_timeline_drag_nudge_for_record(*targets: Optional[dict]) -> bool:
+    for target in targets:
+        if not target:
+            continue
+        value = str(target.get("value", "") or "").lower()
+        if any(token in value for token in ("timeline", "track", "multipletrack", "piptrack")):
+            return True
+    return False
+
+
+def _long_press_drag_activation_nudge(step: dict, requested_nudge_y: int = 0) -> int:
+    if requested_nudge_y:
+        return int(requested_nudge_y)
+    if _needs_timeline_drag_nudge_for_record(step.get("start_target"), step.get("end_target")):
+        return -8
+    return 0
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     asyncio.create_task(wda.connect())
@@ -320,6 +338,7 @@ class DragReq(BaseModel):
 
 class LongPressDragReq(DragReq):
     press_duration: int = 1000
+    activation_nudge_y: int = 0
 
 class PaintPoint(BaseModel):
     x: float
@@ -595,7 +614,7 @@ async def api_drag(req: DragReq):
 @app.post("/api/long_press_drag")
 async def api_long_press_drag(req: LongPressDragReq):
     return {"ok": await wda.long_press_drag(
-        req.x1, req.y1, req.x2, req.y2, req.duration, req.press_duration
+        req.x1, req.y1, req.x2, req.y2, req.duration, req.press_duration, req.activation_nudge_y
     )}
 
 
@@ -795,16 +814,22 @@ async def record_drag(req: DragReq):
 
 @app.post("/api/record/long_press_drag")
 async def record_long_press_drag(req: LongPressDragReq):
+    snapshot = _cache.get("root") or await _cached_tree()
     pre_ss = await _take_pre_gesture_screenshot()
-    snapshot = _cache.get("root")
-    ok = await wda.long_press_drag(req.x1, req.y1, req.x2, req.y2, req.duration, req.press_duration)
-    asyncio.create_task(_record_drag(
-        req.x1, req.y1, req.x2, req.y2, req.duration,
-        snapshot=snapshot,
+    step, unit_input = _build_drag_record_step(
+        req.x1,
+        req.y1,
+        req.x2,
+        req.y2,
+        req.duration,
+        snapshot,
         pre_screenshot=pre_ss,
         action="long_press_drag",
         press_duration=req.press_duration,
-    ))
+    )
+    nudge_y = _long_press_drag_activation_nudge(step, req.activation_nudge_y)
+    ok = await wda.long_press_drag(req.x1, req.y1, req.x2, req.y2, req.duration, req.press_duration, nudge_y)
+    _append_drag_record_step(step, unit_input, snapshot)
     return {"ok": ok}
 
 
@@ -1421,6 +1446,31 @@ async def _record_drag(
     press_duration: Optional[int] = None,
 ):
     root = snapshot if snapshot is not None else await _cached_tree()
+    step, unit_input = _build_drag_record_step(
+        x1,
+        y1,
+        x2,
+        y2,
+        duration,
+        root,
+        pre_screenshot=pre_screenshot,
+        action=action,
+        press_duration=press_duration,
+    )
+    _append_drag_record_step(step, unit_input, root)
+
+
+def _build_drag_record_step(
+    x1: float,
+    y1: float,
+    x2: float,
+    y2: float,
+    duration: int,
+    root,
+    pre_screenshot: Optional[str] = None,
+    action: str = "drag",
+    press_duration: Optional[int] = None,
+) -> tuple[dict, dict]:
     step: dict = {
         "action": action,
         "coords": {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
@@ -1448,11 +1498,16 @@ async def _record_drag(
     if pre_screenshot:
         step["pre_screenshot"] = pre_screenshot
         step["pre_screenshot_size"] = dict(wda._last_screen_size)
-    _steps.append(step)
     unit_input = {"action": action, "x1": x1, "y1": y1, "x2": x2, "y2": y2, "duration": duration}
     if action == "long_press_drag":
         unit_input["press_duration"] = step["press_duration"]
+    return step, unit_input
+
+
+def _append_drag_record_step(step: dict, unit_input: dict, root) -> None:
+    _steps.append(step)
     _unit_test_capture(unit_input, step, root)
+    action = step.get("action", "drag")
     logger.info(f"Recorded {action}: {step.get('start_target')} → {step.get('end_target')}")
 
 
@@ -1733,19 +1788,22 @@ async def ws_handler(ws: WebSocket):
                 x1, y1, x2, y2 = float(data["x1"]), float(data["y1"]), float(data["x2"]), float(data["y2"])
                 dur = int(data.get("duration", 1000))
                 press_dur = int(data.get("press_duration", 1000))
-                pre_ss = await _take_pre_gesture_screenshot() if rec else None
+                requested_nudge_y = int(data.get("activation_nudge_y", 0))
                 snapshot = (_cache.get("root") or await _cached_tree()) if rec else None
+                pre_ss = await _take_pre_gesture_screenshot() if rec else None
                 if rec:
-                    await wda.long_press_drag(x1, y1, x2, y2, dur, press_dur)
-                    asyncio.create_task(_record_drag(
+                    step, unit_input = _build_drag_record_step(
                         x1, y1, x2, y2, dur,
-                        snapshot=snapshot,
+                        snapshot,
                         pre_screenshot=pre_ss,
                         action="long_press_drag",
                         press_duration=press_dur,
-                    ))
+                    )
+                    nudge_y = _long_press_drag_activation_nudge(step, requested_nudge_y)
+                    await wda.long_press_drag(x1, y1, x2, y2, dur, press_dur, nudge_y)
+                    _append_drag_record_step(step, unit_input, snapshot)
                 else:
-                    asyncio.create_task(wda.long_press_drag(x1, y1, x2, y2, dur, press_dur))
+                    asyncio.create_task(wda.long_press_drag(x1, y1, x2, y2, dur, press_dur, requested_nudge_y))
 
             elif t == "paint":
                 sx, sy = float(data.get("start_x", 0)), float(data.get("start_y", 0))

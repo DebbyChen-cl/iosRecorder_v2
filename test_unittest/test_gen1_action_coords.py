@@ -978,3 +978,86 @@ def test_gen1_tap_5_20260608_155442_step_002():
         result["coords"] = step["coords"]
     answer = _load_or_store("tap_5_20260608_155442", "step_002_t1", result)
     assert result == answer
+
+
+# ── Canva_20260626_141605 ─────────────────────────────────────────────────────
+
+def test_gen1_Canva_20260626_141605_step_000():
+    cap = json.loads((_FIXTURE_DIR / "Canva_20260626_141605" / "capture.json").read_text())
+    entry = cap["entries"][0]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "Canva_20260626_141605" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("Canva_20260626_141605", "step_000_t1", result)
+    assert result == answer
+
+def test_gen1_Canva_20260626_141605_step_001():
+    cap = json.loads((_FIXTURE_DIR / "Canva_20260626_141605" / "capture.json").read_text())
+    entry = cap["entries"][1]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "Canva_20260626_141605" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("Canva_20260626_141605", "step_001_t1", result)
+    assert result == answer
+
+def test_gen1_Canva_20260626_141605_step_002():
+    cap = json.loads((_FIXTURE_DIR / "Canva_20260626_141605" / "capture.json").read_text())
+    entry = cap["entries"][2]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "Canva_20260626_141605" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("Canva_20260626_141605", "step_002_t1", result)
+    assert result == answer
+
+def test_gen1_Canva_20260626_141605_step_003():
+    cap = json.loads((_FIXTURE_DIR / "Canva_20260626_141605" / "capture.json").read_text())
+    entry = cap["entries"][3]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "Canva_20260626_141605" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("Canva_20260626_141605", "step_003_t1", result)
+    assert result == answer
+
+def test_gen1_Canva_20260626_141605_step_004():
+    cap = json.loads((_FIXTURE_DIR / "Canva_20260626_141605" / "capture.json").read_text())
+    entry = cap["entries"][4]
+    inp = entry["input"]
+    hfile = entry.get("hierarchy_file")
+    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "Canva_20260626_141605" / hfile).read_text()) if hfile else None
+    m._steps.clear()
+    _call_record_fn(inp)
+    assert m._steps, "no step recorded"
+    step = m._steps[-1]
+    result = {"action": step["action"]}
+    if "coords" in step:
+        result["coords"] = step["coords"]
+    answer = _load_or_store("Canva_20260626_141605", "step_004_t1", result)
+    assert result == answer

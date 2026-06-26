@@ -551,3 +551,41 @@ def test_gen5_UnitTest_20260603_165335_step_002():
     code = generate_script([step], "test_case")
     answer = _load_or_store("UnitTest_20260603_165335", "step_002_t5", code)
     assert code == answer
+
+
+# ── Canva_20260626_141605 ─────────────────────────────────────────────────────
+
+def test_gen5_Canva_20260626_141605_step_000():
+    cap = json.loads((_FIXTURE_DIR / "Canva_20260626_141605" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][0]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("Canva_20260626_141605", "step_000_t5", code)
+    assert code == answer
+
+def test_gen5_Canva_20260626_141605_step_001():
+    cap = json.loads((_FIXTURE_DIR / "Canva_20260626_141605" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][1]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("Canva_20260626_141605", "step_001_t5", code)
+    assert code == answer
+
+def test_gen5_Canva_20260626_141605_step_002():
+    cap = json.loads((_FIXTURE_DIR / "Canva_20260626_141605" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][2]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("Canva_20260626_141605", "step_002_t5", code)
+    assert code == answer
+
+def test_gen5_Canva_20260626_141605_step_003():
+    cap = json.loads((_FIXTURE_DIR / "Canva_20260626_141605" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][3]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("Canva_20260626_141605", "step_003_t5", code)
+    assert code == answer
+
+def test_gen5_Canva_20260626_141605_step_004():
+    cap = json.loads((_FIXTURE_DIR / "Canva_20260626_141605" / "capture.json").read_text())
+    step = {k: v for k, v in cap["entries"][4]["output"].items() if k != "timestamp"}
+    code = generate_script([step], "test_case")
+    answer = _load_or_store("Canva_20260626_141605", "step_004_t5", code)
+    assert code == answer

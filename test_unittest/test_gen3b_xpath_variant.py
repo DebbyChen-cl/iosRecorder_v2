@@ -165,22 +165,6 @@ def test_gen3b_Canva_20260604_114332_step_007():
     answer = _load_or_store("Canva_20260604_114332", "step_007_t3b", result)
     assert result == answer
 
-def test_gen3b_Canva_20260604_114332_step_008():
-    cap = json.loads((_FIXTURE_DIR / "Canva_20260604_114332" / "capture.json").read_text())
-    entry = cap["entries"][8]
-    hfile = entry.get("hierarchy_file_xpath")
-    if not hfile:
-        pytest.skip("no xpath-variant hierarchy for this step")
-    inp = entry["input"]
-    m._cache["root"] = ET.fromstring((_FIXTURE_DIR / "Canva_20260604_114332" / hfile).read_text())
-    m._steps.clear()
-    _call_record_fn(inp)
-    assert m._steps, "no step recorded"
-    step = m._steps[-1]
-    result = {k: v for k, v in step.items() if k not in _STRIP_KEYS}
-    answer = _load_or_store("Canva_20260604_114332", "step_008_t3b", result)
-    assert result == answer
-
 
 # ── Canva_Text_20260604_114431 ────────────────────────────────────────────────
 

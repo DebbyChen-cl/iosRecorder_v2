@@ -9,6 +9,15 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
+
+def _split_duration(total_ms: int, weights: list[int]) -> list[int]:
+    total_ms = max(100, int(total_ms))
+    weight_sum = max(1, sum(weights))
+    durations = [max(16, int(total_ms * w / weight_sum)) for w in weights]
+    durations[-1] += total_ms - sum(durations)
+    return durations
+
+
 _W3C_TAP = {
     "actions": [{
         "type": "pointer",
@@ -418,18 +427,49 @@ class WDAClient:
         y2: float,
         duration_ms: int = 1000,
         press_duration_ms: int = 1000,
+        activation_nudge_y: int = 0,
     ) -> bool:
         press_ms = max(1000, int(press_duration_ms))
         move_ms = max(100, int(duration_ms))
+        release_pause_ms = 120
+        nudge_y = int(activation_nudge_y)
+        from_x, from_y = int(x1), int(y1)
+        to_x, to_y = int(x2), int(y2)
+
+        if nudge_y:
+            points = [
+                (from_x, from_y),
+                (from_x, from_y + nudge_y),
+                (
+                    round(from_x + (to_x - from_x) * 0.45),
+                    round(from_y + nudge_y + (to_y - from_y) * 0.45),
+                ),
+                (to_x, to_y + nudge_y),
+                (to_x, to_y),
+            ]
+            durations = _split_duration(move_ms, [1, 3, 3, 1])
+        else:
+            points = [
+                (from_x, from_y),
+                (round(from_x + (to_x - from_x) * 0.35), round(from_y + (to_y - from_y) * 0.35)),
+                (round(from_x + (to_x - from_x) * 0.75), round(from_y + (to_y - from_y) * 0.75)),
+                (to_x, to_y),
+            ]
+            durations = _split_duration(move_ms, [2, 3, 3])
+
+        actions = [
+            {"type": "pointerMove", "duration": 0, "x": points[0][0], "y": points[0][1]},
+            {"type": "pointerDown", "button": 0},
+            {"type": "pause", "duration": press_ms},
+        ]
+        for (x, y), duration in zip(points[1:], durations):
+            actions.append({"type": "pointerMove", "duration": max(8, int(duration)), "x": x, "y": y})
+        actions.append({"type": "pause", "duration": release_pause_ms})
+        actions.append({"type": "pointerUp", "button": 0})
+
         return await self._actions(
-            self._touch_actions([
-                {"type": "pointerMove", "duration": 0, "x": int(x1), "y": int(y1)},
-                {"type": "pointerDown", "button": 0},
-                {"type": "pause", "duration": press_ms},
-                {"type": "pointerMove", "duration": move_ms, "x": int(x2), "y": int(y2)},
-                {"type": "pointerUp", "button": 0},
-            ]),
-            timeout=(press_ms + move_ms) / 1000 + 4,
+            self._touch_actions(actions),
+            timeout=(press_ms + move_ms + release_pause_ms) / 1000 + 4,
         )
 
     async def paint(self, points: list[dict], duration_ms: int = 1000) -> bool:

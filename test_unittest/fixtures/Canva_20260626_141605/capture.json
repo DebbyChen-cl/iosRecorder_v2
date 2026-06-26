@@ -1,0 +1,453 @@
+{
+  "captured_at": "2026-06-26T14:16:05",
+  "case_name": "Canva",
+  "entries": [
+    {
+      "input": {
+        "action": "drag",
+        "x1": 157.0,
+        "y1": 315.0,
+        "x2": 254.0,
+        "y2": 401.0,
+        "duration": 1000
+      },
+      "output": {
+        "action": "drag",
+        "coords": {
+          "x1": 157.0,
+          "y1": 315.0,
+          "x2": 254.0,
+          "y2": 401.0
+        },
+        "duration": 1000,
+        "timestamp": 1782454542.246728,
+        "start_target": {
+          "type": "xpath",
+          "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeImage",
+          "selector_quality": "xpath_only",
+          "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeImage",
+          "offset_pct": {
+            "x": 46.9,
+            "y": 59.8
+          },
+          "bounds": {
+            "x": 112,
+            "y": 263,
+            "w": 96,
+            "h": 87
+          }
+        },
+        "end_target": {
+          "type": "accessibility id",
+          "value": "Join PhotoDirector Premium to unlock the current effect.",
+          "selector_quality": "id_eq_label",
+          "xpath": "//XCUIElementTypeStaticText[@name='Join PhotoDirector Premium to unlock the current effect.']",
+          "offset_pct": {
+            "x": 99.0,
+            "y": 97.0
+          },
+          "bounds": {
+            "x": 64,
+            "y": 369,
+            "w": 192,
+            "h": 33
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_000.xml"
+    },
+    {
+      "input": {
+        "action": "drag",
+        "x1": 146.0,
+        "y1": 296.0,
+        "x2": 73.0,
+        "y2": 212.0,
+        "duration": 1000
+      },
+      "output": {
+        "action": "drag",
+        "coords": {
+          "x1": 146.0,
+          "y1": 296.0,
+          "x2": 73.0,
+          "y2": 212.0
+        },
+        "duration": 1000,
+        "timestamp": 1782454547.589501,
+        "start_target": {
+          "type": "xpath",
+          "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeImage",
+          "selector_quality": "xpath_only",
+          "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeImage",
+          "offset_pct": {
+            "x": 35.4,
+            "y": 37.9
+          },
+          "bounds": {
+            "x": 112,
+            "y": 263,
+            "w": 96,
+            "h": 87
+          }
+        },
+        "end_target": {
+          "type": "xpath",
+          "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]",
+          "selector_quality": "xpath_only",
+          "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]",
+          "offset_pct": {
+            "x": 22.8,
+            "y": 20.6
+          },
+          "bounds": {
+            "x": 0,
+            "y": 146,
+            "w": 320,
+            "h": 321
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_001.xml"
+    },
+    {
+      "input": {
+        "action": "drag",
+        "x1": 211.0,
+        "y1": 313.0,
+        "x2": 304.0,
+        "y2": 421.0,
+        "duration": 1000
+      },
+      "output": {
+        "action": "drag",
+        "coords": {
+          "x1": 211.0,
+          "y1": 313.0,
+          "x2": 304.0,
+          "y2": 421.0
+        },
+        "duration": 1000,
+        "timestamp": 1782454553.918303,
+        "start_target": {
+          "type": "xpath",
+          "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[5]",
+          "selector_quality": "xpath_only",
+          "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[5]",
+          "offset_pct": {
+            "x": 79.4,
+            "y": 52.6
+          },
+          "bounds": {
+            "x": 134,
+            "y": 262,
+            "w": 97,
+            "h": 97
+          }
+        },
+        "end_target": {
+          "type": "xpath",
+          "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage",
+          "selector_quality": "xpath_only",
+          "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage",
+          "offset_pct": {
+            "x": 95.0,
+            "y": 85.7
+          },
+          "bounds": {
+            "x": 0,
+            "y": 146,
+            "w": 320,
+            "h": 321
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_002.xml"
+    },
+    {
+      "input": {
+        "action": "tap",
+        "x": 165.0,
+        "y": 300.0
+      },
+      "output": {
+        "action": "tap",
+        "coords": {
+          "x": 165.0,
+          "y": 300.0
+        },
+        "timestamp": 1782454558.143285,
+        "target": {
+          "type": "xpath",
+          "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeImage",
+          "selector_quality": "xpath_only",
+          "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeImage",
+          "offset_pct": {
+            "x": 55.2,
+            "y": 42.5
+          },
+          "bounds": {
+            "x": 112,
+            "y": 263,
+            "w": 96,
+            "h": 87
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_003.xml"
+    },
+    {
+      "input": {
+        "action": "drag",
+        "x1": 167.0,
+        "y1": 307.0,
+        "x2": 65.0,
+        "y2": 217.0,
+        "duration": 1000
+      },
+      "output": {
+        "action": "drag",
+        "coords": {
+          "x1": 167.0,
+          "y1": 307.0,
+          "x2": 65.0,
+          "y2": 217.0
+        },
+        "duration": 1000,
+        "timestamp": 1782454563.384299,
+        "start_target": {
+          "type": "xpath",
+          "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[5]",
+          "selector_quality": "xpath_only",
+          "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[5]",
+          "offset_pct": {
+            "x": 57.3,
+            "y": 50.6
+          },
+          "bounds": {
+            "x": 112,
+            "y": 263,
+            "w": 96,
+            "h": 87
+          }
+        },
+        "end_target": {
+          "type": "xpath",
+          "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage",
+          "selector_quality": "xpath_only",
+          "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage",
+          "offset_pct": {
+            "x": 20.3,
+            "y": 22.1
+          },
+          "bounds": {
+            "x": 0,
+            "y": 146,
+            "w": 320,
+            "h": 321
+          }
+        }
+      },
+      "hierarchy_file": "hierarchy_004.xml"
+    }
+  ],
+  "steps": [
+    {
+      "action": "drag",
+      "coords": {
+        "x1": 157.0,
+        "y1": 315.0,
+        "x2": 254.0,
+        "y2": 401.0
+      },
+      "duration": 1000,
+      "timestamp": 1782454542.246728,
+      "start_target": {
+        "type": "xpath",
+        "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeImage",
+        "selector_quality": "xpath_only",
+        "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeImage",
+        "offset_pct": {
+          "x": 46.9,
+          "y": 59.8
+        },
+        "bounds": {
+          "x": 112,
+          "y": 263,
+          "w": 96,
+          "h": 87
+        }
+      },
+      "end_target": {
+        "type": "accessibility id",
+        "value": "Join PhotoDirector Premium to unlock the current effect.",
+        "selector_quality": "id_eq_label",
+        "xpath": "//XCUIElementTypeStaticText[@name='Join PhotoDirector Premium to unlock the current effect.']",
+        "offset_pct": {
+          "x": 99.0,
+          "y": 97.0
+        },
+        "bounds": {
+          "x": 64,
+          "y": 369,
+          "w": 192,
+          "h": 33
+        }
+      }
+    },
+    {
+      "action": "drag",
+      "coords": {
+        "x1": 146.0,
+        "y1": 296.0,
+        "x2": 73.0,
+        "y2": 212.0
+      },
+      "duration": 1000,
+      "timestamp": 1782454547.589501,
+      "start_target": {
+        "type": "xpath",
+        "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeImage",
+        "selector_quality": "xpath_only",
+        "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeImage",
+        "offset_pct": {
+          "x": 35.4,
+          "y": 37.9
+        },
+        "bounds": {
+          "x": 112,
+          "y": 263,
+          "w": 96,
+          "h": 87
+        }
+      },
+      "end_target": {
+        "type": "xpath",
+        "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]",
+        "selector_quality": "xpath_only",
+        "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]",
+        "offset_pct": {
+          "x": 22.8,
+          "y": 20.6
+        },
+        "bounds": {
+          "x": 0,
+          "y": 146,
+          "w": 320,
+          "h": 321
+        }
+      }
+    },
+    {
+      "action": "drag",
+      "coords": {
+        "x1": 211.0,
+        "y1": 313.0,
+        "x2": 304.0,
+        "y2": 421.0
+      },
+      "duration": 1000,
+      "timestamp": 1782454553.918303,
+      "start_target": {
+        "type": "xpath",
+        "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[5]",
+        "selector_quality": "xpath_only",
+        "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[5]",
+        "offset_pct": {
+          "x": 79.4,
+          "y": 52.6
+        },
+        "bounds": {
+          "x": 134,
+          "y": 262,
+          "w": 97,
+          "h": 97
+        }
+      },
+      "end_target": {
+        "type": "xpath",
+        "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage",
+        "selector_quality": "xpath_only",
+        "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage",
+        "offset_pct": {
+          "x": 95.0,
+          "y": 85.7
+        },
+        "bounds": {
+          "x": 0,
+          "y": 146,
+          "w": 320,
+          "h": 321
+        }
+      }
+    },
+    {
+      "action": "tap",
+      "coords": {
+        "x": 165.0,
+        "y": 300.0
+      },
+      "timestamp": 1782454558.143285,
+      "target": {
+        "type": "xpath",
+        "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeImage",
+        "selector_quality": "xpath_only",
+        "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeImage",
+        "offset_pct": {
+          "x": 55.2,
+          "y": 42.5
+        },
+        "bounds": {
+          "x": 112,
+          "y": 263,
+          "w": 96,
+          "h": 87
+        }
+      }
+    },
+    {
+      "action": "drag",
+      "coords": {
+        "x1": 167.0,
+        "y1": 307.0,
+        "x2": 65.0,
+        "y2": 217.0
+      },
+      "duration": 1000,
+      "timestamp": 1782454563.384299,
+      "start_target": {
+        "type": "xpath",
+        "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[5]",
+        "selector_quality": "xpath_only",
+        "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[5]",
+        "offset_pct": {
+          "x": 57.3,
+          "y": 50.6
+        },
+        "bounds": {
+          "x": 112,
+          "y": 263,
+          "w": 96,
+          "h": 87
+        }
+      },
+      "end_target": {
+        "type": "xpath",
+        "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage",
+        "selector_quality": "xpath_only",
+        "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage",
+        "offset_pct": {
+          "x": 20.3,
+          "y": 22.1
+        },
+        "bounds": {
+          "x": 0,
+          "y": 146,
+          "w": 320,
+          "h": 321
+        }
+      }
+    }
+  ],
+  "codegen_output": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"Canva\")\ndef test_Canva(actions: DriverActions):\n    with step(\"[Action] Drag //XCUIElementTypeOther[@name=\\\"photodirector.AddImageViewController\\\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeImage (46.9%,59.8%) → Join PhotoDirector Premium to unlock the current effect. (99.0%,97.0%)\"):\n        actions.drag_within_elements(AppiumBy.XPATH, '//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeImage', 46.9, 59.8, AppiumBy.ACCESSIBILITY_ID, 'Join PhotoDirector Premium to unlock the current effect.', 99.0, 97.0, duration=1.0)\n    with step(\"[Action] Drag //XCUIElementTypeOther[@name=\\\"photodirector.AddImageViewController\\\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeImage (35.4%,37.9%) → //XCUIElementTypeOther[@name=\\\"photodirector.AddImageViewController\\\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2] (22.8%,20.6%)\"):\n        actions.drag_within_elements(AppiumBy.XPATH, '//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeImage', 35.4, 37.9, AppiumBy.XPATH, '//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]', 22.8, 20.6, duration=1.0)\n    with step(\"[Action] Drag //XCUIElementTypeOther[@name=\\\"photodirector.AddImageViewController\\\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[5] (79.4%,52.6%) → //XCUIElementTypeOther[@name=\\\"photodirector.AddImageViewController\\\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage (95.0%,85.7%)\"):\n        actions.drag_within_elements(AppiumBy.XPATH, '//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[5]', 79.4, 52.6, AppiumBy.XPATH, '//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage', 95.0, 85.7, duration=1.0)\n    with step(\"[Action] Tap //XCUIElementTypeOther[@name=\\\"photodirector.AddImageViewController\\\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeImage at (55.2%, 42.5%)\"):\n        actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeImage', 55.2, 42.5)\n    with step(\"[Action] Drag //XCUIElementTypeOther[@name=\\\"photodirector.AddImageViewController\\\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[5] (57.3%,50.6%) → //XCUIElementTypeOther[@name=\\\"photodirector.AddImageViewController\\\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage (20.3%,22.1%)\"):\n        actions.drag_within_elements(AppiumBy.XPATH, '//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[5]', 57.3, 50.6, AppiumBy.XPATH, '//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage', 20.3, 22.1, duration=1.0)\n    assert True\n"
+}

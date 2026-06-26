@@ -435,6 +435,22 @@ button {
   to   { opacity: 0; }
 }
 
+.sent-coords-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 320;
+  animation: sent-coords-fade 3.2s ease-out forwards;
+}
+
+@keyframes sent-coords-fade {
+  0%, 78% { opacity: 1; }
+  100%   { opacity: 0; }
+}
+
 /* Step color for gesture (swipe/drag) actions */
 .step.t-gesture { border-left-color: #ff79c6; }
 

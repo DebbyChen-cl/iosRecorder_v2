@@ -124,6 +124,16 @@ def _sc_kwargs(sc: Optional[dict]) -> str:
     return f", container_by={sc_by}, container_value='{sc_val}', container_w={cw}, container_h={ch}"
 
 
+def _needs_timeline_drag_nudge(*targets: Optional[dict]) -> bool:
+    for target in targets:
+        if not target:
+            continue
+        value = str(target.get("value", "") or "").lower()
+        if any(token in value for token in ("timeline", "track", "multipletrack", "piptrack")):
+            return True
+    return False
+
+
 # ── 3. Export ──────────────────────────────────────────────────────────────────
 
 def _action_call(step: dict) -> tuple[str, list[str]]:
@@ -319,6 +329,7 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
         et = step.get("end_target")
         has_start = st and st.get("type") != "coordinate"
         has_end   = et and et.get("type") != "coordinate"
+        nudge_kw = ", activation_nudge_y=-8" if is_long_press_drag and _needs_timeline_drag_nudge(st, et) else ""
         if has_start and has_end:
             s_by, s_val = _by(st["type"]), _q(st["value"])
             e_by, e_val = _by(et["type"]), _q(et["value"])
@@ -327,13 +338,23 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
             sx, sy = sp["x"], sp["y"]
             ex, ey = ep["x"], ep["y"]
             return (f"[Action] {label_verb} {s_val} ({sx}%,{sy}%) → {e_val} ({ex}%,{ey}%)",
-                    [f"actions.{within_fn}({s_by}, '{s_val}', {sx}, {sy}, {e_by}, '{e_val}', {ex}, {ey}, duration={dur}{press_kw})"])
+                    [f"actions.{within_fn}({s_by}, '{s_val}', {sx}, {sy}, {e_by}, '{e_val}', {ex}, {ey}, duration={dur}{press_kw}{nudge_kw})"])
         if has_start:
+            s_by, s_val = _by(st["type"]), _q(st["value"])
             sp = st.get("offset_pct", {"x": 50.0, "y": 50.0})
+            if is_long_press_drag:
+                return (f"[Action] {label_verb} {s_val} ({sp['x']}%,{sp['y']}%) → ({x2},{y2})",
+                        [f"actions.long_press_drag_from_element_to_coordinates({s_by}, '{s_val}', {sp['x']}, {sp['y']}, {x2}, {y2}, duration={dur}{press_kw}{nudge_kw})"])
             return (f"[Action] {label_verb} {_q(st['value'])} ({sp['x']}%,{sp['y']}%) → ({x2},{y2})",
                     [f"actions.{coords_fn}({x1}, {y1}, {x2}, {y2}, duration={dur}{press_kw})"])
+        if has_end:
+            e_by, e_val = _by(et["type"]), _q(et["value"])
+            ep = et.get("offset_pct", {"x": 50.0, "y": 50.0})
+            if is_long_press_drag:
+                return (f"[Action] {label_verb} ({x1},{y1}) → {e_val} ({ep['x']}%,{ep['y']}%)",
+                        [f"actions.long_press_drag_from_coordinates_to_element({x1}, {y1}, {e_by}, '{e_val}', {ep['x']}, {ep['y']}, duration={dur}{press_kw}{nudge_kw})"])
         return (f"[Action] {label_verb} ({x1},{y1}) → ({x2},{y2})",
-                [f"actions.{coords_fn}({x1}, {y1}, {x2}, {y2}, duration={dur}{press_kw})"])
+                [f"actions.{coords_fn}({x1}, {y1}, {x2}, {y2}, duration={dur}{press_kw}{nudge_kw})"])
 
     # ── paint ─────────────────────────────────────────────────────────────────
     if action == "paint":

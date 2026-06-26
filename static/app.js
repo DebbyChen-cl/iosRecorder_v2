@@ -480,6 +480,14 @@ function toDevice(displayX, displayY) {
   };
 }
 
+function deviceToDisplay(deviceX, deviceY) {
+  const r = clickLayer.getBoundingClientRect();
+  return {
+    x: deviceW ? (Number(deviceX) / deviceW) * r.width : 0,
+    y: deviceH ? (Number(deviceY) / deviceH) * r.height : 0,
+  };
+}
+
 // ── Gesture detection ──────────────────────────────────────────────────────────
 const MOVE_THRESHOLD = 10;   // px display — below = tap
 const LONG_PRESS_MS  = 500;  // ms hold without move → long press
@@ -894,6 +902,7 @@ function sendGesture(type, data) {
 
   trackActionLoading(type, data, () => {
     if (record) {
+      showSentCoordsOverlay(type, data);
       return api("POST", recEp[type], data);
     }
     return api("POST", execEp[type], data);
@@ -1710,6 +1719,218 @@ function showGestureTrail(x1, y1, x2, y2, mode = dragMode) {
       style="animation:gesture-fade .7s ease-out forwards"/>`;
   clickLayer.appendChild(svg);
   setTimeout(() => svg.remove(), 800);
+}
+
+function finiteNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function sentCoordActionLabel(type) {
+  const labels = {
+    tap: "TAP",
+    double_tap: "DOUBLE TAP",
+    triple_tap: "TRIPLE TAP",
+    five_tap: "FIVE TAP",
+    two_finger_tap: "TWO FINGER TAP",
+    multi_finger_tap: "MULTI FINGER TAP",
+    long_press: "LONG PRESS",
+    scroll: "SCROLL",
+    swipe: "SWIPE",
+    drag: "DRAG",
+    long_press_drag: "LONG DRAG",
+    paint: "PAINT",
+    pinch: "PINCH",
+    rotate: "ROTATE",
+  };
+  return labels[type] || String(type || "GESTURE").replace(/_/g, " ").toUpperCase();
+}
+
+function sentCoordColor(type) {
+  const colors = {
+    long_press_drag: "#ff79c6",
+    drag: "#ffb86c",
+    scroll: "#50fa7b",
+    swipe: "#4a9eff",
+    paint: "#ff79c6",
+    long_press: "#ffd166",
+    pinch: "#bd93f9",
+    rotate: "#bd93f9",
+  };
+  return colors[type] || "#4a9eff";
+}
+
+function sentCoordPayloadPoints(type, data) {
+  if (!data || typeof data !== "object") return [];
+
+  const x1 = finiteNumber(data.x1), y1 = finiteNumber(data.y1);
+  const x2 = finiteNumber(data.x2), y2 = finiteNumber(data.y2);
+  if (x1 !== null && y1 !== null && x2 !== null && y2 !== null) {
+    return [
+      { role: "START", x: x1, y: y1 },
+      { role: "END", x: x2, y: y2 },
+    ];
+  }
+
+  const x = finiteNumber(data.x), y = finiteNumber(data.y);
+  if (x !== null && y !== null) {
+    return [{ role: sentCoordActionLabel(type), x, y }];
+  }
+
+  const startX = finiteNumber(data.start_x), startY = finiteNumber(data.start_y);
+  if (startX !== null && startY !== null) {
+    const points = Array.isArray(data.points) ? data.points : [];
+    const last = [...points].reverse().find((pt) =>
+      finiteNumber(pt?.x) !== null && finiteNumber(pt?.y) !== null
+    );
+    if (last) {
+      return [
+        { role: "START", x: startX, y: startY },
+        { role: "END", x: Number(last.x), y: Number(last.y) },
+      ];
+    }
+    return [{ role: "START", x: startX, y: startY }];
+  }
+
+  return [];
+}
+
+function svgNode(tag, attrs = {}) {
+  const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+  return node;
+}
+
+function addSentCoordLabel(svg, x, y, lines, width, height) {
+  const cleanLines = lines.filter(Boolean);
+  if (!cleanLines.length) return;
+
+  const lineH = 13;
+  const padX = 7;
+  const rectW = Math.max(56, Math.min(width - 8, Math.max(...cleanLines.map((line) => line.length)) * 7 + padX * 2));
+  const rectH = cleanLines.length * lineH + 7;
+  const rectX = Math.max(4, Math.min(width - rectW - 4, x - rectW / 2));
+  let rectY = y - rectH - 13;
+  if (rectY < 4) rectY = y + 13;
+  if (rectY + rectH > height - 4) rectY = Math.max(4, height - rectH - 4);
+
+  svg.appendChild(svgNode("rect", {
+    x: rectX,
+    y: rectY,
+    width: rectW,
+    height: rectH,
+    rx: 4,
+    fill: "rgba(5,8,14,0.9)",
+    stroke: "rgba(255,255,255,0.78)",
+    "stroke-width": 1,
+  }));
+
+  cleanLines.forEach((line, idx) => {
+    const text = svgNode("text", {
+      x: rectX + rectW / 2,
+      y: rectY + 15 + idx * lineH,
+      "text-anchor": "middle",
+      fill: "#ffffff",
+      "font-size": 11,
+      "font-weight": 800,
+      "font-family": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+      "pointer-events": "none",
+    });
+    text.textContent = line;
+    svg.appendChild(text);
+  });
+}
+
+function addSentCoordCrosshair(svg, point, color, width, height) {
+  const raw = deviceToDisplay(point.x, point.y);
+  const x = Math.max(0, Math.min(width, raw.x));
+  const y = Math.max(0, Math.min(height, raw.y));
+  const offscreen = Math.abs(x - raw.x) > 0.5 || Math.abs(y - raw.y) > 0.5;
+
+  svg.appendChild(svgNode("circle", {
+    cx: x,
+    cy: y,
+    r: 10,
+    fill: "rgba(0,0,0,0.18)",
+    stroke: "rgba(0,0,0,0.72)",
+    "stroke-width": 4,
+  }));
+  svg.appendChild(svgNode("circle", {
+    cx: x,
+    cy: y,
+    r: 10,
+    fill: "rgba(255,255,255,0.16)",
+    stroke: color,
+    "stroke-width": 2.5,
+  }));
+  svg.appendChild(svgNode("line", { x1: x - 14, y1: y, x2: x + 14, y2: y, stroke: "#ffffff", "stroke-width": 1.5, "stroke-linecap": "round" }));
+  svg.appendChild(svgNode("line", { x1: x, y1: y - 14, x2: x, y2: y + 14, stroke: "#ffffff", "stroke-width": 1.5, "stroke-linecap": "round" }));
+
+  const coord = `${Math.round(point.x)},${Math.round(point.y)}`;
+  addSentCoordLabel(svg, x, y, [`${point.role} ${coord}`, offscreen ? "OFFSCREEN" : ""], width, height);
+  return { x, y };
+}
+
+function showSentCoordsOverlay(type, data) {
+  const points = sentCoordPayloadPoints(type, data);
+  if (!points.length) return;
+
+  const rect = clickLayer.getBoundingClientRect();
+  const width = rect.width;
+  const height = rect.height;
+  if (!width || !height) return;
+
+  clickLayer.querySelectorAll(".sent-coords-overlay").forEach((el) => el.remove());
+
+  const color = sentCoordColor(type);
+  const svg = svgNode("svg", {
+    class: "sent-coords-overlay",
+    viewBox: `0 0 ${width} ${height}`,
+    preserveAspectRatio: "none",
+  });
+
+  let displayPoints = [];
+  if (points.length >= 2) {
+    displayPoints = points.map((point) => {
+      const raw = deviceToDisplay(point.x, point.y);
+      return {
+        x: Math.max(0, Math.min(width, raw.x)),
+        y: Math.max(0, Math.min(height, raw.y)),
+      };
+    });
+
+    svg.appendChild(svgNode("line", {
+      x1: displayPoints[0].x,
+      y1: displayPoints[0].y,
+      x2: displayPoints[displayPoints.length - 1].x,
+      y2: displayPoints[displayPoints.length - 1].y,
+      stroke: "rgba(0,0,0,0.72)",
+      "stroke-width": 6,
+      "stroke-linecap": "round",
+    }));
+    svg.appendChild(svgNode("line", {
+      x1: displayPoints[0].x,
+      y1: displayPoints[0].y,
+      x2: displayPoints[displayPoints.length - 1].x,
+      y2: displayPoints[displayPoints.length - 1].y,
+      stroke: color,
+      "stroke-width": 3,
+      "stroke-linecap": "round",
+      "stroke-dasharray": type === "long_press_drag" || type === "drag" ? "7,4" : "",
+    }));
+  }
+
+  const marks = points.map((point) => addSentCoordCrosshair(svg, point, color, width, height));
+  if (marks.length >= 2) {
+    const midX = (marks[0].x + marks[marks.length - 1].x) / 2;
+    const midY = (marks[0].y + marks[marks.length - 1].y) / 2;
+    const pressDuration = finiteNumber(data?.press_duration);
+    const hold = type === "long_press_drag" && pressDuration !== null ? `hold ${Math.round(pressDuration)}ms` : "";
+    addSentCoordLabel(svg, midX, midY, [`SENT ${sentCoordActionLabel(type)}`, hold], width, height);
+  }
+
+  clickLayer.appendChild(svg);
+  setTimeout(() => svg.remove(), 3400);
 }
 
 // ── Unit Test Capture ──────────────────────────────────────────────────────────

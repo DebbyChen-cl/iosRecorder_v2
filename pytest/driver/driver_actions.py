@@ -323,6 +323,13 @@ class DriverActions:
             return []
         return self.driver.find_elements(by, value)
 
+    @staticmethod
+    def _point_in_element(element: WebElement, pct_x: float = 50.0, pct_y: float = 50.0) -> Tuple[int, int]:
+        loc, sz = element.location, element.size
+        x = round(float(loc["x"]) + float(sz["width"]) * float(pct_x) / 100)
+        y = round(float(loc["y"]) + float(sz["height"]) * float(pct_y) / 100)
+        return int(x), int(y)
+
     def wait_for_visible(
         self,
         by: str,
@@ -813,19 +820,93 @@ class DriverActions:
         press_duration: float = 1.0,
     ) -> None:
         """Perform touch down -> hold -> move -> release with separate timings."""
+        self._perform_w3c_drag_path(
+            [(from_x, from_y), (to_x, to_y)],
+            [max(100, int(float(duration) * 1000))],
+            press_duration,
+        )
+
+    def _perform_w3c_drag_path(
+        self,
+        points: List[Tuple[int, int]],
+        move_durations_ms: List[int],
+        press_duration: float = 1.0,
+        release_pause: float = 0.08,
+    ) -> None:
+        """Perform touch down -> hold -> multiple moves -> release."""
         from selenium.webdriver.common.actions.action_builder import ActionBuilder
         from selenium.webdriver.common.actions import interaction
         from selenium.webdriver.common.actions.pointer_input import PointerInput
 
-        move_ms = max(100, int(float(duration) * 1000))
+        if len(points) < 2:
+            raise ValueError("drag path needs at least two points")
+        if len(move_durations_ms) != len(points) - 1:
+            raise ValueError("move duration count must match path segment count")
+
         hold_s = max(0.0, float(press_duration))
         pointer = PointerInput(interaction.POINTER_TOUCH, "touch")
-        pointer.create_pointer_move(duration=0, x=int(from_x), y=int(from_y), origin="viewport")
+        start_x, start_y = points[0]
+        pointer.create_pointer_move(duration=0, x=int(start_x), y=int(start_y), origin="viewport")
         pointer.create_pointer_down()
         pointer.create_pause(hold_s)
-        pointer.create_pointer_move(duration=move_ms, x=int(to_x), y=int(to_y), origin="viewport")
+        for (x, y), move_ms in zip(points[1:], move_durations_ms):
+            pointer.create_pointer_move(
+                duration=max(16, int(move_ms)),
+                x=int(x),
+                y=int(y),
+                origin="viewport",
+            )
+        if release_pause > 0:
+            pointer.create_pause(float(release_pause))
         pointer.create_pointer_up(0)
         ActionBuilder(self.driver, mouse=pointer).perform()
+
+    @staticmethod
+    def _split_duration(total_ms: int, weights: List[int]) -> List[int]:
+        total_ms = max(100, int(total_ms))
+        weight_sum = max(1, sum(weights))
+        durations = [max(16, int(total_ms * w / weight_sum)) for w in weights]
+        durations[-1] += total_ms - sum(durations)
+        return durations
+
+    def _perform_w3c_drag_with_activation_nudge(
+        self,
+        from_x: int,
+        from_y: int,
+        to_x: int,
+        to_y: int,
+        duration: float = 1.0,
+        press_duration: float = 1.0,
+        activation_nudge_y: int = 0,
+    ) -> None:
+        """Drag through a tiny vertical nudge before the main move."""
+        move_ms = max(100, int(float(duration) * 1000))
+        nudge_y = int(activation_nudge_y)
+
+        if nudge_y:
+            points = [
+                (from_x, from_y),
+                (from_x, from_y + nudge_y),
+                (round(from_x + (to_x - from_x) * 0.45), round(from_y + nudge_y + (to_y - from_y) * 0.45)),
+                (to_x, to_y + nudge_y),
+                (to_x, to_y),
+            ]
+            durations = self._split_duration(move_ms, [1, 3, 3, 1])
+        else:
+            points = [
+                (from_x, from_y),
+                (round(from_x + (to_x - from_x) * 0.35), round(from_y + (to_y - from_y) * 0.35)),
+                (round(from_x + (to_x - from_x) * 0.75), round(from_y + (to_y - from_y) * 0.75)),
+                (to_x, to_y),
+            ]
+            durations = self._split_duration(move_ms, [2, 3, 3])
+
+        self._perform_w3c_drag_path(
+            points,
+            durations,
+            press_duration,
+            release_pause=0.12,
+        )
 
     @step("Triple tap")
     def triple_tap(self, element: WebElement) -> None:
@@ -1146,12 +1227,8 @@ class DriverActions:
         Briefly press *source*, then drag it onto *target*.
         duration controls the move time; press_duration controls the initial hold.
         """
-        src, src_sz = source.location, source.size
-        tgt, tgt_sz = target.location, target.size
-        from_x = src["x"] + src_sz["width"] // 2
-        from_y = src["y"] + src_sz["height"] // 2
-        to_x = tgt["x"] + tgt_sz["width"] // 2
-        to_y = tgt["y"] + tgt_sz["height"] // 2
+        from_x, from_y = self._point_in_element(source)
+        to_x, to_y = self._point_in_element(target)
         self._perform_w3c_drag(from_x, from_y, to_x, to_y, duration, press_duration)
         logger.info("drag_element: source → target")
 
@@ -1181,13 +1258,16 @@ class DriverActions:
         Long-press *source* for press_duration seconds, then drag it onto *target*.
         duration controls the move time after the hold.
         """
-        src, src_sz = source.location, source.size
-        tgt, tgt_sz = target.location, target.size
-        from_x = src["x"] + src_sz["width"] // 2
-        from_y = src["y"] + src_sz["height"] // 2
-        to_x = tgt["x"] + tgt_sz["width"] // 2
-        to_y = tgt["y"] + tgt_sz["height"] // 2
-        self._perform_w3c_drag(from_x, from_y, to_x, to_y, duration, max(1.0, press_duration))
+        from_x, from_y = self._point_in_element(source)
+        to_x, to_y = self._point_in_element(target)
+        self._perform_w3c_drag_with_activation_nudge(
+            from_x,
+            from_y,
+            to_x,
+            to_y,
+            duration,
+            max(1.0, press_duration),
+        )
         logger.info("long_press_drag_element: source → target hold=%.2fs", press_duration)
 
     @step("Long press and drag by coordinates")
@@ -1199,12 +1279,26 @@ class DriverActions:
         to_y: int,
         duration: float = 1.0,
         press_duration: float = 1.0,
+        activation_nudge_y: int = 0,
     ) -> None:
-        """Long-press at (from_x, from_y), then drag to (to_x, to_y)."""
-        self._perform_w3c_drag(from_x, from_y, to_x, to_y, duration, max(1.0, press_duration))
+        """Long-press at (from_x, from_y), then drag to (to_x, to_y).
+
+        activation_nudge_y inserts a tiny vertical move before the main drag,
+        then returns to the final Y. This helps horizontally scrollable
+        timelines recognise the gesture as dragging a clip instead of scrubbing.
+        """
+        self._perform_w3c_drag_with_activation_nudge(
+            from_x,
+            from_y,
+            to_x,
+            to_y,
+            duration,
+            max(1.0, press_duration),
+            activation_nudge_y,
+        )
         logger.info(
-            "long_press_drag_coordinates: (%d,%d) → (%d,%d) hold=%.2fs",
-            from_x, from_y, to_x, to_y, press_duration,
+            "long_press_drag_coordinates: (%d,%d) → (%d,%d) hold=%.2fs nudge_y=%d",
+            from_x, from_y, to_x, to_y, press_duration, activation_nudge_y,
         )
 
     @step("Drag within elements by offset percent")
@@ -1224,12 +1318,8 @@ class DriverActions:
         """Drag from a % offset within the source element to a % offset within the target element."""
         src = self.find_element(from_by, from_value)
         tgt = self.find_element(to_by, to_value)
-        src_loc, src_sz = src.location, src.size
-        tgt_loc, tgt_sz = tgt.location, tgt.size
-        from_x = round(src_loc["x"] + src_sz["width"]  * from_pct_x / 100)
-        from_y = round(src_loc["y"] + src_sz["height"] * from_pct_y / 100)
-        to_x   = round(tgt_loc["x"] + tgt_sz["width"]  * to_pct_x   / 100)
-        to_y   = round(tgt_loc["y"] + tgt_sz["height"] * to_pct_y   / 100)
+        from_x, from_y = self._point_in_element(src, from_pct_x, from_pct_y)
+        to_x, to_y = self._point_in_element(tgt, to_pct_x, to_pct_y)
         self._perform_w3c_drag(from_x, from_y, to_x, to_y, duration, press_duration)
         logger.info(
             "drag_within_elements: %s@(%.1f%%,%.1f%%) → %s@(%.1f%%,%.1f%%)",
@@ -1249,20 +1339,101 @@ class DriverActions:
         to_pct_y: float,
         duration: float = 1.0,
         press_duration: float = 1.0,
+        activation_nudge_y: int = 0,
     ) -> None:
-        """Long-press at a source % offset, then drag to a target % offset."""
+        """Long-press at a source % offset, then drag to a target % offset.
+
+        activation_nudge_y inserts a tiny vertical move before the main drag,
+        then returns to the final Y. Use a negative value to lift upward.
+        """
         src = self.find_element(from_by, from_value)
         tgt = self.find_element(to_by, to_value)
-        src_loc, src_sz = src.location, src.size
-        tgt_loc, tgt_sz = tgt.location, tgt.size
-        from_x = round(src_loc["x"] + src_sz["width"]  * from_pct_x / 100)
-        from_y = round(src_loc["y"] + src_sz["height"] * from_pct_y / 100)
-        to_x   = round(tgt_loc["x"] + tgt_sz["width"]  * to_pct_x   / 100)
-        to_y   = round(tgt_loc["y"] + tgt_sz["height"] * to_pct_y   / 100)
-        self._perform_w3c_drag(from_x, from_y, to_x, to_y, duration, max(1.0, press_duration))
+        from_x, from_y = self._point_in_element(src, from_pct_x, from_pct_y)
+        to_x, to_y = self._point_in_element(tgt, to_pct_x, to_pct_y)
         logger.info(
-            "long_press_drag_within_elements: %s@(%.1f%%,%.1f%%) → %s@(%.1f%%,%.1f%%) hold=%.2fs",
-            from_value, from_pct_x, from_pct_y, to_value, to_pct_x, to_pct_y, press_duration,
+            "long_press_drag_within_elements resolved coords: (%d,%d) → (%d,%d) hold=%.2fs nudge_y=%d",
+            from_x, from_y, to_x, to_y, press_duration, activation_nudge_y,
+        )
+        self._perform_w3c_drag_with_activation_nudge(
+            from_x,
+            from_y,
+            to_x,
+            to_y,
+            duration,
+            max(1.0, press_duration),
+            activation_nudge_y,
+        )
+        logger.info(
+            "long_press_drag_within_elements: %s@(%.1f%%,%.1f%%) → %s@(%.1f%%,%.1f%%) hold=%.2fs nudge_y=%d",
+            from_value, from_pct_x, from_pct_y, to_value, to_pct_x, to_pct_y, press_duration, activation_nudge_y,
+        )
+
+    @step("Long press and drag from element to coordinates")
+    def long_press_drag_from_element_to_coordinates(
+        self,
+        from_by: str,
+        from_value: str,
+        from_pct_x: float,
+        from_pct_y: float,
+        to_x: int,
+        to_y: int,
+        duration: float = 1.0,
+        press_duration: float = 1.0,
+        activation_nudge_y: int = 0,
+    ) -> None:
+        """Resolve the source element point before starting the long-press drag."""
+        src = self.find_element(from_by, from_value)
+        from_x, from_y = self._point_in_element(src, from_pct_x, from_pct_y)
+        logger.info(
+            "long_press_drag_from_element_to_coordinates resolved coords: (%d,%d) → (%d,%d) hold=%.2fs nudge_y=%d",
+            from_x, from_y, to_x, to_y, press_duration, activation_nudge_y,
+        )
+        self._perform_w3c_drag_with_activation_nudge(
+            from_x,
+            from_y,
+            to_x,
+            to_y,
+            duration,
+            max(1.0, press_duration),
+            activation_nudge_y,
+        )
+        logger.info(
+            "long_press_drag_from_element_to_coordinates: %s@(%.1f%%,%.1f%%) → (%d,%d) hold=%.2fs nudge_y=%d",
+            from_value, from_pct_x, from_pct_y, to_x, to_y, press_duration, activation_nudge_y,
+        )
+
+    @step("Long press and drag from coordinates to element")
+    def long_press_drag_from_coordinates_to_element(
+        self,
+        from_x: int,
+        from_y: int,
+        to_by: str,
+        to_value: str,
+        to_pct_x: float,
+        to_pct_y: float,
+        duration: float = 1.0,
+        press_duration: float = 1.0,
+        activation_nudge_y: int = 0,
+    ) -> None:
+        """Resolve the target element point before starting the long-press drag."""
+        tgt = self.find_element(to_by, to_value)
+        to_x, to_y = self._point_in_element(tgt, to_pct_x, to_pct_y)
+        logger.info(
+            "long_press_drag_from_coordinates_to_element resolved coords: (%d,%d) → (%d,%d) hold=%.2fs nudge_y=%d",
+            from_x, from_y, to_x, to_y, press_duration, activation_nudge_y,
+        )
+        self._perform_w3c_drag_with_activation_nudge(
+            from_x,
+            from_y,
+            to_x,
+            to_y,
+            duration,
+            max(1.0, press_duration),
+            activation_nudge_y,
+        )
+        logger.info(
+            "long_press_drag_from_coordinates_to_element: (%d,%d) → %s@(%.1f%%,%.1f%%) hold=%.2fs nudge_y=%d",
+            from_x, from_y, to_value, to_pct_x, to_pct_y, press_duration, activation_nudge_y,
         )
 
     @step("Paint in element")

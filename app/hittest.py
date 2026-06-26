@@ -161,9 +161,9 @@ def hit_test_long_press_drag_source(x: float, y: float, root: ET.Element) -> Opt
     """Select the draggable source for long-press-drag gestures.
 
     Timeline drag/drop overlays often cover the full track region while the
-    deepest hit is only a tiny decoration such as pipTrackCell.UIImageView.clipType.
-    For the source side of a long-press drag, prefer the track cell that owns
-    that decoration so playback can press the draggable row/clip.
+    deepest hit may be a precise clip/handle element or a generic container.
+    Keep stable leaf hits because their bounds make replay coordinates more
+    precise; fall back to the owning track cell when the leaf is missing.
     """
     actual = _unwrap(root)
     candidates: List[ET.Element] = []
@@ -171,11 +171,15 @@ def hit_test_long_press_drag_source(x: float, y: float, root: ET.Element) -> Opt
     if not candidates:
         return None
 
+    direct = hit_test(x, y, root)
+    if direct is not None and _is_precise_drag_leaf(direct):
+        return direct
+
     track_cells = [el for el in candidates if _is_track_drag_cell(el)]
     if track_cells:
         return min(track_cells, key=_track_drag_cell_score)
 
-    return hit_test(x, y, root)
+    return direct
 
 
 def hit_test_excluding(x: float, y: float, root: ET.Element, exclude: ET.Element) -> Optional[ET.Element]:
@@ -221,6 +225,10 @@ def hit_test_drop_target(
     if not filtered:
         prefer_interactive = any(_is_interactive_target(el) for el in candidates)
         return min(candidates, key=lambda el: _score(el, prefer_interactive)) if candidates else None
+
+    track_cells = [el for el in filtered if _is_track_drag_cell(el)]
+    if track_cells:
+        return min(track_cells, key=_track_drag_cell_score)
 
     drop_containers = [el for el in filtered if _is_drop_container_candidate(el)]
     if drop_containers:
@@ -269,6 +277,14 @@ def _is_track_drag_cell(el: ET.Element) -> bool:
         ("piptrackcell" in desc.attrib.get("name", "").strip().lower())
         for desc in el.iter()
     )
+
+
+def _is_precise_drag_leaf(el: ET.Element) -> bool:
+    if not _is_visible(el) or len(list(el)) > 0:
+        return False
+    if el.tag in GENERIC_CONTAINER_TAGS or el.tag in TAP_CONTAINER_TAGS:
+        return False
+    return _has_id(el)
 
 
 def _track_drag_cell_score(el: ET.Element) -> tuple:
