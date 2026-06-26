@@ -711,7 +711,14 @@ async def record_rotate(req: RotateReq):
 @app.post("/api/record/type_text")
 async def record_type_text(req: TypeTextReq):
     snapshot = _cache.get("root")
-    ok = await wda.type_text(req.text)
+    ok = await _send_type_text_to_target(
+        req.text,
+        req.target_x,
+        req.target_y,
+        snapshot,
+        req.target_type,
+        req.target_value,
+    )
     asyncio.create_task(_record_type_text(
         req.text, req.target_x, req.target_y, snapshot,
         req.target_type, req.target_value, req.target_bounds, req.target_selector_quality,
@@ -951,6 +958,100 @@ def _build_target(
         }
         target["bounds"] = {"x": int(ex), "y": int(ey), "w": int(ew), "h": int(eh)}
     return target
+
+
+_TYPE_TEXT_INPUT_TAGS = {
+    "XCUIElementTypeTextField",
+    "XCUIElementTypeSecureTextField",
+    "XCUIElementTypeTextView",
+}
+
+
+def _is_stale_header_footer_target(target: Optional[dict]) -> bool:
+    if not target or target.get("type") == "coordinate":
+        return False
+    value = str(target.get("value", "") or "")
+    return ".UIView.header" in value or ".UIView.footer" in value
+
+
+def _resolve_type_text_element_from_point(x: float, y: float, root):
+    """Resolve the best type-text target element at point, preferring text-input elements."""
+    if root is None:
+        return None
+
+    actual = _ht_unwrap(root)
+    el = hit_test(x, y, root)
+    if el is None:
+        return None
+
+    # Prefer direct text-input hits.
+    if el.tag in _TYPE_TEXT_INPUT_TAGS:
+        return el
+
+    # If hit_test returned a child inside a text-input, walk up ancestors.
+    path = _ht_find_path(actual, el)
+    if path:
+        for anc in reversed(path[:-1]):
+            if anc.tag in _TYPE_TEXT_INPUT_TAGS:
+                return anc
+
+    # If hit_test returned a wrapper, try the nearest text-input descendant.
+    text_desc = [d for d in el.iter() if d.tag in _TYPE_TEXT_INPUT_TAGS]
+    if text_desc:
+        best = min(text_desc, key=lambda d: ((_el_rect(d)[2] * _el_rect(d)[3]) if _el_rect(d) else float("inf")))
+        return best
+
+    return el
+
+
+def _resolve_type_text_target_for_send(
+    tx: Optional[float],
+    ty: Optional[float],
+    snapshot=None,
+    target_type: Optional[str] = None,
+    target_value: Optional[str] = None,
+) -> Optional[tuple[str, str]]:
+    # 1) Explicitly selected target from frontend pick phase.
+    if target_type and target_value and target_type != "coordinate":
+        return target_type, target_value
+
+    # 2) Reuse last non-coordinate tap target by default.
+    if _last_tap_target and _last_tap_target.get("type") != "coordinate" and _last_tap_target.get("value"):
+        # Guardrail: stale header/footer tap can happen before opening keyboard.
+        # In that case prefer coordinate-resolved text input when available.
+        if _is_stale_header_footer_target(_last_tap_target) and tx is not None and ty is not None:
+            root = snapshot if snapshot is not None else _cache.get("root")
+            el = _resolve_type_text_element_from_point(tx, ty, root)
+            if el is not None and el.tag in _TYPE_TEXT_INPUT_TAGS:
+                return _resolve_selector(el, root)
+        return _last_tap_target["type"], _last_tap_target["value"]
+
+    # 3) Coordinate hit_test fallback.
+    if tx is not None and ty is not None:
+        root = snapshot if snapshot is not None else _cache.get("root")
+        el = _resolve_type_text_element_from_point(tx, ty, root)
+        if el is not None:
+            return _resolve_selector(el, root)
+
+    return None
+
+
+async def _send_type_text_to_target(
+    text: str,
+    tx: Optional[float],
+    ty: Optional[float],
+    snapshot=None,
+    target_type: Optional[str] = None,
+    target_value: Optional[str] = None,
+) -> bool:
+    target = _resolve_type_text_target_for_send(tx, ty, snapshot, target_type, target_value)
+    if target is not None:
+        sel_type, sel_value = target
+        ok = await wda.type_text_into_element(sel_type, sel_value, text)
+        if ok:
+            return True
+        logger.info("type_text element command failed, fallback to focused typing")
+    return await wda.type_text(text)
 
 
 async def _take_pre_gesture_screenshot() -> Optional[str]:
@@ -1243,7 +1344,19 @@ async def _record_type_text(text: str, tx: Optional[float], ty: Optional[float],
         step["target"] = t
     # 2. Last-tapped element target (avoids iOS updating text field name after typing)
     elif _last_tap_target is not None and _last_tap_target.get("type") != "coordinate":
-        step["target"] = _last_tap_target
+        # Guardrail for stale header/footer target in export panel flow.
+        if _is_stale_header_footer_target(_last_tap_target) and tx is not None and ty is not None:
+            root = snapshot if snapshot is not None else (_cache.get("root") or await _cached_tree())
+            if root is not None:
+                el = _resolve_type_text_element_from_point(tx, ty, root)
+                if el is not None and el.tag in _TYPE_TEXT_INPUT_TAGS:
+                    step["target"] = _build_target(tx, ty, el, root)
+                else:
+                    step["target"] = _last_tap_target
+            else:
+                step["target"] = _last_tap_target
+        else:
+            step["target"] = _last_tap_target
     # 3. Coordinate hit_test fallback
     elif tx is not None and ty is not None:
         root = snapshot if snapshot is not None else (_cache.get("root") or await _cached_tree())
@@ -1837,7 +1950,14 @@ async def ws_handler(ws: WebSocket):
                 target_selector_quality = data.get("target_selector_quality")
                 snapshot = _cache.get("root")
                 if rec:
-                    await wda.type_text(text)
+                    await _send_type_text_to_target(
+                        text,
+                        float(tx) if tx is not None else None,
+                        float(ty) if ty is not None else None,
+                        snapshot,
+                        target_type,
+                        target_value,
+                    )
                     asyncio.create_task(_record_type_text(
                         text,
                         float(tx) if tx is not None else None,

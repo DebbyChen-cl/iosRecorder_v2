@@ -37,6 +37,7 @@ let activeDotIdx = null;   // null | 0 | 1 — which side dot is being dragged
 const urlInput      = document.getElementById("urlInput");
 const connectBtn    = document.getElementById("connectBtn");
 const dot           = document.getElementById("dot");
+const screenPanel   = document.querySelector(".screen-panel");
 const screenWrap    = document.getElementById("screenWrap");
 const screenImg     = document.getElementById("screenImg");
 const gestureSvg    = document.getElementById("gestureSvg");
@@ -107,6 +108,16 @@ if (screenWrap) {
   });
 }
 
+window.addEventListener("resize", () => {
+  requestAnimationFrame(applyScreenFit);
+});
+
+if (screenImg) {
+  screenImg.addEventListener("load", () => {
+    applyScreenFit();
+  });
+}
+
 // ── Boot ───────────────────────────────────────────────────────────────────────
 window.addEventListener("load", async () => {
   const cfg = await api("GET", "/api/config").catch(() => null);
@@ -157,6 +168,46 @@ async function refreshElementTree(force = false) {
   const data = await api("GET", force ? "/api/tree?fresh=1" : "/api/tree").catch(() => null);
   if (data?.elements) _treeElements = data.elements;
   return !!data?.elements;
+}
+
+function applyScreenFit() {
+  if (!screenPanel || !screenWrap || !screenImg || !deviceW || !deviceH) return;
+
+  const panelStyle = getComputedStyle(screenPanel);
+  const padX = parseFloat(panelStyle.paddingLeft || "0") + parseFloat(panelStyle.paddingRight || "0");
+  const padY = parseFloat(panelStyle.paddingTop || "0") + parseFloat(panelStyle.paddingBottom || "0");
+  const metaH = (screenMeta?.offsetHeight || 0) + 10;
+
+  const maxW = Math.max(1, screenPanel.clientWidth - padX);
+  const maxH = Math.max(1, screenPanel.clientHeight - padY - metaH);
+
+  // Prefer the stream frame ratio for visual fit so landscape frames are
+  // not squeezed into a portrait box when backend screen_size is stale.
+  const streamW = Number(screenImg.naturalWidth) || 0;
+  const streamH = Number(screenImg.naturalHeight) || 0;
+  const hasStreamSize = streamW > 0 && streamH > 0;
+
+  const deviceRatio = deviceW / deviceH;
+  const streamRatio = hasStreamSize ? (streamW / streamH) : deviceRatio;
+  const ratioGap = Math.abs(streamRatio - deviceRatio);
+
+  const useStreamRatio = hasStreamSize && ratioGap > 0.2;
+  const fitBaseW = useStreamRatio ? streamW : deviceW;
+  const fitBaseH = useStreamRatio ? streamH : deviceH;
+
+  const isLandscape = fitBaseW >= fitBaseH;
+  screenWrap.classList.toggle("screen-wrap--landscape", isLandscape);
+  screenWrap.classList.toggle("screen-wrap--portrait", !isLandscape);
+
+  const scale = Math.min(maxW / fitBaseW, maxH / fitBaseH);
+
+  if (!Number.isFinite(scale) || scale <= 0) return;
+
+  const fitW = Math.max(1, Math.floor(fitBaseW * scale));
+  const fitH = Math.max(1, Math.floor(fitBaseH * scale));
+  screenWrap.style.setProperty("--screen-fit-w", `${fitW}px`);
+  screenWrap.style.setProperty("--screen-fit-h", `${fitH}px`);
+  screenWrap.classList.add("screen-wrap--fitted");
 }
 // ── Finger mode ─────────────────────────────────────────────────────────
 fingerBtns.forEach(btn => {
@@ -438,6 +489,7 @@ async function checkStatus() {
         deviceW = width; deviceH = height;
         screenMeta.textContent = `${deviceW} × ${deviceH} pts`;
       }
+      applyScreenFit();
     }
     if (data.mjpeg_url && screenImg.dataset.mjpeg !== data.mjpeg_url) {
       screenImg.dataset.mjpeg = data.mjpeg_url;

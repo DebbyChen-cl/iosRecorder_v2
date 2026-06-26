@@ -755,9 +755,7 @@ class WDAClient:
             await self._ensure_session()
         if not self._session_id or not self._client:
             return False
-        words = text.split(" ")
-        for i, word in enumerate(words):
-            chunk = word if i == len(words) - 1 else word + " "
+        for chunk in self._text_chunks(text):
             try:
                 resp = await self._client.post(
                     f"{self.base_url}/session/{self._session_id}/wda/keys",
@@ -769,5 +767,123 @@ class WDAClient:
                     return False
             except Exception as e:
                 logger.error(f"type_text failed: {e}")
+                return False
+        return True
+
+    @staticmethod
+    def _text_chunks(text: str) -> list[str]:
+        words = text.split(" ")
+        chunks: list[str] = []
+        for i, word in enumerate(words):
+            chunks.append(word if i == len(words) - 1 else word + " ")
+        return chunks
+
+    @staticmethod
+    def _extract_element_id(value) -> Optional[str]:
+        if isinstance(value, str):
+            return value
+        if isinstance(value, dict):
+            return value.get("ELEMENT") or value.get("element-6066-11e4-a52e-4f735466cecf")
+        return None
+
+    @staticmethod
+    def _selector_candidates(selector_type: str) -> list[str]:
+        st = (selector_type or "").strip().lower()
+        if st in ("accessibility id", "id"):
+            return ["name", "id", "accessibility id"]
+        if st == "name":
+            return ["name", "id"]
+        if st == "xpath":
+            return ["xpath"]
+        return [st] if st else []
+
+    async def _find_element_id(self, selector_type: str, selector_value: str) -> Optional[str]:
+        if not self._session_id:
+            await self._ensure_session()
+        if not self._session_id or not self._client:
+            return None
+
+        for using in self._selector_candidates(selector_type):
+            try:
+                resp = await self._client.post(
+                    f"{self.base_url}/session/{self._session_id}/element",
+                    json={"using": using, "value": selector_value},
+                    timeout=6.0,
+                )
+            except Exception as e:
+                logger.debug("find_element_id failed using=%s: %r", using, e)
+                continue
+
+            if resp.status_code not in (200, 204):
+                logger.debug("find_element_id miss using=%s status=%s", using, resp.status_code)
+                continue
+
+            try:
+                data = resp.json().get("value")
+            except Exception:
+                logger.debug("find_element_id parse error using=%s", using)
+                continue
+
+            element_id = self._extract_element_id(data)
+            if element_id:
+                return element_id
+        return None
+
+    async def _clear_element_value(self, element_id: str) -> bool:
+        if not self._session_id or not self._client:
+            return False
+        try:
+            resp = await self._client.post(
+                f"{self.base_url}/session/{self._session_id}/element/{element_id}/clear",
+                timeout=8.0,
+            )
+            return resp.status_code in (200, 204)
+        except Exception as e:
+            logger.debug("clear element failed: %r", e)
+            return False
+
+    async def type_text_into_element(
+        self,
+        selector_type: str,
+        selector_value: str,
+        text: str,
+        clear_first: bool = True,
+    ) -> bool:
+        """Type text into an element resolved by selector.
+
+        clear_first=True matches replay semantics (replace full string).
+        """
+        element_id = await self._find_element_id(selector_type, selector_value)
+        if not element_id or not self._session_id or not self._client:
+            return False
+
+        if clear_first and not await self._clear_element_value(element_id):
+            logger.warning(
+                "type_text_into_element clear failed selector=(%s,%s)",
+                selector_type,
+                selector_value,
+            )
+            return False
+
+        if text == "":
+            return True
+
+        for chunk in self._text_chunks(text):
+            try:
+                resp = await self._client.post(
+                    f"{self.base_url}/session/{self._session_id}/element/{element_id}/value",
+                    json={"text": chunk, "value": list(chunk)},
+                    timeout=10.0,
+                )
+                if resp.status_code not in (200, 204):
+                    logger.warning(
+                        "type_text_into_element chunk failed: status=%s selector=(%s,%s)",
+                        resp.status_code,
+                        selector_type,
+                        selector_value,
+                    )
+                    return False
+            except Exception as e:
+                logger.error("type_text_into_element failed: %r", e)
                 return False
         return True

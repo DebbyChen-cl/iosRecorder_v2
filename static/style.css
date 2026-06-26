@@ -123,13 +123,37 @@ body {
   flex-shrink: 0;
 }
 
+.screen-wrap.screen-wrap--fitted {
+  width: var(--screen-fit-w, auto);
+  height: var(--screen-fit-h, auto);
+}
+
+.screen-wrap.screen-wrap--portrait {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.screen-wrap.screen-wrap--landscape {
+  max-width: 100%;
+  max-height: 100%;
+}
+
 #screenImg {
   display: block;
-  max-height: calc(100vh - 90px);
   width: auto;
+  height: auto;
   max-width: 100%;
+  max-height: calc(100vh - 90px);
   pointer-events: none;
   user-select: none;
+}
+
+.screen-wrap.screen-wrap--fitted #screenImg {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: contain;
 }
 
 #overlay {
