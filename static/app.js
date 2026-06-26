@@ -5,6 +5,7 @@ let unitTestMode = false;
 let unitTestEntryCount = 0;
 let wdaUrl = "http://localhost:8100";
 let deviceW = 390, deviceH = 844;
+let isConnected = false;
 let isRecording = false;
 let steps = [];
 let _treeElements = []; // cached from last /api/tree fetch
@@ -36,6 +37,7 @@ let activeDotIdx = null;   // null | 0 | 1 — which side dot is being dragged
 const urlInput      = document.getElementById("urlInput");
 const connectBtn    = document.getElementById("connectBtn");
 const dot           = document.getElementById("dot");
+const screenWrap    = document.getElementById("screenWrap");
 const screenImg     = document.getElementById("screenImg");
 const gestureSvg    = document.getElementById("gestureSvg");
 const clickLayer    = document.getElementById("clickLayer");
@@ -86,6 +88,7 @@ const hoverBboxRect         = document.getElementById("hoverBboxRect");
 const hoverLoadingMark      = document.getElementById("hoverLoadingMark");
 const hoverLoadingH         = document.getElementById("hoverLoadingH");
 const hoverLoadingV         = document.getElementById("hoverLoadingV");
+const screenLoadingText     = document.getElementById("screenLoadingText");
 const unitTestBadge         = document.getElementById("unitTestBadge");
 const unitTestPanel         = document.getElementById("unitTestPanel");
 const exportUnitTestBtn     = document.getElementById("exportUnitTestBtn");
@@ -93,6 +96,16 @@ const unitTestCountEl       = document.getElementById("unitTestCount");
 const unitTestResultModal   = document.getElementById("unitTestResultModal");
 const unitTestResultClose   = document.getElementById("unitTestResultClose");
 const unitTestResultPaths   = document.getElementById("unitTestResultPaths");
+
+if (screenWrap) {
+  ["pointerdown", "pointerup", "click", "contextmenu"].forEach(type => {
+    screenWrap.addEventListener(type, e => {
+      if (!isScreenLoadingActive()) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }, true);
+  });
+}
 
 // ── Boot ───────────────────────────────────────────────────────────────────────
 window.addEventListener("load", async () => {
@@ -111,6 +124,7 @@ window.addEventListener("load", async () => {
     _updateUnitTestCount();
   }
   await checkStatus();
+  if (isConnected) refreshElementTree();
   setInterval(() => {
     if (isPollPaused()) return;
     checkStatus();
@@ -123,11 +137,7 @@ window.addEventListener("load", async () => {
     }, 1500);
   }
   // Keep element tree warm for instant hover hit-test
-  setInterval(async () => {
-    if (isPollPaused()) return;
-    const data = await api("GET", "/api/tree").catch(() => null);
-    if (data?.elements) _treeElements = data.elements;
-  }, 2000);
+  setInterval(refreshElementTree, 2000);
 });
 
 function pausePolling(ms) {
@@ -136,6 +146,17 @@ function pausePolling(ms) {
 
 function isPollPaused() {
   return Date.now() < pollPauseUntil;
+}
+
+function rememberScreenPoint(fx, fy) {
+  _lastScreenPoint = { fx, fy };
+}
+
+async function refreshElementTree(force = false) {
+  if (!force && (isPollPaused() || !isConnected)) return;
+  const data = await api("GET", force ? "/api/tree?fresh=1" : "/api/tree").catch(() => null);
+  if (data?.elements) _treeElements = data.elements;
+  return !!data?.elements;
 }
 // ── Finger mode ─────────────────────────────────────────────────────────
 fingerBtns.forEach(btn => {
@@ -225,12 +246,12 @@ function showDragModeToast(mode) {
 // All drag events route through pgstSvg (pointer-captured on side circles)
 pgstSvg.addEventListener("pointermove", e => {
   // Show hover highlight while hovering over the overlay without dragging a dot
+  const rect = pgstSvg.getBoundingClientRect();
+  rememberScreenPoint(e.clientX - rect.left, e.clientY - rect.top);
   if (activeDotIdx === null) {
-    const rect = pgstSvg.getBoundingClientRect();
     updateHoverHighlight(e.clientX - rect.left, e.clientY - rect.top);
   }
   if (activeDotIdx === null || !pgst) return;
-  const rect = pgstSvg.getBoundingClientRect();
   const mx = e.clientX - rect.left;
   const my = e.clientY - rect.top;
   const dx = mx - pgst.cx, dy = my - pgst.cy;
@@ -408,6 +429,7 @@ async function doConnect() {
 async function checkStatus() {
   const data = await api("GET", "/api/status").catch(() => null);
   if (data?.connected) {
+    isConnected = true;
     setDot("connected");
     offlineMsg.style.display = "none";
     if (data.screen_size?.width) {
@@ -422,6 +444,8 @@ async function checkStatus() {
       loadStream(data.mjpeg_url);
     }
   } else {
+    isConnected = false;
+    if (!isScreenLoadingActive()) setScreenLoading(false);
     setDot("");
   }
   return !!data?.connected;
@@ -458,7 +482,8 @@ function toDevice(displayX, displayY) {
 
 // ── Gesture detection ──────────────────────────────────────────────────────────
 const MOVE_THRESHOLD = 10;   // px display — below = tap
-const LONG_PRESS_MS  = 500;  // ms hold without move → long press / drag
+const LONG_PRESS_MS  = 500;  // ms hold without move → long press
+const LONG_PRESS_DRAG_MS = 1000; // ms hold before moving → long press drag
 const DBL_TAP_MS     = 400;  // ms window to accumulate taps
 const DBL_TAP_DIST   = 30;   // px display
 const PAINT_MIN_DIST  = 4.0; // px display — ignore jitter between paint samples
@@ -472,6 +497,11 @@ let tapSeq = { count: 0, x: 0, y: 0, timer: null };
 
 clickLayer.addEventListener("pointerdown", e => {
   e.preventDefault();
+  rememberScreenPoint(e.offsetX, e.offsetY);
+  if (isScreenLoadingActive()) {
+    e.stopPropagation();
+    return;
+  }
   clearHoverHighlight();
 
   if (e.button !== 0) return; // ignore right-click / middle-click
@@ -491,21 +521,24 @@ clickLayer.addEventListener("pointerdown", e => {
     sx: e.offsetX, sy: e.offsetY,
     t0: Date.now(),
     moved: false,
-    isDrag: false,
+    longPressed: false,
+    moveStartTime: null,
     points: [{ x: e.offsetX, y: e.offsetY, t: 0 }],
     lastPointTs: Date.now(),
     prevVecX: null,
     prevVecY: null,
     longTimer: setTimeout(() => {
       if (gst && !gst.moved) {
-        gst.isDrag = true;
+        gst.longPressed = true;
         if (dragMode === "drag") showLongRing(gst.sx, gst.sy);
       }
-    }, LONG_PRESS_MS),
+    }, dragMode === "drag" ? LONG_PRESS_DRAG_MS : LONG_PRESS_MS),
   };
 });
 
 clickLayer.addEventListener("pointermove", e => {
+  rememberScreenPoint(e.offsetX, e.offsetY);
+  if (isScreenLoadingActive() && !gst) return;
   // Hover element highlight: synchronous hit-test, rAF-batched DOM write
   if (!gst && gestureMode === "normal") {
     updateHoverHighlight(e.offsetX, e.offsetY);
@@ -524,6 +557,7 @@ clickLayer.addEventListener("pointermove", e => {
   const dx = e.offsetX - gst.sx, dy = e.offsetY - gst.sy;
   if (!gst.moved && Math.hypot(dx, dy) > MOVE_THRESHOLD) {
     gst.moved = true;
+    gst.moveStartTime = Date.now();
     clearTimeout(gst.longTimer);
     clearGestureOverlay();
   }
@@ -535,12 +569,14 @@ clickLayer.addEventListener("pointermove", e => {
       const snapped = (dragMode === "scroll" || dragMode === "swipe")
         ? snapCardinal(gst.sx, gst.sy, e.offsetX, e.offsetY)
         : { ex: e.offsetX, ey: e.offsetY };
-      drawSwipePreview(gst.sx, gst.sy, snapped.ex, snapped.ey);
+      const previewMode = (dragMode === "drag" && gst.longPressed) ? "long_press_drag" : dragMode;
+      drawSwipePreview(gst.sx, gst.sy, snapped.ex, snapped.ey, previewMode);
     }
   }
 });
 
 clickLayer.addEventListener("pointerup", e => {
+  rememberScreenPoint(e.offsetX, e.offsetY);
   if (!gst) return;
   if (e.button !== 0) return; // ignore right-click release
   clearTimeout(gst.longTimer);
@@ -548,11 +584,11 @@ clickLayer.addEventListener("pointerup", e => {
 
   const ex = e.offsetX, ey = e.offsetY;
   const elapsed = Date.now() - gst.t0;
-  const { sx, sy, moved, isDrag, points, t0 } = gst;
+  const { sx, sy, moved, longPressed, moveStartTime, points, t0 } = gst;
   gst = null;
 
   if (!moved) {
-    if (isDrag || elapsed >= LONG_PRESS_MS) {
+    if (longPressed || elapsed >= LONG_PRESS_MS) {
       onLongPress(sx, sy);
     } else {
       onTap(sx, sy);
@@ -561,7 +597,7 @@ clickLayer.addEventListener("pointerup", e => {
     // Any drag motion uses the current dragMode
     const dur = Math.min(Math.max(elapsed, 200), 1500);
     if (dragMode === "scroll")     onScroll(sx, sy, ex, ey, dur);
-    else if (dragMode === "drag")  onDrag(sx, sy, ex, ey);
+    else if (dragMode === "drag")  onDrag(sx, sy, ex, ey, longPressed, elapsed, moveStartTime ? moveStartTime - t0 : elapsed);
     else if (dragMode === "swipe") onSwipe(sx, sy, ex, ey, dur);
     else                            onPaint(sx, sy, ex, ey, elapsed, points, t0);
   }
@@ -725,10 +761,21 @@ function onScroll(sx, sy, ex, ey, elapsed) {
   if (isRecording) awaitingScrollTarget = true;
 }
 
-function onDrag(sx, sy, ex, ey) {
-  showGestureTrail(sx, sy, ex, ey);
+function onDrag(sx, sy, ex, ey, longPressed = false, elapsed = 1000, pressDuration = 0) {
+  const actionType = longPressed ? "long_press_drag" : "drag";
+  showGestureTrail(sx, sy, ex, ey, actionType);
   const s = toDevice(sx, sy), e2 = toDevice(ex, ey);
-  sendGesture("drag", { x1: s.x, y1: s.y, x2: e2.x, y2: e2.y, duration: 1000 });
+  if (longPressed) {
+    const holdMs = Math.min(Math.max(pressDuration, LONG_PRESS_DRAG_MS), 3000);
+    const moveMs = Math.min(Math.max(elapsed - holdMs, 200), 1500);
+    sendGesture("long_press_drag", {
+      x1: s.x, y1: s.y, x2: e2.x, y2: e2.y,
+      duration: moveMs,
+      press_duration: holdMs,
+    });
+  } else {
+    sendGesture("drag", { x1: s.x, y1: s.y, x2: e2.x, y2: e2.y, duration: 1000 });
+  }
 }
 
 function simplifyPaintPointsForSend(points, maxPoints = PAINT_TARGET_SEND_POINTS) {
@@ -841,26 +888,16 @@ function maybeAddPaintPoint(state, x, y) {
 function sendGesture(type, data) {
   const record = isRecording;
 
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type, ...data, record }));
-    return;
-  }
-
   // HTTP fallback.
-  const execEp = { tap: "/api/tap", double_tap: "/api/double_tap", triple_tap: "/api/triple_tap", five_tap: "/api/five_tap", long_press: "/api/long_press", two_finger_tap: "/api/two_finger_tap", multi_finger_tap: "/api/multi_finger_tap", pinch: "/api/pinch", rotate: "/api/rotate", scroll: "/api/scroll", swipe: "/api/swipe", drag: "/api/drag", paint: "/api/paint" };
-  const recEp  = { tap: "/api/record", double_tap: "/api/record/double_tap", triple_tap: "/api/record/triple_tap", five_tap: "/api/record/five_tap", long_press: "/api/record/long_press", two_finger_tap: "/api/record/two_finger_tap", multi_finger_tap: "/api/record/multi_finger_tap", pinch: "/api/record/pinch", rotate: "/api/record/rotate", scroll: "/api/record/scroll", swipe: "/api/record/swipe", drag: "/api/record/drag", paint: "/api/record/paint" };
+  const execEp = { tap: "/api/tap", double_tap: "/api/double_tap", triple_tap: "/api/triple_tap", five_tap: "/api/five_tap", long_press: "/api/long_press", two_finger_tap: "/api/two_finger_tap", multi_finger_tap: "/api/multi_finger_tap", pinch: "/api/pinch", rotate: "/api/rotate", scroll: "/api/scroll", swipe: "/api/swipe", drag: "/api/drag", long_press_drag: "/api/long_press_drag", paint: "/api/paint" };
+  const recEp  = { tap: "/api/record", double_tap: "/api/record/double_tap", triple_tap: "/api/record/triple_tap", five_tap: "/api/record/five_tap", long_press: "/api/record/long_press", two_finger_tap: "/api/record/two_finger_tap", multi_finger_tap: "/api/record/multi_finger_tap", pinch: "/api/record/pinch", rotate: "/api/record/rotate", scroll: "/api/record/scroll", swipe: "/api/record/swipe", drag: "/api/record/drag", long_press_drag: "/api/record/long_press_drag", paint: "/api/record/paint" };
 
-  if (record) {
-    // Paint is execute+record in one request to reduce start latency.
-    if (type === "paint") {
-      api("POST", recEp[type], data);
-      return;
+  trackActionLoading(type, data, () => {
+    if (record) {
+      return api("POST", recEp[type], data);
     }
-    // Other gestures: await record path first, then execute.
-    api("POST", recEp[type], data).then(() => api("POST", execEp[type], data));
-  } else {
-    api("POST", execEp[type], data);
-  }
+    return api("POST", execEp[type], data);
+  });
 }
 
 // ── Type Text overlay ─────────────────────────────────────────────────────────
@@ -906,15 +943,10 @@ function sendTypeText(text, tx, ty) {
       target_selector_quality: t.selector_quality ?? null,
     } : {}),
   };
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type: "type_text", ...data, record }));
-    return;
-  }
-  if (record) {
-    api("POST", "/api/record/type_text", data).then(() => api("POST", "/api/type_text", { text }));
-  } else {
-    api("POST", "/api/type_text", { text });
-  }
+  trackActionLoading("type_text", data, () => {
+    if (record) return api("POST", "/api/record/type_text", data);
+    return api("POST", "/api/type_text", { text });
+  });
 }
 
 typeBtn.addEventListener("click", () => {
@@ -952,15 +984,10 @@ textInputOverlay.addEventListener("click", e => {
 // ── Home button ───────────────────────────────────────────────────────────────
 homeBtn.addEventListener("click", () => {
   const record = isRecording;
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type: "home", record }));
-    return;
-  }
-  if (record) {
-    api("POST", "/api/record/home").then(() => api("POST", "/api/home"));
-  } else {
-    api("POST", "/api/home");
-  }
+  trackActionLoading("home", {}, () => {
+    if (record) return api("POST", "/api/record/home");
+    return api("POST", "/api/home");
+  });
 });
 
 // ── App Picker ────────────────────────────────────────────────────────────────
@@ -997,28 +1024,18 @@ function closeAppPicker() {
 
 function sendLaunchApp(bundleId) {
   const record = isRecording;
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type: "launch_app", bundle_id: bundleId, record }));
-    return;
-  }
-  if (record) {
-    api("POST", "/api/record/launch_app", { bundle_id: bundleId }).then(() => api("POST", "/api/launch_app", { bundle_id: bundleId }));
-  } else {
-    api("POST", "/api/launch_app", { bundle_id: bundleId });
-  }
+  trackActionLoading("launch_app", { bundle_id: bundleId }, () => {
+    if (record) return api("POST", "/api/record/launch_app", { bundle_id: bundleId });
+    return api("POST", "/api/launch_app", { bundle_id: bundleId });
+  });
 }
 
 function sendTerminateApp(bundleId) {
   const record = isRecording;
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type: "terminate_app", bundle_id: bundleId, record }));
-    return;
-  }
-  if (record) {
-    api("POST", "/api/record/terminate_app", { bundle_id: bundleId }).then(() => api("POST", "/api/terminate_app", { bundle_id: bundleId }));
-  } else {
-    api("POST", "/api/terminate_app", { bundle_id: bundleId });
-  }
+  trackActionLoading("terminate_app", { bundle_id: bundleId }, () => {
+    if (record) return api("POST", "/api/record/terminate_app", { bundle_id: bundleId });
+    return api("POST", "/api/terminate_app", { bundle_id: bundleId });
+  });
 }
 
 launchAppBtn.addEventListener("click", () => openAppPicker());
@@ -1162,6 +1179,170 @@ let _hoverRafId      = null;
 let _hoverTimer      = null;
 let _hoverRetryTimer = null;
 let _hoverCoord      = null;
+let _screenLoadingActive = false;
+let _actionFlowSeq = 0;
+let _lastScreenPoint = null;
+
+function isScreenLoadingActive() {
+  return _screenLoadingActive;
+}
+
+function setScreenLoading(active, text = "Getting APP Information") {
+  _screenLoadingActive = active;
+  if (!screenWrap) return;
+  screenWrap.classList.toggle("is-screen-loading", active);
+  screenWrap.setAttribute("aria-busy", active ? "true" : "false");
+  if (active && screenLoadingText) screenLoadingText.textContent = text;
+}
+
+function beginActionLoading() {
+  const flow = { id: ++_actionFlowSeq, startedAt: Date.now() };
+  clearVisibleBbox();
+  setScreenLoading(true, "Sending Action");
+  return flow;
+}
+
+function completeActionSend(flow, type, data) {
+  if (!flow || flow.id !== _actionFlowSeq) return;
+  setTimeout(() => startAppInfoRefresh(flow), getActionVisualSettleMs(type, data));
+}
+
+async function startAppInfoRefresh(flow) {
+  if (!flow || flow.id !== _actionFlowSeq) {
+    if (flow?.id === _actionFlowSeq) setScreenLoading(false);
+    return;
+  }
+
+  setScreenLoading(true, "Getting APP Information");
+  const deadline = Date.now() + 30000;
+  while (flow.id === _actionFlowSeq && Date.now() < deadline) {
+    if (await refreshElementTree(true)) {
+      const drewBbox = await drawActionBboxAtLastPoint();
+      if (drewBbox) {
+        await waitForCommittedFrame();
+        if (flow.id === _actionFlowSeq) setScreenLoading(false);
+        return;
+      }
+    }
+    await delay(250);
+  }
+  if (flow.id === _actionFlowSeq) setScreenLoading(false);
+}
+
+function failActionLoading(flow) {
+  if (flow?.id === _actionFlowSeq) setScreenLoading(false);
+}
+
+function trackActionLoading(type, data, sendFn) {
+  const flow = beginActionLoading();
+  try {
+    Promise.resolve(sendFn())
+      .then(() => completeActionSend(flow, type, data))
+      .catch(() => failActionLoading(flow));
+  } catch (_) {
+    failActionLoading(flow);
+  }
+}
+
+function getActionVisualSettleMs(type, data = {}) {
+  const defaults = {
+    tap: 450,
+    double_tap: 520,
+    triple_tap: 620,
+    five_tap: 760,
+    two_finger_tap: 450,
+    multi_finger_tap: 500,
+    long_press: 350,
+    scroll: 180,
+    swipe: 180,
+    drag: 220,
+    long_press_drag: 260,
+    paint: 220,
+    pinch: 220,
+    rotate: 220,
+    type_text: 450,
+    home: 900,
+    launch_app: 1200,
+    terminate_app: 800,
+  };
+  return defaults[type] ?? 450;
+}
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function waitForCommittedFrame() {
+  return new Promise(resolve => {
+    requestAnimationFrame(() => requestAnimationFrame(resolve));
+  });
+}
+
+async function drawActionBboxAtLastPoint() {
+  if (!_lastScreenPoint) return false;
+  const { fx, fy } = _lastScreenPoint;
+  const { x, y } = toDevice(fx, fy);
+
+  let info = null;
+  try { info = await api("GET", `/api/element_info?x=${x}&y=${y}`); } catch (_) {}
+  if (info?.cache_ready === false) return false;
+  if (info?.found && info.bounds) return applyVisibleBbox(info.bounds);
+
+  if (_treeElements.length) {
+    const el = _clientHitTest(x, y);
+    if (el?.rect) return applyVisibleBbox(el.rect);
+  }
+  return false;
+}
+
+function applyHoverInfo(info, fx, fy) {
+  if (!info?.found || !info.bounds) {
+    clearHoverHighlight();
+    return Promise.resolve(false);
+  }
+  const b = info.bounds;
+  if (!b.w || !b.h) {
+    clearHoverHighlight();
+    return Promise.resolve(false);
+  }
+  const rectKey = `${b.x},${b.y},${b.w},${b.h}`;
+  cancelAnimationFrame(_hoverRafId);
+  return new Promise(resolve => {
+    _hoverRafId = requestAnimationFrame(() => {
+      _hideHoverLoading();
+      if (rectKey !== _hoverLastKey || hoverBboxRect.getAttribute("visibility") !== "visible") {
+        _hoverLastKey = rectKey;
+        setBboxRectAttrs(hoverBboxRect, b);
+      }
+      resolve(true);
+    });
+  });
+}
+
+function applyVisibleBbox(bounds) {
+  if (!bounds?.w || !bounds?.h) return Promise.resolve(false);
+  return new Promise(resolve => {
+    requestAnimationFrame(() => {
+      setBboxRectAttrs(hoverBboxRect, bounds);
+      resolve(true);
+    });
+  });
+}
+
+function setBboxRectAttrs(rectEl, bounds) {
+  const r  = clickLayer.getBoundingClientRect();
+  const sx = r.width  / deviceW;
+  const sy = r.height / deviceH;
+  rectEl.setAttribute("x",          bounds.x * sx);
+  rectEl.setAttribute("y",          bounds.y * sy);
+  rectEl.setAttribute("width",      bounds.w * sx);
+  rectEl.setAttribute("height",     bounds.h * sy);
+  rectEl.setAttribute("visibility", "visible");
+}
+
+function clearVisibleBbox() {
+  hoverBboxRect.setAttribute("visibility", "hidden");
+}
 
 function updateHoverHighlight(fx, fy) {
   const { x, y } = toDevice(fx, fy);
@@ -1186,24 +1367,7 @@ async function _fetchHoverAt(x, y, fx, fy, coordKey) {
     _hoverRetryTimer = setTimeout(() => _fetchHoverAt(x, y, fx, fy, coordKey), 250);
     return;
   }
-  if (!info?.found || !info.bounds) { clearHoverHighlight(); return; }
-  const b = info.bounds;
-  if (!b.w || !b.h) { clearHoverHighlight(); return; }
-  const rectKey = `${b.x},${b.y},${b.w},${b.h}`;
-  cancelAnimationFrame(_hoverRafId);
-  _hoverRafId = requestAnimationFrame(() => {
-    _hideHoverLoading();
-    if (rectKey === _hoverLastKey) return;
-    _hoverLastKey = rectKey;
-    const r  = clickLayer.getBoundingClientRect();
-    const sx = r.width  / deviceW;
-    const sy = r.height / deviceH;
-    hoverBboxRect.setAttribute("x",          b.x * sx);
-    hoverBboxRect.setAttribute("y",          b.y * sy);
-    hoverBboxRect.setAttribute("width",      b.w * sx);
-    hoverBboxRect.setAttribute("height",     b.h * sy);
-    hoverBboxRect.setAttribute("visibility", "visible");
-  });
+  await applyHoverInfo(info, fx, fy);
 }
 
 function _showHoverLoading(fx, fy) {
@@ -1225,7 +1389,7 @@ function clearHoverHighlight() {
   clearTimeout(_hoverTimer);
   clearTimeout(_hoverRetryTimer);
   cancelAnimationFrame(_hoverRafId);
-  hoverBboxRect.setAttribute("visibility", "hidden");
+  if (!isScreenLoadingActive()) clearVisibleBbox();
   _hideHoverLoading();
 }
 
@@ -1498,12 +1662,12 @@ function clearGestureOverlay() {
   if (longRingEl) { longRingEl.remove(); longRingEl = null; }
 }
 
-function drawSwipePreview(x1, y1, x2, y2) {
-  const modeColors = { scroll: "#50fa7b", swipe: "#4a9eff", drag: "#ffb86c", paint: "#ff79c6" };
-  const color = modeColors[dragMode] || "#4a9eff";
-  const dashArr = dragMode === "drag" ? "5,3" : "8,4";
+function drawSwipePreview(x1, y1, x2, y2, mode = dragMode) {
+  const modeColors = { scroll: "#50fa7b", swipe: "#4a9eff", drag: "#ffb86c", long_press_drag: "#ff79c6", paint: "#ff79c6" };
+  const color = modeColors[mode] || "#4a9eff";
+  const dashArr = (mode === "drag" || mode === "long_press_drag") ? "5,3" : "8,4";
   const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
-  const label = dragMode.toUpperCase();
+  const label = mode === "long_press_drag" ? "LONG DRAG" : mode.toUpperCase();
   const tw = label.length * 8 + 16;
   gestureSvg.innerHTML = `
     <defs><marker id="arr" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto">
@@ -1535,9 +1699,9 @@ function drawPaintPreview(points, cursorX, cursorY) {
   `;
 }
 
-function showGestureTrail(x1, y1, x2, y2) {
-  const modeColors = { scroll: "#50fa7b", swipe: "#4a9eff", drag: "#ffb86c", paint: "#ff79c6" };
-  const color = modeColors[dragMode] || "#4a9eff";
+function showGestureTrail(x1, y1, x2, y2, mode = dragMode) {
+  const modeColors = { scroll: "#50fa7b", swipe: "#4a9eff", drag: "#ffb86c", long_press_drag: "#ff79c6", paint: "#ff79c6" };
+  const color = modeColors[mode] || "#4a9eff";
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.style.cssText = "position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible";
   svg.innerHTML = `
@@ -1649,11 +1813,11 @@ function renderSteps() {
     let cls, typeStr, valStr;
     const c = s.coords;
 
-    if (s.action === "swipe" || s.action === "drag") {
+    if (s.action === "swipe" || s.action === "drag" || s.action === "long_press_drag") {
       const st = s.start_target;
       const qCls = (st && st.type !== "coordinate") ? qualityClass(st) : "";
       cls = (qCls ? qCls + " " : "") + "is-gesture";
-      typeStr = s.action === "drag" ? "drag" : "swipe";
+      typeStr = s.action === "long_press_drag" ? "long press drag" : s.action === "drag" ? "drag" : "swipe";
       if (s.action === "swipe" && s.swipe_target && s.swipe_target.type !== "coordinate") {
         const dir = s.direction || "?";
         valStr = `${dir} until: ${s.swipe_target.type}: ${s.swipe_target.value}`;
@@ -1663,19 +1827,20 @@ function renderSteps() {
         const vel = s.velocity != null ? `${Math.round(s.velocity)}px/s` : null;
         const meta = [dur, vel].filter(Boolean).join(" · ");
         valStr = `${dir} on ${s.start_target.value}` + (meta ? ` · ${meta}` : "");
-      } else if (s.action === "drag") {
+      } else if (s.action === "drag" || s.action === "long_press_drag") {
         const st = s.start_target, et = s.end_target;
         const hasStart = st && st.type !== "coordinate";
         const hasEnd   = et && et.type !== "coordinate";
+        const hold = s.action === "long_press_drag" && s.press_duration != null ? ` · hold ${s.press_duration}ms` : "";
         if (hasStart && hasEnd) {
           const sp = st.offset_pct ?? { x: "?", y: "?" };
           const ep = et.offset_pct ?? { x: "?", y: "?" };
-          valStr = `${st.value} (${sp.x}%,${sp.y}%) → ${et.value} (${ep.x}%,${ep.y}%)`;
+          valStr = `${st.value} (${sp.x}%,${sp.y}%) → ${et.value} (${ep.x}%,${ep.y}%)${hold}`;
         } else if (hasStart) {
           const sp = st.offset_pct ?? { x: "?", y: "?" };
-          valStr = `${st.value} (${sp.x}%,${sp.y}%) → (${c.x2},${c.y2})`;
+          valStr = `${st.value} (${sp.x}%,${sp.y}%) → (${c.x2},${c.y2})${hold}`;
         } else {
-          valStr = `(${c.x1},${c.y1}) → (${c.x2},${c.y2})`;
+          valStr = `(${c.x1},${c.y1}) → (${c.x2},${c.y2})${hold}`;
         }
       } else {
         valStr = `(${c.x1},${c.y1}) → (${c.x2},${c.y2})`;

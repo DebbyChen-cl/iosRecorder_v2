@@ -1,7 +1,10 @@
+import os
 import xml.etree.ElementTree as ET
 from typing import List, Optional, Tuple
 
-from .selector import build_selector, get_selector_quality
+from .selector import build_selector, build_xpath, get_selector_quality, xpath_literal
+
+_XPATH_ONLY_MODE = os.environ.get("RECORDER_XPATH_ONLY") == "1"
 
 INTERACTIVE_TAGS = frozenset(
     {
@@ -16,8 +19,7 @@ INTERACTIVE_TAGS = frozenset(
 )
 
 # Generic wrapper types that are structurally necessary but rarely the intended
-# swipe / gesture target.  Penalised in hit_test_for_swipe so that more
-# specific siblings (e.g. XCUIElementTypeImage) are preferred.
+# direct target. Penalised only when an interactive candidate is available.
 GENERIC_CONTAINER_TAGS = frozenset(
     {
         "XCUIElementTypeOther",
@@ -64,6 +66,32 @@ def find_scroll_container(x: float, y: float, root: ET.Element) -> Optional[ET.E
     return min(scrollable, key=_area)
 
 
+def should_attach_scroll_container(
+    target: Optional[ET.Element],
+    container: Optional[ET.Element],
+    root: ET.Element,
+) -> bool:
+    """Return whether an element action should be scoped to *container*.
+
+    Recorder history allows point-based containers for many overlay elements,
+    so keep that for compatibility. The media item action button (for example
+    "Extract Audio") is a sibling overlay that can sit above stale/hidden tool
+    menus; scoping it to those menus makes exported tests wait on the wrong
+    collection view.
+    """
+    if target is None or container is None:
+        return False
+    path = _find_path(_unwrap(root), target)
+    if not path:
+        return True
+    if container in path[:-1]:
+        return True
+    return not any(
+        el.attrib.get("name", "").strip().startswith("mediaItemContainer.UIButton.")
+        for el in path
+    )
+
+
 def build_scroll_container_selector(el: ET.Element, root: ET.Element) -> Tuple[str, str]:
     """Build the most specific selector for a scroll container element.
 
@@ -71,6 +99,12 @@ def build_scroll_container_selector(el: ET.Element, root: ET.Element) -> Tuple[s
     xpath anchored on the nearest named ancestor so the selector is stable
     even for XCUIElementTypeOther containers that have no accessibility id.
     """
+    if _XPATH_ONLY_MODE:
+        xpath = _structural_xpath(el, _unwrap(root))
+        if xpath:
+            return "xpath", xpath
+        return "xpath", build_xpath(el)
+
     sel_type, sel_val = build_selector(el)
     if sel_type in ("accessibility id", "name"):
         return sel_type, sel_val
@@ -86,7 +120,8 @@ def hit_test(x: float, y: float, root: ET.Element) -> Optional[ET.Element]:
     _collect(x, y, actual, candidates)
     if not candidates:
         return None
-    return min(candidates, key=_score)
+    prefer_interactive = any(_is_interactive_target(el) for el in candidates)
+    return min(candidates, key=lambda el: _score(el, prefer_interactive))
 
 
 def hit_test_for_swipe(x: float, y: float, root: ET.Element) -> Optional[ET.Element]:
@@ -122,6 +157,27 @@ def hit_test_for_swipe(x: float, y: float, root: ET.Element) -> Optional[ET.Elem
     return min(candidates, key=_swipe_score)
 
 
+def hit_test_long_press_drag_source(x: float, y: float, root: ET.Element) -> Optional[ET.Element]:
+    """Select the draggable source for long-press-drag gestures.
+
+    Timeline drag/drop overlays often cover the full track region while the
+    deepest hit is only a tiny decoration such as pipTrackCell.UIImageView.clipType.
+    For the source side of a long-press drag, prefer the track cell that owns
+    that decoration so playback can press the draggable row/clip.
+    """
+    actual = _unwrap(root)
+    candidates: List[ET.Element] = []
+    _collect(x, y, actual, candidates)
+    if not candidates:
+        return None
+
+    track_cells = [el for el in candidates if _is_track_drag_cell(el)]
+    if track_cells:
+        return min(track_cells, key=_track_drag_cell_score)
+
+    return hit_test(x, y, root)
+
+
 def hit_test_excluding(x: float, y: float, root: ET.Element, exclude: ET.Element) -> Optional[ET.Element]:
     """Like hit_test but skips *exclude* and all its descendants.
 
@@ -137,8 +193,10 @@ def hit_test_excluding(x: float, y: float, root: ET.Element, exclude: ET.Element
     filtered = [el for el in candidates if el not in excluded]
     if not filtered:
         # Fallback: if nothing else is found, accept any candidate
-        return min(candidates, key=_score) if candidates else None
-    return min(filtered, key=_score)
+        prefer_interactive = any(_is_interactive_target(el) for el in candidates)
+        return min(candidates, key=lambda el: _score(el, prefer_interactive)) if candidates else None
+    prefer_interactive = any(_is_interactive_target(el) for el in filtered)
+    return min(filtered, key=lambda el: _score(el, prefer_interactive))
 
 
 def hit_test_drop_target(
@@ -155,21 +213,77 @@ def hit_test_drop_target(
     candidates: List[ET.Element] = []
     _collect(x, y, actual, candidates)
 
+    source_is_container_like = _is_drop_container_candidate(source) or len(list(source)) > 0
     excluded = set()
-    _collect_nodes(source, excluded)
+    if not source_is_container_like:
+        _collect_nodes(source, excluded)
     filtered = [el for el in candidates if el not in excluded]
     if not filtered:
-        return min(candidates, key=_score) if candidates else None
+        prefer_interactive = any(_is_interactive_target(el) for el in candidates)
+        return min(candidates, key=lambda el: _score(el, prefer_interactive)) if candidates else None
+
+    drop_containers = [el for el in filtered if _is_drop_container_candidate(el)]
+    if drop_containers:
+        return min(drop_containers, key=_drop_container_score)
 
     source_tag = source.tag
+    prefer_interactive = any(_is_interactive_target(el) for el in filtered)
 
     def _drop_score(el: ET.Element) -> tuple:
-        base = _score(el)
+        base = _score(el, prefer_interactive)
         # Add a penalty tier: same tag as source → sorted after different-tag elements
-        same_tag_penalty = int(el.tag == source_tag)
+        same_tag_penalty = int(not source_is_container_like and el.tag == source_tag)
         return (same_tag_penalty,) + base
 
     return min(filtered, key=_drop_score)
+
+
+def _is_drop_container_candidate(el: ET.Element) -> bool:
+    """Return True for named timeline/drop containers that should win over child leaves."""
+    if el.tag not in GENERIC_CONTAINER_TAGS and el.tag not in SCROLLABLE_TAGS:
+        return False
+    name = (el.attrib.get("name", "") or el.attrib.get("label", "")).strip().lower()
+    if not name:
+        return False
+    return any(
+        token in name
+        for token in (
+            "timeline",
+            "backgroundview",
+            "validarea",
+            "placeholder",
+            "drop",
+        )
+    )
+
+
+def _is_track_drag_cell(el: ET.Element) -> bool:
+    if el.tag != "XCUIElementTypeCell" or not _is_visible(el):
+        return False
+    name = el.attrib.get("name", "").strip().lower()
+    if "multipletrackviewcontroller.multipletrackcell.cell" in name:
+        return True
+    if "trackcell" in name or "track cell" in name:
+        return True
+    return any(
+        ("piptrackcell" in desc.attrib.get("name", "").strip().lower())
+        for desc in el.iter()
+    )
+
+
+def _track_drag_cell_score(el: ET.Element) -> tuple:
+    r = _rect(el)
+    area = (r[2] * r[3]) if r else float("inf")
+    name = el.attrib.get("name", "").strip().lower()
+    named_multiple_track = "multipletrackviewcontroller.multipletrackcell.cell" in name
+    return (-int(named_multiple_track), area)
+
+
+def _drop_container_score(el: ET.Element) -> tuple:
+    r = _rect(el)
+    area = (r[2] * r[3]) if r else float("inf")
+    path_depth = len(list(el.iter()))
+    return (area, -path_depth)
 
 
 def _unwrap(root: ET.Element) -> ET.Element:
@@ -188,25 +302,64 @@ def _has_id(el: ET.Element) -> bool:
     return (bool(name) and not name.startswith("0x") and not name.startswith("/")) or bool(label)
 
 
-def _score(el: ET.Element) -> tuple:
+def _is_visible(el: ET.Element) -> bool:
+    return el.attrib.get("visible", "true") != "false"
+
+
+def _is_hidden_renderer_layer(el: ET.Element) -> bool:
+    if _is_visible(el):
+        return False
+    name = el.attrib.get("name", "")
+    return name.startswith(("rendererViewController.", "rOI."))
+
+
+def _is_interactive_target(el: ET.Element) -> bool:
+    return el.tag in INTERACTIVE_TAGS and not _is_hidden_renderer_layer(el)
+
+
+def _score(el: ET.Element, prefer_interactive_over_generic: bool = False) -> tuple:
     r = _rect(el)
     area = (r[2] * r[3]) if r else float("inf")
-    is_interactive = el.tag in INTERACTIVE_TAGS
+    is_hidden_renderer_layer = _is_hidden_renderer_layer(el)
     has_id = _has_id(el)
     quality = get_selector_quality(el)
+    is_interactive = _is_interactive_target(el)
     has_children = len(list(el)) > 0
     is_container = el.tag in TAP_CONTAINER_TAGS
+    is_generic_wrapper = (
+        prefer_interactive_over_generic
+        and el.tag in GENERIC_CONTAINER_TAGS
+        and not is_interactive
+    )
     # Stable ID bonus only applies to leaf elements (no children).
     # Container-level stable IDs (e.g. ViewController root views with
     # "bundleid.ClassName" names) must not override smaller child elements.
-    has_stable_id = quality in ("id", "id_eq_label") and not has_children
+    # WDA can keep inactive renderer layers in the hierarchy with stale frames
+    # that overlap visible controls. Do not let those hidden renderer / ROI
+    # leaves win purely because they have stable accessibility IDs.
+    is_visible = _is_visible(el)
+    has_stable_id = (
+        quality in ("id", "id_eq_label")
+        and not has_children
+        and not is_hidden_renderer_layer
+        and is_visible
+    )
     # Priority:
     #   1. Non-container over structural containers (CollectionView, ScrollView …)
-    #   2. Stable ID leaf (non-indexed, no children) over anything without one
-    #   3. Interactive (Button, TextField …) as tiebreaker within same ID quality
-    #   4. Smallest area (most specific element)
-    #   5. Has any identifier > pure xpath fallback
-    return (int(is_container), -int(has_stable_id), -int(is_interactive), area, -int(has_id), int(has_children))
+    #   2. Interactive controls over generic XCUIElementTypeOther/View wrappers
+    #   3. Visible stable ID leaf (non-indexed, no children) over anything without one
+    #   4. Visible interactive element (Button, TextField …) as tiebreaker
+    #   5. Smallest area (most specific element)
+    #   6. Has any identifier > pure xpath fallback
+    return (
+        int(is_container),
+        int(is_generic_wrapper),
+        -int(has_stable_id),
+        -int(is_interactive),
+        area,
+        -int(has_id),
+        int(has_children),
+    )
 
 
 def _collect(x: float, y: float, el: ET.Element, out: List[ET.Element]):
@@ -267,7 +420,11 @@ def _structural_xpath(target: ET.Element, root: ET.Element) -> Optional[str]:
     if not anchor_name:
         return None
 
-    parts = [f'//{anchor.tag}[@name="{anchor_name}"]']
+    anchor_predicates = [f"@name={xpath_literal(anchor_name)}"]
+    anchor_label = anchor.attrib.get("label", "").strip()
+    if anchor_label and anchor_label != anchor_name and _has_same_name_peer(anchor, root):
+        anchor_predicates.append(f"@label={xpath_literal(anchor_label)}")
+    parts = [f"//{anchor.tag}[{' and '.join(anchor_predicates)}]"]
     for i in range(anchor_idx + 1, len(path)):
         el = path[i]
         parent = path[i - 1]
@@ -278,6 +435,19 @@ def _structural_xpath(target: ET.Element, root: ET.Element) -> Optional[str]:
         else:
             parts.append(el.tag)
     return "/".join(parts)
+
+
+def _has_same_name_peer(target: ET.Element, root: ET.Element) -> bool:
+    name = target.attrib.get("name", "").strip()
+    if not name:
+        return False
+    matches = 0
+    for el in root.iter():
+        if el.tag == target.tag and el.attrib.get("name", "").strip() == name:
+            matches += 1
+            if matches > 1:
+                return True
+    return False
 
 
 def serialize(root: ET.Element) -> List[dict]:

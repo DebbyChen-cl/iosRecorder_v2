@@ -6,11 +6,14 @@
 # gesture logic lives in one place.
 
 import functools
+import hashlib
 import logging
 import math
 import os
+import re
 import threading
 import time
+import xml.etree.ElementTree as ET
 import json
 import base64
 import urllib.request
@@ -43,12 +46,77 @@ logger = logging.getLogger(__name__)
 # Default timeouts (seconds)
 DEFAULT_WAIT   = 30
 DEFAULT_SCROLL_DURATION = 800  # ms
+DEFAULT_STABILITY_IGNORED_ATTRIBUTES = frozenset({"value", "x", "y", "width", "height", "frame"})
+DEFAULT_STABILITY_DYNAMIC_TEXT_PATTERNS = (
+    re.compile(r"^\s*(?:\d{1,2}:)?\d{1,2}:\d{2}(?:[.:]\d+)?(?:\s*/\s*(?:\d{1,2}:)?\d{1,2}:\d{2}(?:[.:]\d+)?)?\s*$"),
+    re.compile(r"^\s*-?\d+(?:\.\d+)?\s*%\s*$"),
+)
+_STABILITY_SKIP_METHODS = frozenset({
+    "find_element",
+    "find_elements",
+    "wait_for_visible",
+    "wait_for_invisible",
+    "is_element_present",
+    "get_screen_size",
+    "take_screenshot",
+    "verify_visible",
+    "verify_not_visible",
+    "verify_text",
+    "capture_for_gt",
+    "capture_for_preview",
+    "compare_with_gt",
+    "compare_preview",
+    "run_screenshot_comparisons",
+})
+
+
+def _compile_stability_patterns(patterns):
+    compiled = []
+    for pattern in patterns or ():
+        if hasattr(pattern, "fullmatch"):
+            compiled.append(pattern)
+        else:
+            compiled.append(re.compile(pattern))
+    return tuple(compiled)
+
+
+def _is_dynamic_stability_text(value: str, patterns) -> bool:
+    text = (value or "").strip()
+    return bool(text) and any(pattern.fullmatch(text) for pattern in patterns)
+
+
+def _hierarchy_stability_signature(
+    page_source: str,
+    ignored_attributes=DEFAULT_STABILITY_IGNORED_ATTRIBUTES,
+    dynamic_text_patterns=DEFAULT_STABILITY_DYNAMIC_TEXT_PATTERNS,
+) -> str:
+    """Return a hash for UI structure while ignoring playback/progress churn."""
+    ignored = frozenset(ignored_attributes)
+    patterns = _compile_stability_patterns(dynamic_text_patterns)
+    try:
+        root = ET.fromstring(page_source)
+    except ET.ParseError:
+        return hashlib.md5(page_source.encode("utf-8")).hexdigest()
+
+    parts = []
+    for el in root.iter():
+        attrs = []
+        for key, value in sorted(el.attrib.items()):
+            if key in ignored:
+                continue
+            if key in {"name", "label"} and _is_dynamic_stability_text(value, patterns):
+                attrs.append((key, "<dynamic>"))
+            else:
+                attrs.append((key, value))
+        parts.append(f"{el.tag}|{attrs}")
+    return hashlib.md5("\n".join(parts).encode("utf-8")).hexdigest()
 
 
 def wait_for_stable_hierarchy(fn):
     """
     Decorator: after the wrapped action completes, repeatedly poll
-    page_source until it stops changing (hierarchy is stable).
+    page_source until its normalized structural signature stops changing
+    (hierarchy is stable enough for the next UI action).
     Only runs when the DriverActions instance has stability_check = True,
     and only at the outermost call level — nested decorated calls are skipped
     so the check fires exactly once per top-level action.
@@ -56,6 +124,10 @@ def wait_for_stable_hierarchy(fn):
     Tunable via the instance attributes:
         stability_interval  (float, seconds) – gap between two snapshots
         stability_timeout   (float, seconds) – give up after this long
+        stability_min_wait  (float, seconds) – minimum settle time after action
+        stability_required_samples – consecutive matching signatures required
+        stability_ignored_attributes – XML attrs ignored during comparison
+        stability_dynamic_text_patterns – name/label regexes treated as dynamic
     """
     @functools.wraps(fn)
     def wrapper(self, *args, **kwargs):
@@ -69,15 +141,26 @@ def wait_for_stable_hierarchy(fn):
 
         if self._stability_depth == 0 and getattr(self, "stability_check", False):
             interval = getattr(self, "stability_interval", 0.4)
-            timeout  = getattr(self, "stability_timeout",  120.0)
+            timeout = getattr(self, "stability_timeout", 120.0)
+            min_wait = getattr(self, "stability_min_wait", 0.8)
+            required_samples = max(1, int(getattr(self, "stability_required_samples", 3)))
+            started_at = time.monotonic()
             deadline = time.monotonic() + timeout
-            prev = self.driver.page_source
+            prev = self._hierarchy_stability_signature(self.driver.page_source)
+            stable_samples = 0
             while time.monotonic() < deadline:
                 time.sleep(interval)
-                curr = self.driver.page_source
+                curr = self._hierarchy_stability_signature(self.driver.page_source)
                 if curr == prev:
-                    logger.info("[stability] hierarchy stable after action '%s'", fn.__name__)
-                    break
+                    stable_samples += 1
+                    if (
+                        stable_samples >= required_samples
+                        and time.monotonic() - started_at >= min_wait
+                    ):
+                        logger.info("[stability] hierarchy stable after action '%s'", fn.__name__)
+                        break
+                else:
+                    stable_samples = 0
                 prev = curr
             else:
                 logger.warning(
@@ -97,6 +180,8 @@ def _apply_stability_to_all(cls):
     """
     for attr_name in list(vars(cls)):
         if attr_name.startswith('_'):
+            continue
+        if attr_name in _STABILITY_SKIP_METHODS:
             continue
         method = vars(cls)[attr_name]
         if callable(method):
@@ -126,6 +211,18 @@ class DriverActions:
 
         # Maximum time to keep polling before giving up and continuing (seconds).
         self.stability_timeout: float = 120.0
+
+        # Avoid releasing the next action during the first quiet frame of a
+        # transition. Playback/progress churn is ignored by the signature, so
+        # require a short settle window and several matching samples.
+        self.stability_min_wait: float = 0.8
+        self.stability_required_samples: int = 3
+
+        # Compare a normalized hierarchy signature instead of the raw XML.
+        # Playback/progress values can change forever while the tappable UI is
+        # already structurally ready for the next action.
+        self.stability_ignored_attributes = set(DEFAULT_STABILITY_IGNORED_ATTRIBUTES)
+        self.stability_dynamic_text_patterns = DEFAULT_STABILITY_DYNAMIC_TEXT_PATTERNS
         # ──────────────────────────────────────────────────────────────────
 
         # ── Screenshot comparison queues ───────────────────────────────────
@@ -142,6 +239,21 @@ class DriverActions:
         # Optional metadata captured at "before" to keep before/after crop geometry identical.
         self._preview_pending_meta: dict[str, tuple[Optional[dict], Optional[dict]]] = {}
         # ──────────────────────────────────────────────────────────────────
+
+    def _hierarchy_stability_signature(self, page_source: str) -> str:
+        return _hierarchy_stability_signature(
+            page_source,
+            ignored_attributes=getattr(
+                self,
+                "stability_ignored_attributes",
+                DEFAULT_STABILITY_IGNORED_ATTRIBUTES,
+            ),
+            dynamic_text_patterns=getattr(
+                self,
+                "stability_dynamic_text_patterns",
+                DEFAULT_STABILITY_DYNAMIC_TEXT_PATTERNS,
+            ),
+        )
 
     # ──────────────────────────────────────────
     # Element look-up
@@ -691,6 +803,30 @@ class DriverActions:
         pa.pointer_up()
         ac.perform()
 
+    def _perform_w3c_drag(
+        self,
+        from_x: int,
+        from_y: int,
+        to_x: int,
+        to_y: int,
+        duration: float = 1.0,
+        press_duration: float = 1.0,
+    ) -> None:
+        """Perform touch down -> hold -> move -> release with separate timings."""
+        from selenium.webdriver.common.actions.action_builder import ActionBuilder
+        from selenium.webdriver.common.actions import interaction
+        from selenium.webdriver.common.actions.pointer_input import PointerInput
+
+        move_ms = max(100, int(float(duration) * 1000))
+        hold_s = max(0.0, float(press_duration))
+        pointer = PointerInput(interaction.POINTER_TOUCH, "touch")
+        pointer.create_pointer_move(duration=0, x=int(from_x), y=int(from_y), origin="viewport")
+        pointer.create_pointer_down()
+        pointer.create_pause(hold_s)
+        pointer.create_pointer_move(duration=move_ms, x=int(to_x), y=int(to_y), origin="viewport")
+        pointer.create_pointer_up(0)
+        ActionBuilder(self.driver, mouse=pointer).perform()
+
     @step("Triple tap")
     def triple_tap(self, element: WebElement) -> None:
         """Triple-tap a WebElement using native XCUITest gesture."""
@@ -1004,23 +1140,19 @@ class DriverActions:
         source: WebElement,
         target: WebElement,
         duration: float = 1.0,
+        press_duration: float = 0.1,
     ) -> None:
         """
-        Press-hold *source* then drag it onto *target*.
-        duration: hold-press time in seconds before releasing.
+        Briefly press *source*, then drag it onto *target*.
+        duration controls the move time; press_duration controls the initial hold.
         """
         src, src_sz = source.location, source.size
         tgt, tgt_sz = target.location, target.size
-        self.driver.execute_script(
-            "mobile: dragFromToForDuration",
-            {
-                "fromX": src["x"] + src_sz["width"] // 2,
-                "fromY": src["y"] + src_sz["height"] // 2,
-                "toX":   tgt["x"] + tgt_sz["width"] // 2,
-                "toY":   tgt["y"] + tgt_sz["height"] // 2,
-                "duration": duration,
-            },
-        )
+        from_x = src["x"] + src_sz["width"] // 2
+        from_y = src["y"] + src_sz["height"] // 2
+        to_x = tgt["x"] + tgt_sz["width"] // 2
+        to_y = tgt["y"] + tgt_sz["height"] // 2
+        self._perform_w3c_drag(from_x, from_y, to_x, to_y, duration, press_duration)
         logger.info("drag_element: source → target")
 
     @step("Drag by coordinates")
@@ -1031,17 +1163,49 @@ class DriverActions:
         to_x: int,
         to_y: int,
         duration: float = 1.0,
+        press_duration: float = 0.1,
     ) -> None:
-        """Press-hold at (from_x, from_y) then drag to (to_x, to_y)."""
-        self.driver.execute_script(
-            "mobile: dragFromToForDuration",
-            {
-                "fromX": from_x, "fromY": from_y,
-                "toX":   to_x,   "toY":   to_y,
-                "duration": duration,
-            },
-        )
+        """Briefly press at (from_x, from_y), then drag to (to_x, to_y)."""
+        self._perform_w3c_drag(from_x, from_y, to_x, to_y, duration, press_duration)
         logger.info("drag_coordinates: (%d,%d) → (%d,%d)", from_x, from_y, to_x, to_y)
+
+    @step("Long press and drag element to target")
+    def long_press_drag_element(
+        self,
+        source: WebElement,
+        target: WebElement,
+        duration: float = 1.0,
+        press_duration: float = 1.0,
+    ) -> None:
+        """
+        Long-press *source* for press_duration seconds, then drag it onto *target*.
+        duration controls the move time after the hold.
+        """
+        src, src_sz = source.location, source.size
+        tgt, tgt_sz = target.location, target.size
+        from_x = src["x"] + src_sz["width"] // 2
+        from_y = src["y"] + src_sz["height"] // 2
+        to_x = tgt["x"] + tgt_sz["width"] // 2
+        to_y = tgt["y"] + tgt_sz["height"] // 2
+        self._perform_w3c_drag(from_x, from_y, to_x, to_y, duration, max(1.0, press_duration))
+        logger.info("long_press_drag_element: source → target hold=%.2fs", press_duration)
+
+    @step("Long press and drag by coordinates")
+    def long_press_drag_coordinates(
+        self,
+        from_x: int,
+        from_y: int,
+        to_x: int,
+        to_y: int,
+        duration: float = 1.0,
+        press_duration: float = 1.0,
+    ) -> None:
+        """Long-press at (from_x, from_y), then drag to (to_x, to_y)."""
+        self._perform_w3c_drag(from_x, from_y, to_x, to_y, duration, max(1.0, press_duration))
+        logger.info(
+            "long_press_drag_coordinates: (%d,%d) → (%d,%d) hold=%.2fs",
+            from_x, from_y, to_x, to_y, press_duration,
+        )
 
     @step("Drag within elements by offset percent")
     def drag_within_elements(
@@ -1055,6 +1219,7 @@ class DriverActions:
         to_pct_x: float,
         to_pct_y: float,
         duration: float = 1.0,
+        press_duration: float = 0.1,
     ) -> None:
         """Drag from a % offset within the source element to a % offset within the target element."""
         src = self.find_element(from_by, from_value)
@@ -1065,13 +1230,39 @@ class DriverActions:
         from_y = round(src_loc["y"] + src_sz["height"] * from_pct_y / 100)
         to_x   = round(tgt_loc["x"] + tgt_sz["width"]  * to_pct_x   / 100)
         to_y   = round(tgt_loc["y"] + tgt_sz["height"] * to_pct_y   / 100)
-        self.driver.execute_script(
-            "mobile: dragFromToForDuration",
-            {"fromX": from_x, "fromY": from_y, "toX": to_x, "toY": to_y, "duration": duration},
-        )
+        self._perform_w3c_drag(from_x, from_y, to_x, to_y, duration, press_duration)
         logger.info(
             "drag_within_elements: %s@(%.1f%%,%.1f%%) → %s@(%.1f%%,%.1f%%)",
             from_value, from_pct_x, from_pct_y, to_value, to_pct_x, to_pct_y,
+        )
+
+    @step("Long press and drag within elements by offset percent")
+    def long_press_drag_within_elements(
+        self,
+        from_by: str,
+        from_value: str,
+        from_pct_x: float,
+        from_pct_y: float,
+        to_by: str,
+        to_value: str,
+        to_pct_x: float,
+        to_pct_y: float,
+        duration: float = 1.0,
+        press_duration: float = 1.0,
+    ) -> None:
+        """Long-press at a source % offset, then drag to a target % offset."""
+        src = self.find_element(from_by, from_value)
+        tgt = self.find_element(to_by, to_value)
+        src_loc, src_sz = src.location, src.size
+        tgt_loc, tgt_sz = tgt.location, tgt.size
+        from_x = round(src_loc["x"] + src_sz["width"]  * from_pct_x / 100)
+        from_y = round(src_loc["y"] + src_sz["height"] * from_pct_y / 100)
+        to_x   = round(tgt_loc["x"] + tgt_sz["width"]  * to_pct_x   / 100)
+        to_y   = round(tgt_loc["y"] + tgt_sz["height"] * to_pct_y   / 100)
+        self._perform_w3c_drag(from_x, from_y, to_x, to_y, duration, max(1.0, press_duration))
+        logger.info(
+            "long_press_drag_within_elements: %s@(%.1f%%,%.1f%%) → %s@(%.1f%%,%.1f%%) hold=%.2fs",
+            from_value, from_pct_x, from_pct_y, to_value, to_pct_x, to_pct_y, press_duration,
         )
 
     @step("Paint in element")

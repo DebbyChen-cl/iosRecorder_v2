@@ -42,7 +42,7 @@ def test_<safe_name>(actions: DriverActions):
 
 | Fixture | Scope | Notes |
 |---------|-------|-------|
-| `driver` | session | One Appium session for the entire test suite — never re-create |
+| `driver` | session | One Appium session for the entire test suite — never re-create; runs one-time pre-test flow: restart app, conditional onboarding (C-1..C-5), popup close loop (D-1→D-2→D-3, max 3 loops), ATT/push Allow prompts, and session teardown terminate+quit |
 | `actions` | function | New `DriverActions` wrapper per test; shares session `driver` |
 | `screenshot_on_failure` | function (autouse) | Auto-attached to every test — do NOT add as parameter |
 | `reset_app` | function (optional) | Terminates + relaunches app; use only when test needs clean state |

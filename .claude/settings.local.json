@@ -24,7 +24,8 @@
       "Bash(curl -s -X POST http://localhost:8888/api/record -H 'Content-Type: application/json' -d '{\"x\": 284, \"y\": 61}')",
       "Bash(curl -s -X POST http://localhost:8888/api/record -H 'Content-Type: application/json' -d '{\"x\": 22, \"y\": 56}')",
       "Bash(tree -aL 3 /Users/rdqe/iosRecorder_v2)",
-      "Bash(python3 -m pytest test_unittest/ -q --tb=short)"
+      "Bash(python3 -m pytest test_unittest/ -q --tb=short)",
+      "WebSearch"
     ]
   }
 }

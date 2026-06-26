@@ -398,15 +398,38 @@ class WDAClient:
         )
 
     async def drag(self, x1: float, y1: float, x2: float, y2: float, duration_ms: int = 1000) -> bool:
+        press_ms = 100
         return await self._actions(
             self._touch_actions([
                 {"type": "pointerMove", "duration": 0, "x": int(x1), "y": int(y1)},
                 {"type": "pointerDown", "button": 0},
-                {"type": "pause", "duration": 800},
+                {"type": "pause", "duration": press_ms},
                 {"type": "pointerMove", "duration": duration_ms, "x": int(x2), "y": int(y2)},
                 {"type": "pointerUp", "button": 0},
             ]),
-            timeout=(duration_ms + 800) / 1000 + 4,
+            timeout=(duration_ms + press_ms) / 1000 + 4,
+        )
+
+    async def long_press_drag(
+        self,
+        x1: float,
+        y1: float,
+        x2: float,
+        y2: float,
+        duration_ms: int = 1000,
+        press_duration_ms: int = 1000,
+    ) -> bool:
+        press_ms = max(1000, int(press_duration_ms))
+        move_ms = max(100, int(duration_ms))
+        return await self._actions(
+            self._touch_actions([
+                {"type": "pointerMove", "duration": 0, "x": int(x1), "y": int(y1)},
+                {"type": "pointerDown", "button": 0},
+                {"type": "pause", "duration": press_ms},
+                {"type": "pointerMove", "duration": move_ms, "x": int(x2), "y": int(y2)},
+                {"type": "pointerUp", "button": 0},
+            ]),
+            timeout=(press_ms + move_ms) / 1000 + 4,
         )
 
     async def paint(self, points: list[dict], duration_ms: int = 1000) -> bool:
@@ -480,7 +503,7 @@ class WDAClient:
                 t0 = asyncio.get_event_loop().time()
                 resp = await self._client.get(
                     f"{self.base_url}/session/{self._session_id}/source",
-                    timeout=8.0,
+                    timeout=30.0,
                 )
                 elapsed = asyncio.get_event_loop().time() - t0
                 if resp.status_code in (404, 500):

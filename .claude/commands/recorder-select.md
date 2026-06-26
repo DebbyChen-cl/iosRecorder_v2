@@ -23,6 +23,8 @@ This value is stored as `selector_quality` in every target dict built by `_build
 
 ### Priority Order — Never Change This
 
+Default mode only (`RECORDER_XPATH_ONLY!=1`).
+
 1. **`"accessibility id"`** — from `el.attrib["name"]`
    - Skip if value starts with `"0x"` (memory pointer, not a real ID)
    - Skip if value starts with `"/"` (file/bundle path — contains app UUID, changes on reinstall)
@@ -31,6 +33,13 @@ This value is stored as `selector_quality` in every target dict built by `_build
    - Human-readable label set by the app
 3. **`"xpath"` fallback** — `//{tag}`
    - Last resort; matches all elements of that XCUIElement type
+
+### XPath-Only Runtime Mode
+
+When `RECORDER_XPATH_ONLY=1` (enabled by `bash start.sh --xpath`):
+- `build_selector()` always returns `("xpath", <xpath_value>)`
+- hit-test element selection/scoring does not change
+- `build_scroll_container_selector()` also always returns xpath (structural xpath first, then `build_xpath()` fallback)
 
 ### Adding a New Selector Type
 
@@ -46,7 +55,7 @@ This value is stored as `selector_quality` in every target dict built by `_build
 
 `find_scroll_container(x, y, root)` returns the **innermost scrollable element** that contains `(x, y)` — used during scroll recording to identify which view to scroll within. Detection order: (1) standard scrollable tags — `XCUIElementTypeScrollView`, `XCUIElementTypeCollectionView`, `XCUIElementTypeTable`, `XCUIElementTypeWebView`, `XCUIElementTypeTextView`; (2) fallback: any element with `scrollable="true"` attribute (WDA exposes this for non-standard scroll views such as `XCUIElementTypeOther` wrappers). Returns `None` if no scrollable container found at the coordinate.
 
-`build_scroll_container_selector(el, root)` builds the most specific selector for a scroll container. Returns `accessibility id` or `name` when available; otherwise generates a **structural xpath** anchored on the deepest named ancestor — e.g. `//XCUIElementTypeOther[@name="photodirector.AddImageViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/...`. Used in `main.py::_record_scroll` instead of the plain `build_selector` to handle containers that lack accessibility IDs.
+`build_scroll_container_selector(el, root)` builds the most specific selector for a scroll container. In default mode, returns `accessibility id` or `name` when available; otherwise generates a **structural xpath** anchored on the deepest named ancestor — e.g. `//XCUIElementTypeOther[@name="photodirector.AddImageViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/...`. In xpath-only mode, it always returns xpath. Used in `main.py::_record_scroll` instead of the plain `build_selector` to handle containers that lack accessibility IDs.
 
 ### How Scoring Works
 

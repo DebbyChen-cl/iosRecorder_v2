@@ -75,6 +75,8 @@ def _file_header(desc: str) -> str:
         '        asyncio.run(m._record_move("swipe", inp["x1"], inp["y1"], inp["x2"], inp["y2"], inp.get("duration", 400), snapshot=root))',
         '    elif action == "drag":',
         '        asyncio.run(m._record_drag(inp["x1"], inp["y1"], inp["x2"], inp["y2"], inp.get("duration", 1000), root))',
+        '    elif action == "long_press_drag":',
+        '        asyncio.run(m._record_drag(inp["x1"], inp["y1"], inp["x2"], inp["y2"], inp.get("duration", 1000), root, action="long_press_drag", press_duration=inp.get("press_duration", 1000)))',
         '    elif action == "type_text":',
         '        asyncio.run(m._record_type_text(inp["text"], inp.get("target_x"), inp.get("target_y"), root))',
         '    elif action == "home":',

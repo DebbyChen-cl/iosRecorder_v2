@@ -75,24 +75,35 @@
 用於 `hit_test()`，目標是找到最具體的**葉節點**。
 
 ```python
-(int(is_container), -int(has_stable_id), -int(is_interactive), area, -int(has_id), int(has_children))
+(
+    int(is_container),
+    int(is_generic_wrapper),
+    -int(has_stable_id),
+    -int(is_interactive),
+    area,
+    -int(has_id),
+    int(has_children),
+)
 ```
+
+其中 hidden 的 inactive renderer/ROI layer（目前以 `rendererViewController.*`、`rOI.*` 命名開頭辨識）不會拿 `has_stable_id` 或 `is_interactive` 加分。其他 hidden element 仍保留既有幾何/語意行為，避免破壞舊的 xpath fallback fixture。
 
 ### 各欄位說明與設計原因
 
 | 順位 | 欄位 | 數值 | 設計原因 |
 |:---:|---|---|---|
 | 1 | `is_container` | 0 / 1 | **非容器優先**。`TAP_CONTAINER_TAGS`（ScrollView、CollectionView 等）是版面結構，不是點擊目標。這是最粗粒度的過濾，「根本不可能是目標」的應該最先被排到後面，不需要看後面任何條件。 |
-| 2 | `-has_stable_id` | -1 / 0 | **穩定 ID 葉節點優先**。`quality == "id"` 或 `"id_eq_label"` **且無子元素**才算。有穩定 accessibility id 的葉節點幾乎一定是開發者刻意命名的可操作元素，是最可靠的點擊目標。加上「無子元素」限制，是因為 ViewController 根 View 也常有穩定 ID（如 `"com.app.MyVC"`）但面積極大，若不排除有子元素的情況，這類大容器反而會搶走葉節點的優先權。容器過濾（第 1 位）必須先做，才輪到 ID 品質判斷。 |
-| 3 | `-is_interactive` | -1 / 0 | **互動元素次優先**。Button、TextField、Slider 等語意上就是「使用者能互動的東西」。在找不到穩定 ID 葉節點的情況下，這些比匿名的 Image 或 Other 更接近使用者意圖。穩定 ID 比「元素類型是 Button」更能代表精確意圖，所以排在第 2 位之後。 |
-| 4 | `area` | 浮點數 | **面積越小越具體**。iOS UI 樹是嵌套結構，子元素的 rect 一定在父元素之內，所以面積越小代表層次越深、越精確命中。面積只是幾何事實，沒有語意，所以排在三個語意條件之後，作為「語意相同時」的幾何 tiebreaker。 |
-| 5 | `-has_id` | -1 / 0 | **有識別符優於純 xpath**。到了這一步代表前四個條件都相同（如 cell 與裡面的 image 剛好同大）。有 `name` 或 `label` 至少能生成有意義的選擇器，不會退化成 `//XCUIElementTypeOther`。 |
-| 6 | `has_children` | 0 / 1 | **葉節點優先**。最後手段：以上全部相同時，無子元素的葉節點比中間層節點更「具體」，更接近實際被渲染的 UI 元件。 |
+| 2 | `is_generic_wrapper` | 0 / 1 | **互動元素優先於 generic wrapper**。只有同一批候選元素裡存在 Switch、Button、TextField、Slider 等互動元件時，`XCUIElementTypeOther` / `XCUIElementTypeView` 才會被降權；這避免背景或結構層即使有穩定 `name`，仍壓過真正被點擊的控制項。 |
+| 3 | `-has_stable_id` | -1 / 0 | **穩定 ID 葉節點優先**。`quality == "id"` 或 `"id_eq_label"` **且無子元素**才算。有穩定 accessibility id 的葉節點幾乎一定是開發者刻意命名的可操作元素，是最可靠的點擊目標。加上「無子元素」限制，是因為 ViewController 根 View 也常有穩定 ID（如 `"com.app.MyVC"`）但面積極大，若不排除有子元素的情況，這類大容器反而會搶走葉節點的優先權。hidden renderer/ROI layer 例外：這些 stale frame 不應靠 stable id 搶走可見目標。容器與 generic wrapper 過濾必須先做，才輪到 ID 品質判斷。 |
+| 4 | `-is_interactive` | -1 / 0 | **互動元素次優先**。Button、TextField、Slider 等語意上就是「使用者能互動的東西」。hidden renderer/ROI layer 不拿這個加分，避免 inactive renderer control 搶走可見目標。在找不到穩定 ID 葉節點的情況下，這些比匿名的 Image 或 Other 更接近使用者意圖。穩定 ID 比「元素類型是 Button」更能代表精確意圖，所以排在第 3 位之後。 |
+| 5 | `area` | 浮點數 | **面積越小越具體**。iOS UI 樹是嵌套結構，子元素的 rect 一定在父元素之內，所以面積越小代表層次越深、越精確命中。面積只是幾何事實，沒有語意，所以排在語意條件之後，作為「語意相同時」的幾何 tiebreaker。 |
+| 6 | `-has_id` | -1 / 0 | **有識別符優於純 xpath**。到了這一步代表前五個條件都相同（如 cell 與裡面的 image 剛好同大）。有 `name` 或 `label` 至少能生成有意義的選擇器，不會退化成 `//XCUIElementTypeOther`。 |
+| 7 | `has_children` | 0 / 1 | **葉節點優先**。最後手段：以上全部相同時，無子元素的葉節點比中間層節點更「具體」，更接近實際被渲染的 UI 元件。 |
 
 **整體設計邏輯：**
 ```
-排掉結構容器 → 找最精確命名的葉節點 → 找語意互動元素 → 找最小幾何元素 → 找有識別符的 → 找葉節點
- (語意最粗)                                                                         (最後手段)
+排掉結構容器 → 視情境排掉 generic wrapper → 找最精確命名的葉節點 → 找語意互動元素 → 找最小幾何元素 → 找有識別符的 → 找葉節點
+ (語意最粗)                                                                                                      (最後手段)
 ```
 每一層都在上一層「無法區分」時才出場，避免讓幾何數字（面積）蓋過語意判斷。
 

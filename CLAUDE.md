@@ -80,6 +80,8 @@ iosRecorder_v2/
 2. `name` — element `label` attribute
 3. `xpath` fallback — `//{tag}`
 
+Runtime override: when started with `bash start.sh --xpath` (`RECORDER_XPATH_ONLY=1`), selector output is forced to `xpath` for all recorded targets (including scroll containers), while `hit_test` element selection logic remains unchanged.
+
 ### Code generation output (app/codegen.py)
 - Every step → a `with step("..."):` block wrapping the `actions.*()` call
 - Labels: `[Action] ...` for gestures, `[Verify] ...` for assertions

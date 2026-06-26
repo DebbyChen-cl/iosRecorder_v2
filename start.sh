@@ -5,13 +5,22 @@ cd "$(dirname "$0")"
 IPROXY_PID=""
 IPROXY_MJPEG_PID=""
 UNIT_TEST_MODE=0
+XPATH_MODE=0
 
 for arg in "$@"; do
   if [[ "$arg" == "--unit_test" ]]; then
     UNIT_TEST_MODE=1
     echo "[Unit Test Capture Mode] Fixture captures will be saved to test_unittest/fixtures/"
+	elif [[ "$arg" == "--xpath" ]]; then
+		XPATH_MODE=1
+		echo "[XPath Mode] Selector output is forced to XPath"
   fi
 done
+
+if [[ "$UNIT_TEST_MODE" -eq 1 && "$XPATH_MODE" -eq 1 ]]; then
+	echo "--xpath and --unit_test cannot be used together."
+	exit 1
+fi
 
 cleanup() {
 	if [[ -n "$IPROXY_PID" ]] && kill -0 "$IPROXY_PID" 2>/dev/null; then
@@ -74,4 +83,4 @@ mkdir -p log
 LOG_FILE="log/server_$(date +%Y%m%d_%H%M%S).log"
 echo "Starting iOS Recorder on http://localhost:8888 (log: $LOG_FILE)"
 # Only watch app/ and static/ for reloads — writing to pytest/tests/ or export/ must NOT restart the server
-RECORDER_UNIT_TEST="$UNIT_TEST_MODE" python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8888 --reload --reload-dir app --reload-dir static 2>&1 | tee "$LOG_FILE"
+RECORDER_UNIT_TEST="$UNIT_TEST_MODE" RECORDER_XPATH_ONLY="$XPATH_MODE" python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8888 --reload --reload-dir app --reload-dir static 2>&1 | tee "$LOG_FILE"

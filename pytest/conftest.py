@@ -7,14 +7,97 @@
 
 import logging
 import os
+import time
 from datetime import datetime
 
 import pytest
+from appium.webdriver.common.appiumby import AppiumBy
 
+import config
 from driver.driver_actions import DriverActions
 from driver.driver_setup import create_driver, quit_driver
 
 logger = logging.getLogger(__name__)
+
+
+_ONBOARDING_TIMEOUT_SEC = 10
+_ALLOW_TIMEOUT_SEC = 10
+_POPUP_LOOP_MAX = 3
+
+
+def _tap_if_present(actions: DriverActions, by: str, value: str, timeout: int) -> bool:
+    """Tap an element when present within timeout; return True on tap."""
+    try:
+        if not actions.is_element_present(by, value, timeout=timeout):
+            return False
+        actions.tap_by_locator(by, value, timeout=timeout)
+        logger.info("Tapped element (%s, %r)", by, value)
+        return True
+    except Exception as exc:
+        logger.info("Tap skipped for (%s, %r): %s", by, value, exc)
+        return False
+
+
+def _run_onboarding_if_needed(actions: DriverActions) -> None:
+    """Run onboarding C-1..C-5 only when C-1 is found within 10 seconds."""
+    logger.info("Checking onboarding entry button C-1")
+    c1_found = _tap_if_present(actions, AppiumBy.NAME, "Next", _ONBOARDING_TIMEOUT_SEC)
+    if not c1_found:
+        logger.info("C-1 not found within %ss; skip C-2..C-5", _ONBOARDING_TIMEOUT_SEC)
+        return
+
+    # Continue best-effort onboarding path after C-1 appears.
+    _tap_if_present(actions, AppiumBy.NAME, "Start Testing", _ONBOARDING_TIMEOUT_SEC)
+    _tap_if_present(actions, AppiumBy.NAME, "Next", _ONBOARDING_TIMEOUT_SEC)
+    _tap_if_present(actions, AppiumBy.NAME, "Next", _ONBOARDING_TIMEOUT_SEC)
+    _tap_if_present(actions, AppiumBy.NAME, "Let's go", _ONBOARDING_TIMEOUT_SEC)
+
+
+def _close_in_app_popup(actions: DriverActions) -> None:
+    """Try D-1 -> D-2 -> D-3 in loops; click first hit then stop."""
+    candidates = [
+        (AppiumBy.ACCESSIBILITY_ID, "navCloseButton", "D-1 IAP/Trial"),
+        (AppiumBy.ACCESSIBILITY_ID, "wdlOfferCloseButton", "D-2 Promotion"),
+        (AppiumBy.ACCESSIBILITY_ID, "btnClose", "D-3 Generic close"),
+    ]
+
+    for idx in range(_POPUP_LOOP_MAX):
+        logger.info("Popup close loop %d/%d", idx + 1, _POPUP_LOOP_MAX)
+        for by, value, label in candidates:
+            if _tap_if_present(actions, by, value, timeout=2):
+                logger.info("Closed popup via %s", label)
+                return
+    logger.info("No popup matched after %d loops", _POPUP_LOOP_MAX)
+
+
+def _handle_ios_permission_alerts(actions: DriverActions) -> None:
+    """Handle ATT and Push permission alerts by tapping Allow twice."""
+    if _tap_if_present(actions, AppiumBy.NAME, "Allow", _ALLOW_TIMEOUT_SEC):
+        logger.info("Allowed App Tracking Transparency")
+    else:
+        logger.info("ATT allow button not found within %ss", _ALLOW_TIMEOUT_SEC)
+
+    if _tap_if_present(actions, AppiumBy.NAME, "Allow", _ALLOW_TIMEOUT_SEC):
+        logger.info("Allowed Push notification")
+    else:
+        logger.info("Push allow button not found within %ss", _ALLOW_TIMEOUT_SEC)
+
+
+def _session_setup_flow(actions: DriverActions, bundle_id: str) -> None:
+    """Run the requested one-time pre-test setup flow."""
+    logger.info("=== SESSION PREP: restart app ===")
+    actions.terminate_app(bundle_id)
+    time.sleep(1)
+    actions.launch_app(bundle_id)
+
+    logger.info("=== SESSION PREP: onboarding ===")
+    _run_onboarding_if_needed(actions)
+
+    logger.info("=== SESSION PREP: close in-app popup ===")
+    _close_in_app_popup(actions)
+
+    logger.info("=== SESSION PREP: iOS permission alerts ===")
+    _handle_ios_permission_alerts(actions)
 
 
 # ──────────────────────────────────────────────────────────────
@@ -32,8 +115,21 @@ def driver():
     """
     logger.info("=== SESSION SETUP: creating Appium driver ===")
     _driver = create_driver()
+    actions = DriverActions(_driver)
+    bundle_id = config.IOS_CAPABILITIES.get("appium:bundleId", "")
+    # if bundle_id:
+    #     _session_setup_flow(actions, bundle_id)
+    # else:
+    #     logger.warning("Bundle ID is empty; skip session app setup flow")
+
     yield _driver
-    logger.info("=== SESSION TEARDOWN: quitting Appium driver ===")
+
+    logger.info("=== SESSION TEARDOWN: terminate app and quit Appium driver ===")
+    # if bundle_id:
+    #     try:
+    #         actions.terminate_app(bundle_id)
+    #     except Exception as exc:
+    #         logger.warning("Session terminate_app failed: %s", exc)
     quit_driver(_driver)
 
 
@@ -114,7 +210,6 @@ def reset_app(driver):
         def test_login(reset_app, actions):
             ...
     """
-    import config
     bundle_id = config.IOS_CAPABILITIES.get("appium:bundleId", "")
     logger.info("Resetting app: %s", bundle_id)
     driver.terminate_app(bundle_id)

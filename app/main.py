@@ -20,8 +20,8 @@ from pydantic import BaseModel
 
 from .codegen import generate_script
 from .unit_test_gen import generate_unit_tests
-from .hittest import hit_test, hit_test_for_swipe, hit_test_drop_target, find_scroll_container, build_scroll_container_selector, serialize, _rect as _el_rect, _find_path as _ht_find_path, _unwrap as _ht_unwrap, _structural_xpath as _ht_structural_xpath
-from .selector import build_selector, build_xpath, get_selector_quality
+from .hittest import hit_test, hit_test_for_swipe, hit_test_long_press_drag_source, hit_test_drop_target, find_scroll_container, should_attach_scroll_container, build_scroll_container_selector, serialize, _rect as _el_rect, _find_path as _ht_find_path, _unwrap as _ht_unwrap, _structural_xpath as _ht_structural_xpath
+from .selector import build_indexed_xpath_if_duplicate, build_selector, build_xpath, get_selector_quality
 from .wda import WDAClient
 
 logging.basicConfig(level=logging.INFO)
@@ -318,6 +318,9 @@ class DragReq(BaseModel):
     x1: float; y1: float; x2: float; y2: float
     duration: int = 1000
 
+class LongPressDragReq(DragReq):
+    press_duration: int = 1000
+
 class PaintPoint(BaseModel):
     x: float
     y: float
@@ -456,87 +459,73 @@ async def screen_size():
 
 @app.post("/api/tap")
 async def api_tap(req: Coords):
-    asyncio.create_task(wda.tap(req.x, req.y))
-    return {"ok": True}
+    return {"ok": await wda.tap(req.x, req.y)}
 
 
 @app.post("/api/double_tap")
 async def api_double_tap(req: Coords):
-    asyncio.create_task(wda.double_tap(req.x, req.y))
-    return {"ok": True}
+    return {"ok": await wda.double_tap(req.x, req.y)}
 
 
 @app.post("/api/triple_tap")
 async def api_triple_tap(req: Coords):
-    asyncio.create_task(wda.triple_tap(req.x, req.y))
-    return {"ok": True}
+    return {"ok": await wda.triple_tap(req.x, req.y)}
 
 
 @app.post("/api/five_tap")
 async def api_five_tap(req: Coords):
-    asyncio.create_task(wda.five_tap(req.x, req.y))
-    return {"ok": True}
+    return {"ok": await wda.five_tap(req.x, req.y)}
 
 
 @app.post("/api/long_press")
 async def api_long_press(req: LongPressReq):
-    asyncio.create_task(wda.long_press(req.x, req.y, req.duration))
-    return {"ok": True}
+    return {"ok": await wda.long_press(req.x, req.y, req.duration)}
 
 
 @app.post("/api/two_finger_tap")
 async def api_two_finger_tap(req: Coords):
-    asyncio.create_task(wda.two_finger_tap(req.x, req.y))
-    return {"ok": True}
+    return {"ok": await wda.two_finger_tap(req.x, req.y)}
 
 
 @app.post("/api/multi_finger_tap")
 async def api_multi_finger_tap(req: MultiFingerTapReq):
-    asyncio.create_task(wda.multi_finger_tap(req.x, req.y, req.fingers))
-    return {"ok": True}
+    return {"ok": await wda.multi_finger_tap(req.x, req.y, req.fingers)}
 
 
 @app.post("/api/scroll")
 async def api_scroll(req: ScrollReq):
-    asyncio.create_task(wda.scroll(req.x1, req.y1, req.x2, req.y2, req.duration))
-    return {"ok": True}
+    return {"ok": await wda.scroll(req.x1, req.y1, req.x2, req.y2, req.duration)}
 
 
 @app.post("/api/pinch")
 async def api_pinch(req: PinchReq):
-    asyncio.create_task(wda.pinch(req.x, req.y, req.scale, req.spread))
-    return {"ok": True}
+    return {"ok": await wda.pinch(req.x, req.y, req.scale, req.spread, req.duration)}
 
 
 @app.post("/api/rotate")
 async def api_rotate(req: RotateReq):
     wda_dur = max(300, min(800, int(abs(req.rotation) / 180 * 800)))
-    asyncio.create_task(wda.rotate(req.x, req.y, req.rotation, req.spread, wda_dur))
-    return {"ok": True}
+    return {"ok": await wda.rotate(req.x, req.y, req.rotation, req.spread, wda_dur)}
 
 
 @app.post("/api/type_text")
 async def api_type_text(req: TypeTextReq):
-    asyncio.create_task(wda.type_text(req.text))
-    return {"ok": True}
+    return {"ok": await wda.type_text(req.text)}
 
 
 @app.post("/api/home")
 async def api_home():
-    asyncio.create_task(wda.press_home())
-    return {"ok": True}
+    return {"ok": await wda.press_home()}
 
 
 @app.post("/api/launch_app")
 async def api_launch_app(req: LaunchAppReq):
-    asyncio.create_task(wda.launch_app(req.bundle_id))
-    return {"ok": True}
+    return {"ok": await wda.launch_app(req.bundle_id)}
 
 
 @app.post("/api/terminate_app")
 async def api_terminate_app(req: LaunchAppReq):
-    asyncio.create_task(wda.terminate_app(req.bundle_id))
-    return {"ok": True}
+    return {"ok": await wda.terminate_app(req.bundle_id)}
 
 
 @app.get("/api/apps")
@@ -595,21 +584,25 @@ async def api_element_info(x: float, y: float):
 
 @app.post("/api/swipe")
 async def api_swipe(req: SwipeReq):
-    asyncio.create_task(wda.swipe(req.x1, req.y1, req.x2, req.y2, req.duration))
-    return {"ok": True}
+    return {"ok": await wda.swipe(req.x1, req.y1, req.x2, req.y2, req.duration)}
 
 
 @app.post("/api/drag")
 async def api_drag(req: DragReq):
-    asyncio.create_task(wda.drag(req.x1, req.y1, req.x2, req.y2, req.duration))
-    return {"ok": True}
+    return {"ok": await wda.drag(req.x1, req.y1, req.x2, req.y2, req.duration)}
+
+
+@app.post("/api/long_press_drag")
+async def api_long_press_drag(req: LongPressDragReq):
+    return {"ok": await wda.long_press_drag(
+        req.x1, req.y1, req.x2, req.y2, req.duration, req.press_duration
+    )}
 
 
 @app.post("/api/paint")
 async def api_paint(req: PaintReq):
     pts = [p.dict() for p in req.points]
-    asyncio.create_task(wda.paint(pts, req.duration))
-    return {"ok": True}
+    return {"ok": await wda.paint(pts, req.duration)}
 
 
 # ── Recording (async path) ────────────────────────────────────────────────────
@@ -618,98 +611,114 @@ async def api_paint(req: PaintReq):
 async def record_tap(req: Coords):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    await _record_point("tap", req.x, req.y, snapshot, pre_screenshot=pre_ss)
-    return {"ok": True}
+    ok = await wda.tap(req.x, req.y)
+    asyncio.create_task(_record_point("tap", req.x, req.y, snapshot, pre_screenshot=pre_ss))
+    return {"ok": ok}
 
 
 @app.post("/api/record/double_tap")
 async def record_double_tap(req: Coords):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    await _record_point("double_tap", req.x, req.y, snapshot, pre_screenshot=pre_ss)
-    return {"ok": True}
+    ok = await wda.double_tap(req.x, req.y)
+    asyncio.create_task(_record_point("double_tap", req.x, req.y, snapshot, pre_screenshot=pre_ss))
+    return {"ok": ok}
 
 
 @app.post("/api/record/triple_tap")
 async def record_triple_tap(req: Coords):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    await _record_point("triple_tap", req.x, req.y, snapshot, pre_screenshot=pre_ss)
-    return {"ok": True}
+    ok = await wda.triple_tap(req.x, req.y)
+    asyncio.create_task(_record_point("triple_tap", req.x, req.y, snapshot, pre_screenshot=pre_ss))
+    return {"ok": ok}
 
 
 @app.post("/api/record/five_tap")
 async def record_five_tap(req: Coords):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    await _record_point("five_tap", req.x, req.y, snapshot, pre_screenshot=pre_ss)
-    return {"ok": True}
+    ok = await wda.five_tap(req.x, req.y)
+    asyncio.create_task(_record_point("five_tap", req.x, req.y, snapshot, pre_screenshot=pre_ss))
+    return {"ok": ok}
 
 
 @app.post("/api/record/long_press")
 async def record_long_press(req: LongPressReq):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    await _record_long_press(req.x, req.y, req.duration, snapshot, pre_screenshot=pre_ss)
-    return {"ok": True}
+    ok = await wda.long_press(req.x, req.y, req.duration)
+    asyncio.create_task(_record_long_press(req.x, req.y, req.duration, snapshot, pre_screenshot=pre_ss))
+    return {"ok": ok}
 
 
 @app.post("/api/record/two_finger_tap")
 async def record_two_finger_tap(req: Coords):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    await _record_point("two_finger_tap", req.x, req.y, snapshot, pre_screenshot=pre_ss)
-    return {"ok": True}
+    ok = await wda.two_finger_tap(req.x, req.y)
+    asyncio.create_task(_record_point("two_finger_tap", req.x, req.y, snapshot, pre_screenshot=pre_ss))
+    return {"ok": ok}
 
 
 @app.post("/api/record/multi_finger_tap")
 async def record_multi_finger_tap(req: MultiFingerTapReq):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    await _record_multi_finger_tap(req.x, req.y, req.fingers, snapshot, pre_screenshot=pre_ss)
-    return {"ok": True}
+    ok = await wda.multi_finger_tap(req.x, req.y, req.fingers)
+    asyncio.create_task(_record_multi_finger_tap(req.x, req.y, req.fingers, snapshot, pre_screenshot=pre_ss))
+    return {"ok": ok}
 
 
 @app.post("/api/record/pinch")
 async def record_pinch(req: PinchReq):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    await _record_pinch(req.x, req.y, req.scale, req.spread, duration=req.duration, snapshot=snapshot, pre_screenshot=pre_ss)
-    return {"ok": True}
+    ok = await wda.pinch(req.x, req.y, req.scale, req.spread, req.duration)
+    asyncio.create_task(_record_pinch(req.x, req.y, req.scale, req.spread, duration=req.duration, snapshot=snapshot, pre_screenshot=pre_ss))
+    return {"ok": ok}
 
 
 @app.post("/api/record/rotate")
 async def record_rotate(req: RotateReq):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    await _record_rotate(req.x, req.y, req.rotation, req.spread, snapshot, pre_screenshot=pre_ss)
-    return {"ok": True}
+    wda_dur = max(300, min(800, int(abs(req.rotation) / 180 * 800)))
+    ok = await wda.rotate(req.x, req.y, req.rotation, req.spread, wda_dur)
+    asyncio.create_task(_record_rotate(req.x, req.y, req.rotation, req.spread, snapshot, pre_screenshot=pre_ss))
+    return {"ok": ok}
 
 
 @app.post("/api/record/type_text")
 async def record_type_text(req: TypeTextReq):
     snapshot = _cache.get("root")
-    await _record_type_text(req.text, req.target_x, req.target_y, snapshot,
-                            req.target_type, req.target_value, req.target_bounds, req.target_selector_quality)
-    return {"ok": True}
+    ok = await wda.type_text(req.text)
+    asyncio.create_task(_record_type_text(
+        req.text, req.target_x, req.target_y, snapshot,
+        req.target_type, req.target_value, req.target_bounds, req.target_selector_quality,
+    ))
+    return {"ok": ok}
 
 
 @app.post("/api/record/home")
 async def record_home():
-    await _record_simple("home")
-    return {"ok": True}
+    ok = await wda.press_home()
+    asyncio.create_task(_record_simple("home"))
+    return {"ok": ok}
 
 
 @app.post("/api/record/launch_app")
 async def record_launch_app(req: LaunchAppReq):
-    await _record_launch_app(req.bundle_id)
-    return {"ok": True}
+    ok = await wda.launch_app(req.bundle_id)
+    asyncio.create_task(_record_launch_app(req.bundle_id))
+    return {"ok": ok}
 
 
 @app.post("/api/record/terminate_app")
 async def record_terminate_app(req: LaunchAppReq):
-    await _record_terminate_app(req.bundle_id)
-    return {"ok": True}
+    ok = await wda.terminate_app(req.bundle_id)
+    asyncio.create_task(_record_terminate_app(req.bundle_id))
+    return {"ok": ok}
 
 
 @app.post("/api/record/verify_visible")
@@ -749,8 +758,9 @@ async def record_verify_screenshot_diff(req: VerifyScreenshotDiffReq):
 async def record_scroll(req: ScrollReq):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    await _record_scroll(req.x1, req.y1, req.x2, req.y2, req.duration, snapshot=snapshot, pre_screenshot=pre_ss)
-    return {"ok": True}
+    ok = await wda.scroll(req.x1, req.y1, req.x2, req.y2, req.duration)
+    asyncio.create_task(_record_scroll(req.x1, req.y1, req.x2, req.y2, req.duration, snapshot=snapshot, pre_screenshot=pre_ss))
+    return {"ok": ok}
 
 
 @app.post("/api/record/scroll_target")
@@ -769,16 +779,33 @@ async def record_swipe_target(req: Coords):
 async def record_swipe(req: SwipeReq):
     snapshot = _cache.get("root")
     pre_ss = await _take_pre_gesture_screenshot()
-    await _record_move("swipe", req.x1, req.y1, req.x2, req.y2, req.duration, snapshot=snapshot, pre_screenshot=pre_ss)
-    return {"ok": True}
+    ok = await wda.swipe(req.x1, req.y1, req.x2, req.y2, req.duration)
+    asyncio.create_task(_record_move("swipe", req.x1, req.y1, req.x2, req.y2, req.duration, snapshot=snapshot, pre_screenshot=pre_ss))
+    return {"ok": ok}
 
 
 @app.post("/api/record/drag")
 async def record_drag(req: DragReq):
     pre_ss = await _take_pre_gesture_screenshot()
-    snapshot = _cache.get("root") or await _cached_tree()
-    await _record_drag(req.x1, req.y1, req.x2, req.y2, req.duration, snapshot=snapshot, pre_screenshot=pre_ss)
-    return {"ok": True}
+    snapshot = _cache.get("root")
+    ok = await wda.drag(req.x1, req.y1, req.x2, req.y2, req.duration)
+    asyncio.create_task(_record_drag(req.x1, req.y1, req.x2, req.y2, req.duration, snapshot=snapshot, pre_screenshot=pre_ss))
+    return {"ok": ok}
+
+
+@app.post("/api/record/long_press_drag")
+async def record_long_press_drag(req: LongPressDragReq):
+    pre_ss = await _take_pre_gesture_screenshot()
+    snapshot = _cache.get("root")
+    ok = await wda.long_press_drag(req.x1, req.y1, req.x2, req.y2, req.duration, req.press_duration)
+    asyncio.create_task(_record_drag(
+        req.x1, req.y1, req.x2, req.y2, req.duration,
+        snapshot=snapshot,
+        pre_screenshot=pre_ss,
+        action="long_press_drag",
+        press_duration=req.press_duration,
+    ))
+    return {"ok": ok}
 
 
 @app.post("/api/record/paint")
@@ -809,10 +836,19 @@ def _resolve_selector(el: ET.Element, root) -> tuple:
     """Like build_selector, but upgrades a bare //{tag} xpath to a full structural xpath."""
     sel_type, sel_val = build_selector(el)
     if sel_type == "xpath" and root is not None:
-        structural = _ht_structural_xpath(el, _ht_unwrap(root))
-        if structural:
-            return "xpath", structural
+        unwrapped = _ht_unwrap(root)
+        indexed = build_indexed_xpath_if_duplicate(el, unwrapped)
+        if indexed:
+            return "xpath", indexed
+        if get_selector_quality(el) == "xpath_only" or _is_bare_tag_xpath(sel_val, el.tag):
+            structural = _ht_structural_xpath(el, unwrapped)
+            if structural:
+                return "xpath", structural
     return sel_type, sel_val
+
+
+def _is_bare_tag_xpath(xpath: str, tag: str) -> bool:
+    return xpath == f"//{tag}"
 
 
 def _make_xpath_variant_xml(root: ET.Element, step: dict) -> Optional[str]:
@@ -841,28 +877,44 @@ def _make_xpath_variant_xml(root: ET.Element, step: dict) -> Optional[str]:
     return ET.tostring(root_copy, encoding="unicode")
 
 
-def _build_target(x: float, y: float, el, root=None, structural_log: bool = True) -> dict:
+def _build_target(
+    x: float,
+    y: float,
+    el,
+    root=None,
+    structural_log: bool = True,
+    prefer_indexed_duplicate: bool = False,
+) -> dict:
     """Build step target dict with selector + offset_pct + quality + bounds + xpath."""
     sel_type, sel_val = build_selector(el)
     xpath = build_xpath(el)
-    if root is not None and sel_type == "xpath":
+    selector_quality = get_selector_quality(el)
+    if root is not None:
         unwrapped = _ht_unwrap(root)
-        path = _ht_find_path(unwrapped, el)
-        if structural_log:
-            logger.info(f"[structural] el={el.tag} root={unwrapped.tag} path_len={len(path) if path else 'None(not found)'}")
-            if path:
-                for i, p in enumerate(path):
-                    logger.info(f"  [{i}] {p.tag} name={p.attrib.get('name','')[:40]!r}")
-        structural = _ht_structural_xpath(el, unwrapped)
-        if structural_log:
-            logger.info(f"[structural] result={structural}")
-        if structural:
-            sel_val = structural
-            xpath = structural
+        indexed = build_indexed_xpath_if_duplicate(el, unwrapped)
+        if prefer_indexed_duplicate and indexed:
+            sel_type = "xpath"
+            sel_val = indexed
+            xpath = indexed
+        elif sel_type == "xpath":
+            path = _ht_find_path(unwrapped, el)
+            if structural_log:
+                logger.info(f"[structural] el={el.tag} root={unwrapped.tag} path_len={len(path) if path else 'None(not found)'}")
+                if path:
+                    for i, p in enumerate(path):
+                        logger.info(f"  [{i}] {p.tag} name={p.attrib.get('name','')[:40]!r}")
+            structural = indexed
+            if not structural and (selector_quality == "xpath_only" or _is_bare_tag_xpath(sel_val, el.tag)):
+                structural = _ht_structural_xpath(el, unwrapped)
+            if structural_log:
+                logger.info(f"[structural] result={structural}")
+            if structural:
+                sel_val = structural
+                xpath = structural
     target: dict = {
         "type": sel_type,
         "value": sel_val,
-        "selector_quality": get_selector_quality(el),
+        "selector_quality": selector_quality,
         "xpath": xpath,
     }
     r = _el_rect(el)
@@ -930,7 +982,7 @@ async def _record_point(action: str, x: float, y: float, snapshot=None, pre_scre
         el = hit_test(x, y, root)
         step["target"] = _build_target(x, y, el, root) if el is not None else {"type": "coordinate", "x": x, "y": y}
         container_el = find_scroll_container(x, y, root)
-        if container_el is not None:
+        if should_attach_scroll_container(el, container_el, root):
             sc_type, sc_val = build_scroll_container_selector(container_el, root)
             r = _el_rect(container_el)
             sc_entry: dict = {
@@ -960,7 +1012,7 @@ async def _record_long_press(x: float, y: float, duration: int, snapshot=None, p
         el = hit_test(x, y, root)
         step["target"] = _build_target(x, y, el, root) if el is not None else {"type": "coordinate", "x": x, "y": y}
         container_el = find_scroll_container(x, y, root)
-        if container_el is not None:
+        if should_attach_scroll_container(el, container_el, root):
             sc_type, sc_val = build_scroll_container_selector(container_el, root)
             r = _el_rect(container_el)
             sc_entry: dict = {
@@ -1089,13 +1141,13 @@ async def _record_scroll_target(x: float, y: float, snapshot=None):
     # to return None, leaving scroll_target as a coordinate type.
     root = snapshot or _cache.get("root")
 
-    # Build scroll_target value
+    # Build scroll_target value with the same selector path used by taps so
+    # duplicate XPath targets keep their disambiguating index.
     scroll_target: dict
     if root is not None:
         el = hit_test(x, y, root)
         if el is not None:
-            sel_type, sel_val = build_scroll_container_selector(el, root)
-            scroll_target = {"type": sel_type, "value": sel_val}
+            scroll_target = _build_target(x, y, el, root, structural_log=False)
         else:
             scroll_target = {"type": "coordinate", "x": x, "y": y}
     else:
@@ -1357,19 +1409,37 @@ async def _record_move(action: str, x1: float, y1: float, x2: float, y2: float, 
     logger.info(f"Recorded {action}: {step.get('start_target', step['coords'])}")
 
 
-async def _record_drag(x1: float, y1: float, x2: float, y2: float, duration: int, snapshot=None, pre_screenshot: Optional[str] = None):
+async def _record_drag(
+    x1: float,
+    y1: float,
+    x2: float,
+    y2: float,
+    duration: int,
+    snapshot=None,
+    pre_screenshot: Optional[str] = None,
+    action: str = "drag",
+    press_duration: Optional[int] = None,
+):
     root = snapshot if snapshot is not None else await _cached_tree()
     step: dict = {
-        "action": "drag",
+        "action": action,
         "coords": {"x1": x1, "y1": y1, "x2": x2, "y2": y2},
         "duration": duration,
         "timestamp": time.time(),
     }
+    if action == "long_press_drag":
+        step["press_duration"] = int(press_duration or 1000)
     if root is not None:
         # Find the element being dragged (source)
-        start_el = hit_test(x1, y1, root)
+        start_el = hit_test_long_press_drag_source(x1, y1, root) if action == "long_press_drag" else hit_test(x1, y1, root)
         if start_el is not None:
-            step["start_target"] = _build_target(x1, y1, start_el, root)
+            step["start_target"] = _build_target(
+                x1,
+                y1,
+                start_el,
+                root,
+                prefer_indexed_duplicate=action == "long_press_drag",
+            )
         # For drop target, exclude source subtree and penalize same-tag matches
         # so we avoid recording a generic/duplicate locator for the destination.
         end_el = hit_test_drop_target(x2, y2, root, start_el) if start_el is not None else hit_test(x2, y2, root)
@@ -1379,8 +1449,11 @@ async def _record_drag(x1: float, y1: float, x2: float, y2: float, duration: int
         step["pre_screenshot"] = pre_screenshot
         step["pre_screenshot_size"] = dict(wda._last_screen_size)
     _steps.append(step)
-    _unit_test_capture({"action": "drag", "x1": x1, "y1": y1, "x2": x2, "y2": y2, "duration": duration}, step, root)
-    logger.info(f"Recorded drag: {step.get('start_target')} → {step.get('end_target')}")
+    unit_input = {"action": action, "x1": x1, "y1": y1, "x2": x2, "y2": y2, "duration": duration}
+    if action == "long_press_drag":
+        unit_input["press_duration"] = step["press_duration"]
+    _unit_test_capture(unit_input, step, root)
+    logger.info(f"Recorded {action}: {step.get('start_target')} → {step.get('end_target')}")
 
 
 async def _record_paint(
@@ -1479,8 +1552,17 @@ async def delete_step(index: int):
 # ── UI Tree ────────────────────────────────────────────────────────────────────
 
 @app.get("/api/tree")
-async def get_tree():
-    root = await _cached_tree()
+async def get_tree(fresh: bool = False):
+    if fresh:
+        if wda._source_task is not None and not wda._source_task.done():
+            wda._source_task.cancel()
+            wda._source_task = None
+        root = await wda.get_source()
+        if root is not None:
+            _cache["root"] = root
+            _cache["ts"] = time.time()
+    else:
+        root = await _cached_tree()
     if root is None:
         return JSONResponse({"error": "Cannot reach WDA"}, status_code=503)
     return {"elements": serialize(root)}
@@ -1646,6 +1728,24 @@ async def ws_handler(ws: WebSocket):
                     asyncio.create_task(_record_drag(x1, y1, x2, y2, dur, snapshot=snapshot, pre_screenshot=pre_ss))
                 else:
                     asyncio.create_task(wda.drag(x1, y1, x2, y2, dur))
+
+            elif t == "long_press_drag":
+                x1, y1, x2, y2 = float(data["x1"]), float(data["y1"]), float(data["x2"]), float(data["y2"])
+                dur = int(data.get("duration", 1000))
+                press_dur = int(data.get("press_duration", 1000))
+                pre_ss = await _take_pre_gesture_screenshot() if rec else None
+                snapshot = (_cache.get("root") or await _cached_tree()) if rec else None
+                if rec:
+                    await wda.long_press_drag(x1, y1, x2, y2, dur, press_dur)
+                    asyncio.create_task(_record_drag(
+                        x1, y1, x2, y2, dur,
+                        snapshot=snapshot,
+                        pre_screenshot=pre_ss,
+                        action="long_press_drag",
+                        press_duration=press_dur,
+                    ))
+                else:
+                    asyncio.create_task(wda.long_press_drag(x1, y1, x2, y2, dur, press_dur))
 
             elif t == "paint":
                 sx, sy = float(data.get("start_x", 0)), float(data.get("start_y", 0))

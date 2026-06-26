@@ -302,9 +302,17 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
         return (f"[Action] Swipe {direction}",
                 [f"# swipe {direction} at ({x1},{y1})→({x2},{y2}) — no element matched"])
 
-    # ── drag ──────────────────────────────────────────────────────────────────
-    if action == "drag":
+    # ── drag / long-press drag ────────────────────────────────────────────────
+    if action in ("drag", "long_press_drag"):
+        is_long_press_drag = action == "long_press_drag"
+        label_verb = "Long press drag" if is_long_press_drag else "Drag"
+        within_fn = "long_press_drag_within_elements" if is_long_press_drag else "drag_within_elements"
+        coords_fn = "long_press_drag_coordinates" if is_long_press_drag else "drag_coordinates"
         dur = round(step.get("duration", 1000) / 1000, 2)
+        press_kw = ""
+        if is_long_press_drag:
+            press_dur = round(max(1000, step.get("press_duration", 1000)) / 1000, 2)
+            press_kw = f", press_duration={press_dur}"
         x1, y1 = int(c.get("x1", 0)), int(c.get("y1", 0))
         x2, y2 = int(c.get("x2", 0)), int(c.get("y2", 0))
         st = step.get("start_target")
@@ -318,14 +326,14 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
             ep = et.get("offset_pct", {"x": 50.0, "y": 50.0})
             sx, sy = sp["x"], sp["y"]
             ex, ey = ep["x"], ep["y"]
-            return (f"[Action] Drag {s_val} ({sx}%,{sy}%) → {e_val} ({ex}%,{ey}%)",
-                    [f"actions.drag_within_elements({s_by}, '{s_val}', {sx}, {sy}, {e_by}, '{e_val}', {ex}, {ey}, duration={dur})"])
+            return (f"[Action] {label_verb} {s_val} ({sx}%,{sy}%) → {e_val} ({ex}%,{ey}%)",
+                    [f"actions.{within_fn}({s_by}, '{s_val}', {sx}, {sy}, {e_by}, '{e_val}', {ex}, {ey}, duration={dur}{press_kw})"])
         if has_start:
             sp = st.get("offset_pct", {"x": 50.0, "y": 50.0})
-            return (f"[Action] Drag {_q(st['value'])} ({sp['x']}%,{sp['y']}%) → ({x2},{y2})",
-                    [f"actions.drag_coordinates({x1}, {y1}, {x2}, {y2}, duration={dur})"])
-        return (f"[Action] Drag ({x1},{y1}) → ({x2},{y2})",
-                [f"actions.drag_coordinates({x1}, {y1}, {x2}, {y2}, duration={dur})"])
+            return (f"[Action] {label_verb} {_q(st['value'])} ({sp['x']}%,{sp['y']}%) → ({x2},{y2})",
+                    [f"actions.{coords_fn}({x1}, {y1}, {x2}, {y2}, duration={dur}{press_kw})"])
+        return (f"[Action] {label_verb} ({x1},{y1}) → ({x2},{y2})",
+                [f"actions.{coords_fn}({x1}, {y1}, {x2}, {y2}, duration={dur}{press_kw})"])
 
     # ── paint ─────────────────────────────────────────────────────────────────
     if action == "paint":
