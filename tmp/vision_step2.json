@@ -1,0 +1,3206 @@
+{
+  "captured_at": "2026-06-29T14:57:37",
+  "status": {
+    "connected": true,
+    "wda_url": "http://localhost:8100",
+    "mjpeg_url": "http://localhost:9100/mjpeg",
+    "session": "AA67419F-4F3A-41B8-8344-7257ADFA7922",
+    "screen_size": {
+      "width": 320,
+      "height": 693
+    }
+  },
+  "tree": {
+    "elements": [
+      {
+        "tag": "Other",
+        "name": "launchpadViewController.APNGImageView.animatedBackgroundView",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "launcher.button.settings",
+        "label": "402B2AC5 EBCC 4388 9C12 5A9BAB",
+        "enabled": true,
+        "rect": {
+          "x": 14.0,
+          "y": 48.0,
+          "w": 20.0,
+          "h": 21.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "proPlusFreeTrialBar.GradientView.borderImage",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 44.0,
+          "y": 48.0,
+          "w": 140.0,
+          "h": 21.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "proPlusFreeTrialBar.UIImageView.crown",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 51.0,
+          "y": 51.0,
+          "w": 14.0,
+          "h": 15.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "proPlusFreeTrialBar.UILabel.title",
+        "label": "Try Pro+ 7 days for free",
+        "enabled": true,
+        "rect": {
+          "x": 68.0,
+          "y": 53.0,
+          "w": 109.0,
+          "h": 11.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "proPlusFreeTrialBar.UIView.container",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 44.0,
+          "y": 48.0,
+          "w": 140.0,
+          "h": 21.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadViewController.ProPlusFreeTrialBar.freeTrialBar",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 44.0,
+          "y": 48.0,
+          "w": 140.0,
+          "h": 21.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "cloudBtn",
+        "label": "ic cloud storage",
+        "enabled": true,
+        "rect": {
+          "x": 252.0,
+          "y": 48.0,
+          "w": 20.0,
+          "h": 21.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "launchpadViewController.UIButton.notificationNewsBtn",
+        "label": "btn news unread n",
+        "enabled": true,
+        "rect": {
+          "x": 286.0,
+          "y": 48.0,
+          "w": 20.0,
+          "h": 21.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadViewController.UIView.separateLine",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 78.0,
+          "w": 320.0,
+          "h": 1.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadViewController.UIView.launcherHeaderView",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 38.0,
+          "w": 320.0,
+          "h": 41.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 83.0,
+          "w": 320.0,
+          "h": 531.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadHomeBaseVC.UILabel.newProjectTitle",
+        "label": "New Project",
+        "enabled": true,
+        "rect": {
+          "x": 58.0,
+          "y": 143.0,
+          "w": 83.0,
+          "h": 17.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "launchpadHomeBaseVC.UIButton.newProject",
+        "label": "ABBCE96C F744 4A02 8E60 05895C",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 99.0,
+          "w": 167.0,
+          "h": 75.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "newLaunchpadHomePortraitVC.UILabel.autoEditTitle",
+        "label": "Video Edit by Chat",
+        "enabled": true,
+        "rect": {
+          "x": 204.0,
+          "y": 134.0,
+          "w": 89.0,
+          "h": 34.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "newLaunchpadHomePortraitVC.UIButton.autoEdit",
+        "label": "8AFF3A9A CC15 4D03 A160 86B57B",
+        "enabled": true,
+        "rect": {
+          "x": 193.0,
+          "y": 99.0,
+          "w": 111.0,
+          "h": 75.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "newLaunchpadHomePortraitVC.UIView.topButtonContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 99.0,
+          "w": 288.0,
+          "h": 75.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadShortcutPagePortraitCell.UIImageView.itemIcon",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 36.0,
+          "y": 217.0,
+          "w": 25.0,
+          "h": 25.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.iconBackground",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 27.0,
+          "y": 209.0,
+          "w": 42.0,
+          "h": 41.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadShortcutPagePortraitCell.UILabel.itemTitle",
+        "label": "Image to Video",
+        "enabled": true,
+        "rect": {
+          "x": 17.0,
+          "y": 257.0,
+          "w": 63.0,
+          "h": 26.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.background",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 206.0,
+          "w": 65.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadShortcutPagePortraitCell.UIImageView.hotTag",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 57.0,
+          "y": 206.0,
+          "w": 23.0,
+          "h": 12.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 206.0,
+          "w": 65.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "launcher.collectionViewCell.pdrm_launcher_Instant_ITV",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 206.0,
+          "w": 65.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadShortcutPagePortraitCell.UIImageView.itemIcon",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 111.0,
+          "y": 217.0,
+          "w": 24.0,
+          "h": 25.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.iconBackground",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 102.0,
+          "y": 209.0,
+          "w": 42.0,
+          "h": 41.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadShortcutPagePortraitCell.UILabel.itemTitle",
+        "label": "Character Motion Swap",
+        "enabled": true,
+        "rect": {
+          "x": 92.0,
+          "y": 257.0,
+          "w": 62.0,
+          "h": 26.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.background",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 90.0,
+          "y": 206.0,
+          "w": 66.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadShortcutPagePortraitCell.UIImageView.hotTag",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 132.0,
+          "y": 206.0,
+          "w": 22.0,
+          "h": 12.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 90.0,
+          "y": 206.0,
+          "w": 66.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "launcher.collectionViewCell.pdrm_launcher_Instant_Character_Motion_Swap",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 90.0,
+          "y": 206.0,
+          "w": 66.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadShortcutPagePortraitCell.UIImageView.itemIcon",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 185.0,
+          "y": 217.0,
+          "w": 25.0,
+          "h": 25.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.iconBackground",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 176.0,
+          "y": 209.0,
+          "w": 42.0,
+          "h": 41.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadShortcutPagePortraitCell.UILabel.itemTitle",
+        "label": "Video Object Removal",
+        "enabled": true,
+        "rect": {
+          "x": 166.0,
+          "y": 257.0,
+          "w": 62.0,
+          "h": 26.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.background",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 165.0,
+          "y": 206.0,
+          "w": 65.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 165.0,
+          "y": 206.0,
+          "w": 65.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "launcher.collectionViewCell.pdrm_launcher_Instant_Video_Object_Removal",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 165.0,
+          "y": 206.0,
+          "w": 65.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadShortcutPagePortraitCell.UIImageView.itemIcon",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 260.0,
+          "y": 217.0,
+          "w": 24.0,
+          "h": 25.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.iconBackground",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 251.0,
+          "y": 209.0,
+          "w": 42.0,
+          "h": 41.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadShortcutPagePortraitCell.UILabel.itemTitle",
+        "label": "AI Storytelling",
+        "enabled": true,
+        "rect": {
+          "x": 241.0,
+          "y": 257.0,
+          "w": 62.0,
+          "h": 26.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.background",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 239.0,
+          "y": 206.0,
+          "w": 66.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 239.0,
+          "y": 206.0,
+          "w": 66.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "launcher.collectionViewCell.pdrm_launcher_AI_create_AI_Storytelling",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 239.0,
+          "y": 206.0,
+          "w": 66.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadShortcutPagePortraitCell.UIImageView.itemIcon",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 36.0,
+          "y": 309.0,
+          "w": 25.0,
+          "h": 25.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.iconBackground",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 27.0,
+          "y": 301.0,
+          "w": 42.0,
+          "h": 41.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadShortcutPagePortraitCell.UILabel.itemTitle",
+        "label": "Video Enhance",
+        "enabled": true,
+        "rect": {
+          "x": 17.0,
+          "y": 349.0,
+          "w": 63.0,
+          "h": 26.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.background",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 298.0,
+          "w": 65.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 298.0,
+          "w": 65.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "launcher.collectionViewCell.pdrm_launcher_Instant_Video_Enhancer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 298.0,
+          "w": 65.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadShortcutPagePortraitCell.UIImageView.itemIcon",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 111.0,
+          "y": 309.0,
+          "w": 24.0,
+          "h": 25.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.iconBackground",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 102.0,
+          "y": 301.0,
+          "w": 42.0,
+          "h": 41.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadShortcutPagePortraitCell.UILabel.itemTitle",
+        "label": "Text To Video",
+        "enabled": true,
+        "rect": {
+          "x": 92.0,
+          "y": 349.0,
+          "w": 62.0,
+          "h": 12.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.background",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 90.0,
+          "y": 298.0,
+          "w": 66.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 90.0,
+          "y": 298.0,
+          "w": 66.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "launcher.collectionViewCell.pdrm_launcher_Instant_TTV",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 90.0,
+          "y": 298.0,
+          "w": 66.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadShortcutPagePortraitCell.UIImageView.itemIcon",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 185.0,
+          "y": 309.0,
+          "w": 25.0,
+          "h": 25.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.iconBackground",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 176.0,
+          "y": 301.0,
+          "w": 42.0,
+          "h": 41.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadShortcutPagePortraitCell.UILabel.itemTitle",
+        "label": "Auto Captions",
+        "enabled": true,
+        "rect": {
+          "x": 166.0,
+          "y": 349.0,
+          "w": 62.0,
+          "h": 26.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.background",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 165.0,
+          "y": 298.0,
+          "w": 65.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 165.0,
+          "y": 298.0,
+          "w": 65.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "launcher.collectionViewCell.pdrm_launcher_Instant_Auto_Caption",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 165.0,
+          "y": 298.0,
+          "w": 65.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadShortcutPagePortraitCell.UIImageView.itemIcon",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 260.0,
+          "y": 309.0,
+          "w": 24.0,
+          "h": 25.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.iconBackground",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 251.0,
+          "y": 301.0,
+          "w": 42.0,
+          "h": 41.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadShortcutPagePortraitCell.UILabel.itemTitle",
+        "label": "Auto Edit",
+        "enabled": true,
+        "rect": {
+          "x": 241.0,
+          "y": 349.0,
+          "w": 62.0,
+          "h": 12.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.background",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 239.0,
+          "y": 298.0,
+          "w": 66.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 239.0,
+          "y": 298.0,
+          "w": 66.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "launcher.collectionViewCell.pdrm_launcher_Instant_Auto_Edit",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 239.0,
+          "y": 298.0,
+          "w": 66.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadShortcutPagePortraitCell.UIImageView.itemIcon",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 36.0,
+          "y": 401.0,
+          "w": 25.0,
+          "h": 25.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.iconBackground",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 27.0,
+          "y": 393.0,
+          "w": 42.0,
+          "h": 41.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadShortcutPagePortraitCell.UILabel.itemTitle",
+        "label": "Video Quick Actions",
+        "enabled": true,
+        "rect": {
+          "x": 17.0,
+          "y": 441.0,
+          "w": 63.0,
+          "h": 26.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.background",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 390.0,
+          "w": 65.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 390.0,
+          "w": 65.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "launcher.collectionViewCell.pdrm_launcher_Instant_Video_Quick_Actions",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 390.0,
+          "w": 65.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadShortcutPagePortraitCell.UIImageView.itemIcon",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 111.0,
+          "y": 401.0,
+          "w": 24.0,
+          "h": 25.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.iconBackground",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 102.0,
+          "y": 393.0,
+          "w": 42.0,
+          "h": 41.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadShortcutPagePortraitCell.UILabel.itemTitle",
+        "label": "Photo Enhance",
+        "enabled": true,
+        "rect": {
+          "x": 92.0,
+          "y": 441.0,
+          "w": 62.0,
+          "h": 26.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.background",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 90.0,
+          "y": 390.0,
+          "w": 66.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 90.0,
+          "y": 390.0,
+          "w": 66.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "launcher.collectionViewCell.pdrm_launcher_top_banner_Photo_Enhancer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 90.0,
+          "y": 390.0,
+          "w": 66.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadShortcutPagePortraitCell.UIImageView.itemIcon",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 185.0,
+          "y": 401.0,
+          "w": 25.0,
+          "h": 25.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.iconBackground",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 176.0,
+          "y": 393.0,
+          "w": 42.0,
+          "h": 41.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadShortcutPagePortraitCell.UILabel.itemTitle",
+        "label": "Fix Shake",
+        "enabled": true,
+        "rect": {
+          "x": 166.0,
+          "y": 441.0,
+          "w": 62.0,
+          "h": 12.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.background",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 165.0,
+          "y": 390.0,
+          "w": 65.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 165.0,
+          "y": 390.0,
+          "w": 65.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "launcher.collectionViewCell.pdrm_launcher_Instant_Stabilizer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 165.0,
+          "y": 390.0,
+          "w": 65.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadShortcutPagePortraitCell.UIImageView.itemIcon",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 260.0,
+          "y": 401.0,
+          "w": 24.0,
+          "h": 25.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.iconBackground",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 251.0,
+          "y": 393.0,
+          "w": 42.0,
+          "h": 41.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadShortcutPagePortraitCell.UILabel.itemTitle",
+        "label": "Replace BG",
+        "enabled": true,
+        "rect": {
+          "x": 241.0,
+          "y": 441.0,
+          "w": 62.0,
+          "h": 12.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitCell.UIView.background",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 239.0,
+          "y": 390.0,
+          "w": 66.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 239.0,
+          "y": 390.0,
+          "w": 66.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "launcher.collectionViewCell.pdrm_launcher_Instant_Cutout",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 239.0,
+          "y": 390.0,
+          "w": 66.0,
+          "h": 82.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 306.0,
+          "y": 209.0,
+          "w": 3.0,
+          "h": 260.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "Vertical scroll bar, 1 page",
+        "label": "Vertical scroll bar, 1 page",
+        "enabled": true,
+        "rect": {
+          "x": 279.0,
+          "y": 206.0,
+          "w": 30.0,
+          "h": 266.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 306.0,
+          "y": 209.0,
+          "w": 3.0,
+          "h": 260.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "Vertical scroll bar, 1 page",
+        "label": "Vertical scroll bar, 1 page",
+        "enabled": true,
+        "rect": {
+          "x": 279.0,
+          "y": 206.0,
+          "w": 30.0,
+          "h": 266.0
+        }
+      },
+      {
+        "tag": "CollectionView",
+        "name": "launchpadShortcutPagePortraitVC.UICollectionView.collectionView",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 8.0,
+          "y": 206.0,
+          "w": 304.0,
+          "h": 266.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadShortcutPagePortraitVC.UIView.shortcutItemContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 8.0,
+          "y": 206.0,
+          "w": 304.0,
+          "h": 284.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 8.0,
+          "y": 206.0,
+          "w": 304.0,
+          "h": 284.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "newLaunchpadHomePortraitVC.UIView.shortcutContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 190.0,
+          "w": 320.0,
+          "h": 300.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadTrending.UILabel.label",
+        "label": "What's Trending",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 514.0,
+          "w": 118.0,
+          "h": 18.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadTrending.UIImageView.sectionIcon",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 141.0,
+          "y": 514.0,
+          "w": 18.0,
+          "h": 18.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadTrending.UILabel.viewMoreLabel",
+        "label": "View more",
+        "enabled": true,
+        "rect": {
+          "x": 233.0,
+          "y": 515.0,
+          "w": 55.0,
+          "h": 14.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadTrending.UIImageView.viewMoreArrow",
+        "label": "Forward",
+        "enabled": true,
+        "rect": {
+          "x": 288.0,
+          "y": 515.0,
+          "w": 16.0,
+          "h": 14.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadTrending.UIStackView.stackView",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 233.0,
+          "y": 514.0,
+          "w": 71.0,
+          "h": 16.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadCategorizedSectionCell.UIImageView.animatedThumbnail",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 540.0,
+          "w": 99.0,
+          "h": 99.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadCategorizedSectionCell.UIView.thumbnailContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 540.0,
+          "w": 99.0,
+          "h": 99.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadCategorizedSectionCell.UILabel.title",
+        "label": "USA Winner",
+        "enabled": true,
+        "rect": {
+          "x": 19.0,
+          "y": 624.0,
+          "w": 93.0,
+          "h": 12.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadCategorizedSectionCell.UIView.titleContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 589.0,
+          "w": 99.0,
+          "h": 50.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 540.0,
+          "w": 99.0,
+          "h": 99.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 540.0,
+          "w": 99.0,
+          "h": 99.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadCategorizedSectionCell.UIImageView.animatedThumbnail",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 131.0,
+          "y": 540.0,
+          "w": 99.0,
+          "h": 99.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadCategorizedSectionCell.UIView.thumbnailContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 131.0,
+          "y": 540.0,
+          "w": 99.0,
+          "h": 99.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadCategorizedSectionCell.UILabel.title",
+        "label": "Team ARG",
+        "enabled": true,
+        "rect": {
+          "x": 134.0,
+          "y": 624.0,
+          "w": 93.0,
+          "h": 12.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadCategorizedSectionCell.UIView.titleContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 131.0,
+          "y": 589.0,
+          "w": 99.0,
+          "h": 50.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 131.0,
+          "y": 540.0,
+          "w": 99.0,
+          "h": 99.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 131.0,
+          "y": 540.0,
+          "w": 99.0,
+          "h": 99.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadCategorizedSectionCell.UIImageView.animatedThumbnail",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 246.0,
+          "y": 540.0,
+          "w": 99.0,
+          "h": 99.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadCategorizedSectionCell.UIView.thumbnailContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 246.0,
+          "y": 540.0,
+          "w": 99.0,
+          "h": 99.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadCategorizedSectionCell.UILabel.title",
+        "label": "Team BR",
+        "enabled": true,
+        "rect": {
+          "x": 249.0,
+          "y": 624.0,
+          "w": 93.0,
+          "h": 12.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadCategorizedSectionCell.UIView.titleContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 246.0,
+          "y": 589.0,
+          "w": 99.0,
+          "h": 50.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 246.0,
+          "y": 540.0,
+          "w": 99.0,
+          "h": 99.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 246.0,
+          "y": 540.0,
+          "w": 99.0,
+          "h": 99.0
+        }
+      },
+      {
+        "tag": "CollectionView",
+        "name": "launchpadTrending.UICollectionView.collectionView",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 540.0,
+          "w": 288.0,
+          "h": 99.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "All",
+        "label": "All",
+        "enabled": true,
+        "rect": {
+          "x": 2784.0,
+          "y": 582.0,
+          "w": 16.0,
+          "h": 15.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "chevron.right",
+        "label": "Forward",
+        "enabled": true,
+        "rect": {
+          "x": 2799.0,
+          "y": 584.0,
+          "w": 15.0,
+          "h": 11.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 2784.0,
+          "y": 582.0,
+          "w": 30.0,
+          "h": 15.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 2776.0,
+          "y": 575.0,
+          "w": 46.0,
+          "h": 29.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 540.0,
+          "w": 288.0,
+          "h": 99.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 490.0,
+          "w": 288.0,
+          "h": 149.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadMemeGenerator.UILabel.label",
+        "label": "Meme Dance Creator",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 663.0,
+          "w": 151.0,
+          "h": 18.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadMemeGenerator.UIImageView.sectionIcon",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 174.0,
+          "y": 663.0,
+          "w": 18.0,
+          "h": 18.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadMemeGenerator.UILabel.viewMoreLabel",
+        "label": "View more",
+        "enabled": true,
+        "rect": {
+          "x": 233.0,
+          "y": 664.0,
+          "w": 55.0,
+          "h": 14.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadMemeGenerator.UIImageView.viewMoreArrow",
+        "label": "Forward",
+        "enabled": true,
+        "rect": {
+          "x": 288.0,
+          "y": 664.0,
+          "w": 16.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadMemeGenerator.UIStackView.stackView",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 233.0,
+          "y": 663.0,
+          "w": 71.0,
+          "h": 16.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadCategorizedSectionCell.UIImageView.animatedThumbnail",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 689.0,
+          "w": 99.0,
+          "h": 132.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadCategorizedSectionCell.UIView.thumbnailContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 689.0,
+          "w": 99.0,
+          "h": 132.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadCategorizedSectionCell.UILabel.title",
+        "label": "Boompala",
+        "enabled": true,
+        "rect": {
+          "x": 19.0,
+          "y": 806.0,
+          "w": 93.0,
+          "h": 12.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadCategorizedSectionCell.UIView.titleContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 755.0,
+          "w": 99.0,
+          "h": 66.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 689.0,
+          "w": 99.0,
+          "h": 132.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 689.0,
+          "w": 99.0,
+          "h": 132.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadCategorizedSectionCell.UIImageView.animatedThumbnail",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 131.0,
+          "y": 689.0,
+          "w": 99.0,
+          "h": 132.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadCategorizedSectionCell.UIView.thumbnailContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 131.0,
+          "y": 689.0,
+          "w": 99.0,
+          "h": 132.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadCategorizedSectionCell.UILabel.title",
+        "label": "Baby Groove",
+        "enabled": true,
+        "rect": {
+          "x": 134.0,
+          "y": 806.0,
+          "w": 93.0,
+          "h": 12.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadCategorizedSectionCell.UIView.titleContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 131.0,
+          "y": 755.0,
+          "w": 99.0,
+          "h": 66.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 131.0,
+          "y": 689.0,
+          "w": 99.0,
+          "h": 132.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 131.0,
+          "y": 689.0,
+          "w": 99.0,
+          "h": 132.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadCategorizedSectionCell.UIImageView.animatedThumbnail",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 246.0,
+          "y": 689.0,
+          "w": 99.0,
+          "h": 132.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadCategorizedSectionCell.UIView.thumbnailContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 246.0,
+          "y": 689.0,
+          "w": 99.0,
+          "h": 132.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadCategorizedSectionCell.UILabel.title",
+        "label": "Baby Slays",
+        "enabled": true,
+        "rect": {
+          "x": 249.0,
+          "y": 806.0,
+          "w": 93.0,
+          "h": 12.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadCategorizedSectionCell.UIView.titleContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 246.0,
+          "y": 755.0,
+          "w": 99.0,
+          "h": 66.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 246.0,
+          "y": 689.0,
+          "w": 99.0,
+          "h": 132.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 246.0,
+          "y": 689.0,
+          "w": 99.0,
+          "h": 132.0
+        }
+      },
+      {
+        "tag": "CollectionView",
+        "name": "launchpadMemeGenerator.UICollectionView.collectionView",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 689.0,
+          "w": 288.0,
+          "h": 132.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "All",
+        "label": "All",
+        "enabled": true,
+        "rect": {
+          "x": 1634.0,
+          "y": 747.0,
+          "w": 16.0,
+          "h": 16.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "chevron.right",
+        "label": "Forward",
+        "enabled": true,
+        "rect": {
+          "x": 1649.0,
+          "y": 749.0,
+          "w": 15.0,
+          "h": 12.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 1634.0,
+          "y": 747.0,
+          "w": 30.0,
+          "h": 16.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 1626.0,
+          "y": 740.0,
+          "w": 46.0,
+          "h": 30.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 689.0,
+          "w": 288.0,
+          "h": 132.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 639.0,
+          "w": 288.0,
+          "h": 182.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadAiSmartTools.UILabel.label",
+        "label": "AI-Powered Creation",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 844.0,
+          "w": 149.0,
+          "h": 19.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadAiSmartTools.UIImageView.sectionIcon",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 172.0,
+          "y": 845.0,
+          "w": 18.0,
+          "h": 18.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadAiSmartTools.UILabel.viewMoreLabel",
+        "label": "View more",
+        "enabled": true,
+        "rect": {
+          "x": 233.0,
+          "y": 846.0,
+          "w": 55.0,
+          "h": 14.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadAiSmartTools.UIImageView.viewMoreArrow",
+        "label": "Forward",
+        "enabled": true,
+        "rect": {
+          "x": 288.0,
+          "y": 846.0,
+          "w": 16.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadAiSmartTools.UIStackView.stackView",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 233.0,
+          "y": 844.0,
+          "w": 71.0,
+          "h": 17.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadCategorizedSectionCell.UIImageView.animatedThumbnail",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 870.0,
+          "w": 99.0,
+          "h": 133.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadCategorizedSectionCell.UIView.thumbnailContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 870.0,
+          "w": 99.0,
+          "h": 133.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadCategorizedSectionCell.UILabel.title",
+        "label": "Describe & Edit",
+        "enabled": true,
+        "rect": {
+          "x": 19.0,
+          "y": 987.0,
+          "w": 93.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadCategorizedSectionCell.UIView.titleContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 936.0,
+          "w": 99.0,
+          "h": 67.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 870.0,
+          "w": 99.0,
+          "h": 133.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 870.0,
+          "w": 99.0,
+          "h": 133.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadCategorizedSectionCell.UIImageView.animatedThumbnail",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 131.0,
+          "y": 870.0,
+          "w": 99.0,
+          "h": 133.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadCategorizedSectionCell.UIView.thumbnailContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 131.0,
+          "y": 870.0,
+          "w": 99.0,
+          "h": 133.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadCategorizedSectionCell.UILabel.title",
+        "label": "Clean Up Video",
+        "enabled": true,
+        "rect": {
+          "x": 134.0,
+          "y": 987.0,
+          "w": 93.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadCategorizedSectionCell.UIView.titleContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 131.0,
+          "y": 936.0,
+          "w": 99.0,
+          "h": 67.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 131.0,
+          "y": 870.0,
+          "w": 99.0,
+          "h": 133.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 131.0,
+          "y": 870.0,
+          "w": 99.0,
+          "h": 133.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "launchpadCategorizedSectionCell.UIImageView.animatedThumbnail",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 246.0,
+          "y": 870.0,
+          "w": 99.0,
+          "h": 133.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadCategorizedSectionCell.UIView.thumbnailContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 246.0,
+          "y": 870.0,
+          "w": 99.0,
+          "h": 133.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadCategorizedSectionCell.UILabel.title",
+        "label": "Create with Veo3.1",
+        "enabled": true,
+        "rect": {
+          "x": 249.0,
+          "y": 987.0,
+          "w": 93.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadCategorizedSectionCell.UIView.titleContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 246.0,
+          "y": 936.0,
+          "w": 99.0,
+          "h": 67.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 246.0,
+          "y": 870.0,
+          "w": 99.0,
+          "h": 133.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 246.0,
+          "y": 870.0,
+          "w": 99.0,
+          "h": 133.0
+        }
+      },
+      {
+        "tag": "CollectionView",
+        "name": "launchpadAiSmartTools.UICollectionView.collectionView",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 870.0,
+          "w": 288.0,
+          "h": 133.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "All",
+        "label": "All",
+        "enabled": true,
+        "rect": {
+          "x": 714.0,
+          "y": 929.0,
+          "w": 16.0,
+          "h": 15.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "chevron.right",
+        "label": "Forward",
+        "enabled": true,
+        "rect": {
+          "x": 729.0,
+          "y": 931.0,
+          "w": 15.0,
+          "h": 11.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 714.0,
+          "y": 929.0,
+          "w": 30.0,
+          "h": 15.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 706.0,
+          "y": 922.0,
+          "w": 46.0,
+          "h": 30.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 870.0,
+          "w": 288.0,
+          "h": 133.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 820.0,
+          "w": 288.0,
+          "h": 183.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadHomeBaseVC.UILabel.myProjectTitle",
+        "label": "Recent Projects",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 1026.0,
+          "w": 113.0,
+          "h": 19.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "View more",
+        "label": "View more",
+        "enabled": true,
+        "rect": {
+          "x": 235.0,
+          "y": 1029.0,
+          "w": 56.0,
+          "h": 14.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "newLaunchpadHomePortraitVC.UIButton.seeAll",
+        "label": "View more",
+        "enabled": true,
+        "rect": {
+          "x": 235.0,
+          "y": 1027.0,
+          "w": 69.0,
+          "h": 18.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "2026/06/29   2:57 PM",
+        "label": "2026/06/29   2:57 PM",
+        "enabled": true,
+        "rect": {
+          "x": 101.0,
+          "y": 1070.0,
+          "w": 106.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "Project 06-29(4)",
+        "label": "Project 06-29(4)",
+        "enabled": true,
+        "rect": {
+          "x": 101.0,
+          "y": 1084.0,
+          "w": 174.0,
+          "h": 15.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "9:16",
+        "label": "9:16",
+        "enabled": true,
+        "rect": {
+          "x": 118.0,
+          "y": 1122.0,
+          "w": 21.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "0:00",
+        "label": "0:00",
+        "enabled": true,
+        "rect": {
+          "x": 166.0,
+          "y": 1122.0,
+          "w": 23.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "32.5 KB",
+        "label": "32.5 KB",
+        "enabled": true,
+        "rect": {
+          "x": 203.0,
+          "y": 1122.0,
+          "w": 39.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 26.0,
+          "y": 1070.0,
+          "w": 65.0,
+          "h": 66.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 275.0,
+          "y": 1088.0,
+          "w": 29.0,
+          "h": 58.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "B55296E3 B04E 4E68 8F66 E3F4D5",
+        "label": "B55296E3 B04E 4E68 8F66 E3F4D5",
+        "enabled": true,
+        "rect": {
+          "x": 275.0,
+          "y": 1068.0,
+          "w": 20.0,
+          "h": 21.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 1060.0,
+          "w": 288.0,
+          "h": 86.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "newLaunchpadHomePortraitVC.UIView.footerView",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 1145.0,
+          "w": 288.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "2026/06/29   2:43 PM",
+        "label": "2026/06/29   2:43 PM",
+        "enabled": true,
+        "rect": {
+          "x": 101.0,
+          "y": 1167.0,
+          "w": 107.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "Project 06-29(3)",
+        "label": "Project 06-29(3)",
+        "enabled": true,
+        "rect": {
+          "x": 101.0,
+          "y": 1181.0,
+          "w": 174.0,
+          "h": 15.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "9:16",
+        "label": "9:16",
+        "enabled": true,
+        "rect": {
+          "x": 118.0,
+          "y": 1219.0,
+          "w": 21.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "0:05",
+        "label": "0:05",
+        "enabled": true,
+        "rect": {
+          "x": 166.0,
+          "y": 1219.0,
+          "w": 23.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "30 KB",
+        "label": "30 KB",
+        "enabled": true,
+        "rect": {
+          "x": 203.0,
+          "y": 1219.0,
+          "w": 30.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 26.0,
+          "y": 1167.0,
+          "w": 65.0,
+          "h": 66.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 275.0,
+          "y": 1185.0,
+          "w": 29.0,
+          "h": 58.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "01A23927 B6B5 4F97 84B9 C71B53",
+        "label": "01A23927 B6B5 4F97 84B9 C71B53",
+        "enabled": true,
+        "rect": {
+          "x": 275.0,
+          "y": 1165.0,
+          "w": 20.0,
+          "h": 21.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 1157.0,
+          "w": 288.0,
+          "h": 86.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "newLaunchpadHomePortraitVC.UIView.footerView",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 1242.0,
+          "w": 288.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "2026/06/29   2:27 PM",
+        "label": "2026/06/29   2:27 PM",
+        "enabled": true,
+        "rect": {
+          "x": 101.0,
+          "y": 1264.0,
+          "w": 106.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "Project 06-29(2)",
+        "label": "Project 06-29(2)",
+        "enabled": true,
+        "rect": {
+          "x": 101.0,
+          "y": 1278.0,
+          "w": 174.0,
+          "h": 15.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "9:16",
+        "label": "9:16",
+        "enabled": true,
+        "rect": {
+          "x": 118.0,
+          "y": 1316.0,
+          "w": 21.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "0:05",
+        "label": "0:05",
+        "enabled": true,
+        "rect": {
+          "x": 166.0,
+          "y": 1316.0,
+          "w": 23.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "30 KB",
+        "label": "30 KB",
+        "enabled": true,
+        "rect": {
+          "x": 203.0,
+          "y": 1316.0,
+          "w": 30.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 26.0,
+          "y": 1264.0,
+          "w": 65.0,
+          "h": 66.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 275.0,
+          "y": 1282.0,
+          "w": 29.0,
+          "h": 58.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "C1F4CF15 8EBC 48F4 AAFE 6B8060",
+        "label": "C1F4CF15 8EBC 48F4 AAFE 6B8060",
+        "enabled": true,
+        "rect": {
+          "x": 275.0,
+          "y": 1262.0,
+          "w": 20.0,
+          "h": 21.0
+        }
+      },
+      {
+        "tag": "Cell",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 1254.0,
+          "w": 288.0,
+          "h": 86.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "newLaunchpadHomePortraitVC.UIView.footerView",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 1327.0,
+          "w": 288.0,
+          "h": 13.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 19.0,
+          "y": 1333.0,
+          "w": 282.0,
+          "h": 4.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "Horizontal scroll bar, 1 page",
+        "label": "Horizontal scroll bar, 1 page",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 1306.0,
+          "w": 288.0,
+          "h": 31.0
+        }
+      },
+      {
+        "tag": "Table",
+        "name": "newLaunchpadHomePortraitVC.UITableView.project",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 16.0,
+          "y": 1060.0,
+          "w": 288.0,
+          "h": 280.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "newLaunchpadHomePortraitVC.UIView.functionsContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 1002.0,
+          "w": 320.0,
+          "h": 426.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "newLaunchpadHomePortraitVC.UIView.categorizedFeatureContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 83.0,
+          "w": 320.0,
+          "h": 1345.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 3.0,
+          "y": 608.0,
+          "w": 311.0,
+          "h": 3.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "Horizontal scroll bar, 1 page",
+        "label": "Horizontal scroll bar, 1 page",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 581.0,
+          "w": 320.0,
+          "h": 30.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 3.0,
+          "y": 608.0,
+          "w": 311.0,
+          "h": 3.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "Horizontal scroll bar, 1 page",
+        "label": "Horizontal scroll bar, 1 page",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 581.0,
+          "w": 320.0,
+          "h": 30.0
+        }
+      },
+      {
+        "tag": "ScrollView",
+        "name": "newLaunchpadHomePortraitVC.UIScrollView.categorizedFeature",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 83.0,
+          "w": 320.0,
+          "h": 531.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "newLaunchpadHomePortraitVC.UIView.scrollViewBackground",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 83.0,
+          "w": 320.0,
+          "h": 531.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "newLaunchpadHomePortraitVC.UIView.content",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 83.0,
+          "w": 320.0,
+          "h": 531.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 83.0,
+          "w": 320.0,
+          "h": 531.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 83.0,
+          "w": 320.0,
+          "h": 531.0
+        }
+      },
+      {
+        "tag": "ScrollView",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 83.0,
+          "w": 320.0,
+          "h": 531.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 83.0,
+          "w": 320.0,
+          "h": 531.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadViewController.UIView.pageContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 83.0,
+          "w": 320.0,
+          "h": 531.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadTabBarVC.UIView.outline",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 614.0,
+          "w": 320.0,
+          "h": 1.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadTabButton.UILabel.label",
+        "label": "Home",
+        "enabled": true,
+        "rect": {
+          "x": 28.0,
+          "y": 644.0,
+          "w": 30.0,
+          "h": 20.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "launcher.UIButton.homeButton",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 14.0,
+          "y": 621.0,
+          "w": 59.0,
+          "h": 43.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadTabButton.UILabel.label",
+        "label": "Template",
+        "enabled": true,
+        "rect": {
+          "x": 98.0,
+          "y": 644.0,
+          "w": 47.0,
+          "h": 20.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "launcher.button.template",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 92.0,
+          "y": 621.0,
+          "w": 59.0,
+          "h": 43.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadTabButton.UILabel.label",
+        "label": "Project",
+        "enabled": true,
+        "rect": {
+          "x": 180.0,
+          "y": 644.0,
+          "w": 37.0,
+          "h": 20.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "launcher.button.projectList",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 169.0,
+          "y": 621.0,
+          "w": 59.0,
+          "h": 43.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "launchpadTabButton.UILabel.label",
+        "label": "Pro+",
+        "enabled": true,
+        "rect": {
+          "x": 264.0,
+          "y": 644.0,
+          "w": 25.0,
+          "h": 20.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "launcher.button.shopCart",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 247.0,
+          "y": 621.0,
+          "w": 59.0,
+          "h": 43.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadTabBarVC.UIView.tabItemStack",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 14.0,
+          "y": 621.0,
+          "w": 292.0,
+          "h": 43.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadTabBarVC.UIView.background",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 614.0,
+          "w": 320.0,
+          "h": 50.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 614.0,
+          "w": 320.0,
+          "h": 50.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 614.0,
+          "w": 320.0,
+          "h": 79.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpadViewController.UIView.tabContainer",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 614.0,
+          "w": 320.0,
+          "h": 79.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "launchpad.UIView.timerBubbleFollowingView",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 264.0,
+          "y": 644.0,
+          "w": 25.0,
+          "h": 20.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Window",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Window",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Application",
+        "name": "PowerDirector",
+        "label": "PowerDirector",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      }
+    ]
+  },
+  "frame": {
+    "has_frame": true,
+    "format": "jpeg",
+    "screen_size": {
+      "width": 320,
+      "height": 693
+    },
+    "image_base64": ""
+  }
+}

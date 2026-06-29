@@ -135,6 +135,12 @@
           <span class="finger-label">Scr Diff</span>
         </button>
       </div>
+      <div class="finger-row" style="margin-top:4px">
+        <button class="verify-btn" data-verify="tap_screenshot_diff" style="flex:1">
+          <span class="finger-icon">👉</span>
+          <span class="finger-label">Tap+Diff</span>
+        </button>
+      </div>
     </div>
 
     <!-- ── Screen ── -->
@@ -291,6 +297,35 @@
       <div style="display:flex;gap:10px;margin-top:4px">
         <button class="btn-rec" id="diffExpectedSame"   style="flex:1">✅ The Same</button>
         <button class="btn-sm"  id="diffExpectedDiff"   style="flex:1">🔄 Not The Same</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Verify: Tap + Screenshot Diff dialog ─────────────────────────────── -->
+<div id="verifyTapDiffModal" class="modal-backdrop" style="display:none">
+  <div class="modal-box" style="max-width:360px">
+    <div class="modal-header">
+      <span class="modal-title">👉 Tap + Screenshot Diff</span>
+      <button class="modal-close" id="verifyTapDiffClose">✕</button>
+    </div>
+    <div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:11px;color:var(--muted)">Wait seconds after tap:</div>
+      <input id="verifyTapDiffWait" class="case-name-input" type="number" min="0" step="0.1" value="2" />
+      <div style="font-size:11px;color:var(--muted)">Expected screenshot result:</div>
+      <div style="display:flex;gap:10px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text)">
+          <input type="radio" name="verifyTapDiffExpected" value="same" checked />
+          The Same
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text)">
+          <input type="radio" name="verifyTapDiffExpected" value="different" />
+          Not The Same
+        </label>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
+        <button class="btn-sm" id="verifyTapDiffCancel">Cancel</button>
+        <button class="btn-rec" id="verifyTapDiffConfirm">Record ↵</button>
       </div>
     </div>
   </div>

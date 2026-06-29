@@ -16,6 +16,7 @@ iosRecorder_v2/
 ├── app/                    # FastAPI backend — recording server (port 8888)
 │   ├── main.py             # All API endpoints + recording engine + WDA proxy
 │   ├── codegen.py          # Converts recorded steps → pytest code
+│   ├── cli.py              # JSON-first CLI for validate/codegen/export automation
 │   ├── hittest.py          # Score-based element detection at a coordinate
 │   ├── selector.py         # Builds the most stable selector for an element
 │   ├── unit_test_gen.py    # Generates test_gen1..5 + test_gen3b pytest files from --unit_test captures
@@ -66,6 +67,10 @@ iosRecorder_v2/
   "bundle_id": str,             # launch_app
   "expected_text": str,         # verify_get_text
   "screenshot_name": str,       # verify_screenshot_*
+  "wait_seconds": float,        # verify_tap_screenshot_diff: delay after tap before AFTER screenshot
+  "action_target": dict,        # verify_tap_screenshot_diff: the element to tap between captures
+  "action_coords": dict,        # verify_tap_screenshot_diff coordinate fallback for tap action
+  "expected_result": str,       # verify_screenshot_diff / verify_tap_screenshot_diff: "same" | "different"
   "scroll_container": dict,     # tap/long_press/scroll: innermost scrollable container at the tap
                                 # coordinate (type, value, selector_quality, bounds); used by
                                 # codegen to pass container_by/container_value/container_w/container_h
@@ -98,6 +103,19 @@ Runtime override: when started with `bash start.sh --xpath` (`RECORDER_XPATH_ONL
   - `<name>.html` — selector quality report: shows every step whose selector is `id_indexed`, `id_eq_label`, `label_only`, `xpath_only`, or `coordinate`; each card shows a **pre-gesture screenshot** (captured before the action is sent to the device for every recorded step) with either a bounding-box rect overlay (element found) or a crosshair marker (coordinate-only)
 - UI shows `#exportResultModal` listing all saved paths; no browser download dialog
 
+### CLI automation output (python -m app.cli)
+- `validate-steps` validates step-list JSON and returns structured errors/warnings for agents
+- `generate-test` writes a pytest file directly from step JSON (`generate_script` shared backend)
+- `export-bundle` writes pytest code + steps JSON + selector quality HTML report in one command
+- `server-status` / `server-set-config` manage recorder backend connectivity + WDA URL
+- `server-record-action` drives backend `/api/record*` endpoints from JSON payloads
+- `server-steps-get` / `server-steps-clear` control the backend step buffer for iterative recording loops
+- `server-export` triggers backend `POST /api/export` from in-memory recorded steps
+- `server-vision-snapshot` returns AI-readable status/tree/frame bundles
+- `server-vision-execute` executes one AI-selected action in `record` or `live` mode
+- `server-vision-loop` runs scripted `snapshot` + `action` plans for closed-loop automation
+- CLI output is JSON-only to support deterministic AI/automation pipelines
+
 ### DriverActions (pytest/driver/driver_actions.py)
 - Single class wrapping all iOS gestures
 - `@step(...)` decorator on every public method (ReportPortal integration)
@@ -108,6 +126,7 @@ Runtime override: when started with `bash start.sh --xpath` (`RECORDER_XPATH_ONL
 ### Frontend ↔ Backend communication
 - **WebSocket** `/ws/tap` — low-latency tap events during live recording
 - **REST** — everything else (swipe, drag, paint, scroll, verify, export, config)
+- **REST** `/api/frame` — latest cached frame snapshot for AI/CLI vision workflows
 - **MJPEG** `/api/stream` — live device screen video
 
 ## Dynamic Skill Loading
@@ -119,6 +138,7 @@ Skill files live in `.claude/commands/`. **Before responding to any task, decide
 | `static/` (HTML, JS, CSS) | `.claude/commands/recorder-ui.md` |
 | `app/selector.py` or `app/hittest.py` | `.claude/commands/recorder-select.md` |
 | `app/codegen.py` or adding a new action type | `.claude/commands/recorder-codegen.md` |
+| `app/cli.py` | `.claude/commands/recorder-cli-skill.md` |
 | `pytest/` — tests, `DriverActions`, conftest, config | `.claude/commands/pytest.md` |
 | Multiple areas at once | Read all relevant files before starting |
 

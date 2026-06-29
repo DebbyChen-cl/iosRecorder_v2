@@ -107,6 +107,8 @@ def test_<safe_name>(actions: DriverActions):
 - `verify_text(by, value, expected, timeout=30)` — assert element text equals expected
 - `capture_for_gt(name, by=None, value=None)` — capture element (or full screen) screenshot to `screenshots/compare/{name}_{ts}_compare.png`; queues `(name, path, threshold)` for GT comparison; timestamp prevents overwrite on repeated calls
 - `capture_for_preview(name, phase, by=None, value=None)` — capture element screenshot as `{name}_{ts}_{phase}.png` in compare folder; `before` saves ts in `_preview_pending[name]`; `after` pops the ts to pair files, queues `(name, before_path, after_path, threshold, expected_result)` for preview comparison
+- `tap_then_capture_preview(capture_by, capture_value, tap_by, tap_value, wait_seconds=2.0, capture_name="tap_screenshot_diff", expected_result="same", threshold=0.95)` — one-shot flow: capture BEFORE, tap action element, wait N seconds, capture AFTER
+- `tap_within_element_then_capture_preview(capture_by, capture_value, tap_by, tap_value, tap_pct_x, tap_pct_y, wait_seconds=2.0, capture_name="tap_screenshot_diff", expected_result="same", threshold=0.95)` — same flow but tap point uses percent offset inside action element
 - `run_screenshot_comparisons()` — evaluate all queued GT and preview comparisons (AND logic); uploads failing pairs to ReportPortal with label showing both filenames (`diff: A vs B`); raises one `AssertionError` with all failure messages
 - `compare_with_gt(name, compare_path, threshold)` — single GT comparison with explicit path; if GT missing → saves compare as GT; if diff > threshold → uploads diff to RP with `diff: compare vs gt` label; does not raise
 - `compare_preview(name, before_path, after_path, threshold, expected_result)` — single before/after comparison with explicit paths; uploads diff to RP with `diff: before vs after` label on failure; does not raise
@@ -159,6 +161,8 @@ actions.stability_count_required_samples = 2
 ```
 
 This polls `page_source` after each decorated action — expensive (~0.5–2s per call). Only enable when needed.
+
+The helper methods `tap_then_capture_preview` and `tap_within_element_then_capture_preview` are excluded from hierarchy-stability wrapping so tap+capture timing remains deterministic.
 
 ---
 

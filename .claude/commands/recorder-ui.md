@@ -28,7 +28,11 @@ style.css    → BEM-like class naming
 | **REST** `POST /api/terminate_app` | Force-quit an app on device (non-recording) |
 | **REST** `GET/DELETE /api/steps` | Step list management |
 | **REST** `POST /api/export` | Generate and download pytest code |
+| **REST** `GET /api/frame` | Latest cached device frame for AI/CLI visual snapshot |
 | **MJPEG** `/api/stream` | Live device screen video |
+
+New verify endpoint used by the UI:
+- `POST /api/record/verify_tap_screenshot_diff` — one-shot verify flow that captures a target region before and after a tap action with a user-defined wait.
 
 ## Gesture Sidebar
 
@@ -70,6 +74,16 @@ The `<canvas>` element overlays the device screen image.
 - On success, `#exportResultModal` opens to show the saved file paths; dismiss with ✕ or clicking backdrop
 - The backend appends a timestamp (`_YYYYMMDD_HHMMSS`) to the case name, marker, and function name automatically
 - Export creates a **timestamped subfolder** inside `export/` (e.g. `export/MyTest_20260512_143022/`) containing three files: `.py`, `.json`, `.html` (selector quality report); the pytest/tests/ copy is written flat as before
+
+## Verify Tap+Diff Flow
+
+- Verify mode `tap_screenshot_diff` uses two pick phases:
+	1. `TARGET` — user picks the screenshot compare region.
+	2. `ACTION` — user picks the element to tap.
+- After ACTION pick, UI opens a dialog to collect:
+	- wait seconds after tap (default `2.0`)
+	- expected result (`same` or `different`)
+- On confirm, UI sends one payload to `POST /api/record/verify_tap_screenshot_diff` with both selectors and coordinates.
 
 ## CSS Rules
 

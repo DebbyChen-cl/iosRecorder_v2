@@ -20,11 +20,12 @@ let awaitingTypeTarget = false;       // true while waiting for user to click th
 let typeTextSelectedTarget = null;    // resolved target element { x, y, type, value, bounds, selector_quality }
 
 // Verify state
-let verifyMode  = null; // null|"visible"|"not_visible"|"get_text"|"screenshot_gt"|"screenshot_diff"
+let verifyMode  = null; // null|"visible"|"not_visible"|"get_text"|"screenshot_gt"|"screenshot_diff"|"tap_screenshot_diff"
 let verifyPhase = 0;    // 0 = picking target, 1 = process (for not_visible / screenshot_diff)
 let verifyTarget = null; // { x, y, type, value, bounds }
 let _screenshotDiffCtx = null; // { x, y, bounds } — saved while screenshot_diff PROCESS is active
 let _diffExpectedCb    = null; // callback waiting for The Same / Not The Same choice
+let _tapScreenshotDiffCtx = null; // { target: {...}, action: {...} }
 let _rightDblCtx = { count: 0, timer: null }; // tracks consecutive right-clicks during drag
 
 // Pinch/Rotate overlay state
@@ -85,6 +86,11 @@ const verifyGtNameInput     = document.getElementById("verifyGtNameInput");
 const verifyGtClose         = document.getElementById("verifyGtClose");
 const verifyGtCancel        = document.getElementById("verifyGtCancel");
 const verifyGtConfirm       = document.getElementById("verifyGtConfirm");
+const verifyTapDiffModal    = document.getElementById("verifyTapDiffModal");
+const verifyTapDiffClose    = document.getElementById("verifyTapDiffClose");
+const verifyTapDiffCancel   = document.getElementById("verifyTapDiffCancel");
+const verifyTapDiffConfirm  = document.getElementById("verifyTapDiffConfirm");
+const verifyTapDiffWait     = document.getElementById("verifyTapDiffWait");
 const hoverBboxRect         = document.getElementById("hoverBboxRect");
 const hoverLoadingMark      = document.getElementById("hoverLoadingMark");
 const hoverLoadingH         = document.getElementById("hoverLoadingH");
@@ -609,7 +615,8 @@ clickLayer.addEventListener("pointermove", e => {
   }
 
   // Live hover bbox for screenshot verify modes (phase 0 = picking target)
-  if ((verifyMode === "screenshot_gt" || verifyMode === "screenshot_diff") && verifyPhase === 0) {
+  if ((verifyMode === "screenshot_gt" || verifyMode === "screenshot_diff" || verifyMode === "tap_screenshot_diff")
+      && (verifyPhase === 0 || (verifyMode === "tap_screenshot_diff" && verifyPhase === 1))) {
     hoverVerifyBbox(e.offsetX, e.offsetY);
   }
 
@@ -722,7 +729,8 @@ function onTap(dx, dy) {
 
 function dispatchTap(cnt, fx, fy) {
   // ── Verify mode intercept (phase 0: select target, no tap sent) ───────────
-  if (verifyMode !== null && verifyPhase === 0) {
+  const verifyPicking = verifyMode !== null && (verifyPhase === 0 || (verifyMode === "tap_screenshot_diff" && verifyPhase === 1));
+  if (verifyPicking) {
     handleVerifyTargetPick(fx, fy);
     return;
   }
@@ -1141,6 +1149,8 @@ function exitVerifyMode() {
   verifyMode  = null;
   verifyPhase = 0;
   verifyTarget = null;
+  _tapScreenshotDiffCtx = null;
+  if (verifyTapDiffModal) verifyTapDiffModal.style.display = "none";
   verifyBtns.forEach(b => b.classList.remove("active"));
   if (_screenshotDiffCtx !== null) {
     // Restore PROCESS state for ongoing screenshot_diff
@@ -1163,6 +1173,7 @@ const MODE_LABELS = {
   get_text:         "📝 TEXT",
   screenshot_gt:    "📸 SCR GT",
   screenshot_diff:  "🔀 SCR DIFF",
+  tap_screenshot_diff: "👉 TAP+DIFF",
 };
 
 function showVerifyPhaseLabel(phase, mode) {
@@ -1482,7 +1493,8 @@ function hoverVerifyBbox(fx, fy) {
   // Fast path: synchronous client-side hit-test when tree is cached
   if (_treeElements.length) {
     const el = _clientHitTest(x, y);
-    if ((verifyMode === "screenshot_gt" || verifyMode === "screenshot_diff") && verifyPhase === 0) {
+    if ((verifyMode === "screenshot_gt" || verifyMode === "screenshot_diff" || verifyMode === "tap_screenshot_diff")
+        && (verifyPhase === 0 || (verifyMode === "tap_screenshot_diff" && verifyPhase === 1))) {
       drawVerifyBbox(el ? el.rect : null);
     }
     return;
@@ -1493,7 +1505,8 @@ function hoverVerifyBbox(fx, fy) {
   _hoverBboxTimer = setTimeout(async () => {
     let info = { found: false };
     try { info = await api("GET", `/api/element_info?x=${x}&y=${y}`); } catch (_) {}
-    if ((verifyMode === "screenshot_gt" || verifyMode === "screenshot_diff") && verifyPhase === 0) {
+    if ((verifyMode === "screenshot_gt" || verifyMode === "screenshot_diff" || verifyMode === "tap_screenshot_diff")
+        && (verifyPhase === 0 || (verifyMode === "tap_screenshot_diff" && verifyPhase === 1))) {
       drawVerifyBbox(info.found ? info.bounds : null);
     }
   }, 80);
@@ -1509,7 +1522,7 @@ async function handleVerifyTargetPick(fx, fy) {
     info = await api("GET", `/api/element_info?x=${x}&y=${y}`);
   } catch (_) {}
 
-  verifyTarget = {
+  const pickedTarget = {
     x, y,
     type:             info.found ? info.type             : "coordinate",
     value:            info.found ? info.value            : null,
@@ -1517,6 +1530,19 @@ async function handleVerifyTargetPick(fx, fy) {
     bounds:           info.found ? info.bounds           : null,
     selector_quality: info.found ? info.selector_quality : null,
   };
+
+  if (verifyMode === "tap_screenshot_diff" && verifyPhase === 1) {
+    if (!_tapScreenshotDiffCtx || !_tapScreenshotDiffCtx.target) {
+      exitVerifyMode();
+      return;
+    }
+    _tapScreenshotDiffCtx.action = pickedTarget;
+    verifyTarget = pickedTarget;
+    openVerifyTapDiffDialog();
+    return;
+  }
+
+  verifyTarget = pickedTarget;
 
   switch (verifyMode) {
     case "visible":
@@ -1552,6 +1578,22 @@ async function handleVerifyTargetPick(fx, fy) {
       verifyBtns.forEach(b => b.classList.remove("active"));
       showVerifyPhaseLabel("PROCESS", "screenshot_diff");
       showVerifyDoneBtn("screenshot_diff");
+      break;
+
+    case "tap_screenshot_diff":
+      _tapScreenshotDiffCtx = {
+        target: {
+          x,
+          y,
+          type: verifyTarget.type,
+          value: verifyTarget.value,
+          bounds: verifyTarget.bounds ?? {},
+          selector_quality: verifyTarget.selector_quality,
+        },
+        action: null,
+      };
+      verifyPhase = 1;
+      showVerifyPhaseLabel("ACTION");
       break;
   }
 }
@@ -1610,10 +1652,75 @@ function sendVerify(type, data) {
       verify_get_text:       "/api/record/verify_get_text",
       verify_screenshot_gt:  "/api/record/verify_screenshot_gt",
       verify_screenshot_diff:"/api/record/verify_screenshot_diff",
+      verify_tap_screenshot_diff:"/api/record/verify_tap_screenshot_diff",
     };
     if (epMap[type]) api("POST", epMap[type], data);
   }
 }
+
+// ── Verify: Tap + Screenshot Diff dialog ───────────────────────────────────
+function openVerifyTapDiffDialog() {
+  if (!_tapScreenshotDiffCtx?.target || !_tapScreenshotDiffCtx?.action) {
+    exitVerifyMode();
+    return;
+  }
+  verifyTapDiffWait.value = "2";
+  const sameOpt = verifyTapDiffModal.querySelector('input[name="verifyTapDiffExpected"][value="same"]');
+  if (sameOpt) sameOpt.checked = true;
+  verifyTapDiffModal.style.display = "flex";
+  verifyTapDiffWait.focus();
+  verifyTapDiffWait.select();
+}
+
+function closeVerifyTapDiffDialog(cancelled = true) {
+  verifyTapDiffModal.style.display = "none";
+  if (cancelled) {
+    exitVerifyMode();
+  }
+}
+
+verifyTapDiffClose.addEventListener("click", () => closeVerifyTapDiffDialog(true));
+verifyTapDiffCancel.addEventListener("click", () => closeVerifyTapDiffDialog(true));
+verifyTapDiffModal.addEventListener("click", e => { if (e.target === verifyTapDiffModal) closeVerifyTapDiffDialog(true); });
+verifyTapDiffWait.addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); verifyTapDiffConfirm.click(); }
+  if (e.key === "Escape") closeVerifyTapDiffDialog(true);
+});
+verifyTapDiffConfirm.addEventListener("click", () => {
+  if (!_tapScreenshotDiffCtx?.target || !_tapScreenshotDiffCtx?.action) {
+    closeVerifyTapDiffDialog(true);
+    return;
+  }
+  const waitRaw = Number.parseFloat(String(verifyTapDiffWait.value || "2"));
+  const waitSeconds = Number.isFinite(waitRaw) ? Math.max(0, waitRaw) : 2;
+  const expectedEl = verifyTapDiffModal.querySelector('input[name="verifyTapDiffExpected"]:checked');
+  const expectedResult = expectedEl?.value === "different" ? "different" : "same";
+  const caseName = caseNameInput.value.trim() || "screenshot";
+  const stepIdx = steps.length + 1;
+  const screenshotName = `${caseName}_TapDiff_Step${String(stepIdx).padStart(2, "0")}`.replace(/[^a-zA-Z0-9_\-]/g, "_");
+
+  const target = _tapScreenshotDiffCtx.target;
+  const action = _tapScreenshotDiffCtx.action;
+  sendVerify("verify_tap_screenshot_diff", {
+    target_x: target.x,
+    target_y: target.y,
+    target_bounds: target.bounds ?? {},
+    target_type: target.type,
+    target_value: target.value,
+    target_selector_quality: target.selector_quality,
+    action_x: action.x,
+    action_y: action.y,
+    action_type: action.type,
+    action_value: action.value,
+    action_bounds: action.bounds ?? {},
+    action_selector_quality: action.selector_quality,
+    wait_seconds: waitSeconds,
+    expected_result: expectedResult,
+    screenshot_name: screenshotName,
+  });
+  verifyTapDiffModal.style.display = "none";
+  exitVerifyMode();
+});
 
 // ── Verify: Get Text dialog ────────────────────────────────────────────────────
 function openVerifyTextDialog(x, y, fetchedText) {
@@ -2199,6 +2306,20 @@ function renderSteps() {
       typeStr = phase === "after" ? `scr diff after${badge}` : "scr diff before";
       const elPart = t && t.type !== "coordinate" ? ` — ${t.type}: ${t.value}` : ` — (${s.coords?.x},${s.coords?.y})`;
       valStr = (s.screenshot_name ?? "") + elPart;
+    } else if (s.action === "verify_tap_screenshot_diff") {
+      const target = s.target;
+      const actionTarget = s.action_target;
+      cls = (target && target.type !== "coordinate") ? qualityClass(target) : "t-coord";
+      const waitText = Number.isFinite(Number(s.wait_seconds)) ? `${Number(s.wait_seconds).toFixed(1)}s` : "2.0s";
+      const expected = s.expected_result === "different" ? "diff" : "same";
+      typeStr = `tap+diff (${waitText}, ${expected})`;
+      const targetStr = target && target.type !== "coordinate"
+        ? `${target.type}: ${target.value}`
+        : `(${s.coords?.x},${s.coords?.y})`;
+      const actionStr = actionTarget && actionTarget.type !== "coordinate"
+        ? `${actionTarget.type}: ${actionTarget.value}`
+        : `(${s.action_coords?.x},${s.action_coords?.y})`;
+      valStr = `${s.screenshot_name ?? ""} — target ${targetStr} | tap ${actionStr}`;
     } else {
       const t = s.target;
       if (!t || t.type === "coordinate") {

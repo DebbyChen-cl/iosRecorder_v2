@@ -10,6 +10,7 @@ A **visual iOS test automation recorder**. The backend (FastAPI, port 8888) conn
 app/          FastAPI backend (recording server)
   main.py       All API endpoints + step recording engine
   codegen.py    step-list → pytest file generator
+  cli.py        JSON-first CLI for validate/codegen/export workflows
   hittest.py    Hit-test iOS element tree at a coordinate
   selector.py   Build most stable selector from an element
   wda.py        Async WDA HTTP client

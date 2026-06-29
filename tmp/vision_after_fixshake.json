@@ -1,0 +1,278 @@
+{
+  "captured_at": "2026-06-29T14:59:55",
+  "status": {
+    "connected": true,
+    "wda_url": "http://localhost:8100",
+    "mjpeg_url": "http://localhost:9100/mjpeg",
+    "session": "AA67419F-4F3A-41B8-8344-7257ADFA7922",
+    "screen_size": {
+      "width": 320,
+      "height": 693
+    }
+  },
+  "tree": {
+    "elements": [
+      {
+        "tag": "Image",
+        "name": "shortcutDemo.UIImageView.backgroundView",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "shortcutDemo.UIButton.backButton",
+        "label": "btn shortcut back n",
+        "enabled": true,
+        "rect": {
+          "x": 12.0,
+          "y": 58.0,
+          "w": 28.0,
+          "h": 28.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "shortcutDemo.UILabel.title",
+        "label": "Fix Shake",
+        "enabled": true,
+        "rect": {
+          "x": 14.0,
+          "y": 103.0,
+          "w": 292.0,
+          "h": 26.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "shortcutDemo.UILabel.description",
+        "label": "From shaky to spectacular",
+        "enabled": true,
+        "rect": {
+          "x": 15.0,
+          "y": 131.0,
+          "w": 290.0,
+          "h": 15.0
+        }
+      },
+      {
+        "tag": "Image",
+        "name": "shortcutDemo.UIImageView.thumbnail",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 48.0,
+          "y": 214.0,
+          "w": 224.0,
+          "h": 280.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "shortcutDemo.UIView.video",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 48.0,
+          "y": 214.0,
+          "w": 224.0,
+          "h": 280.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "Don't show again",
+        "label": "Don't show again",
+        "enabled": true,
+        "rect": {
+          "x": 75.0,
+          "y": 514.0,
+          "w": 98.0,
+          "h": 15.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "shortcutDemo.UIButton.checkBox",
+        "label": "Don't show again",
+        "enabled": true,
+        "rect": {
+          "x": 48.0,
+          "y": 514.0,
+          "w": 224.0,
+          "h": 15.0
+        }
+      },
+      {
+        "tag": "StaticText",
+        "name": "Try it now",
+        "label": "Try it now",
+        "enabled": true,
+        "rect": {
+          "x": 115.0,
+          "y": 547.0,
+          "w": 90.0,
+          "h": 25.0
+        }
+      },
+      {
+        "tag": "Button",
+        "name": "shortcutDemo.UIButton.action",
+        "label": "Try it now",
+        "enabled": true,
+        "rect": {
+          "x": 48.0,
+          "y": 539.0,
+          "w": 224.0,
+          "h": 41.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Window",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Other",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Window",
+        "name": "",
+        "label": "",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      },
+      {
+        "tag": "Application",
+        "name": "PowerDirector",
+        "label": "PowerDirector",
+        "enabled": true,
+        "rect": {
+          "x": 0.0,
+          "y": 0.0,
+          "w": 320.0,
+          "h": 693.0
+        }
+      }
+    ]
+  },
+  "frame": {
+    "has_frame": true,
+    "format": "jpeg",
+    "screen_size": {
+      "width": 320,
+      "height": 693
+    },
+    "image_base64": ""
+  }
+}

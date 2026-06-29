@@ -469,6 +469,42 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
         return (f"[Verify] Capture '{name}' {phase} screenshot",
                 [f"actions.capture_for_preview('{name}', '{phase}')"])
 
+    # ── tap action + screenshot diff ────────────────────────────────────────
+    if action == "verify_tap_screenshot_diff":
+        shot_t = step.get("target")
+        tap_t = step.get("action_target")
+        has_shot = shot_t and shot_t.get("type") != "coordinate"
+        has_tap = tap_t and tap_t.get("type") != "coordinate"
+        wait_seconds = round(max(0.0, float(step.get("wait_seconds", 2.0))), 2)
+        expected = _q(step.get("expected_result", "same"))
+        name = _q(step.get("screenshot_name", "tap_screenshot_diff"))
+
+        if has_shot and has_tap:
+            shot_by, shot_val = _locator(shot_t)
+            tap_by, tap_val = _locator(tap_t)
+            tap_pct = tap_t.get("offset_pct")
+            if tap_pct:
+                px, py = tap_pct.get("x", 50.0), tap_pct.get("y", 50.0)
+                return (
+                    f"[Verify] Tap {tap_val} then compare screenshot '{name}'",
+                    [
+                        f"actions.tap_within_element_then_capture_preview({shot_by}, '{shot_val}', {tap_by}, '{tap_val}', {px}, {py}, wait_seconds={wait_seconds}, capture_name='{name}', expected_result='{expected}', threshold=0.95)"
+                    ],
+                )
+            return (
+                f"[Verify] Tap {tap_val} then compare screenshot '{name}'",
+                [
+                    f"actions.tap_then_capture_preview({shot_by}, '{shot_val}', {tap_by}, '{tap_val}', wait_seconds={wait_seconds}, capture_name='{name}', expected_result='{expected}', threshold=0.95)"
+                ],
+            )
+
+        tx = int((step.get("action_coords") or {}).get("x", c.get("x", 0)))
+        ty = int((step.get("action_coords") or {}).get("y", c.get("y", 0)))
+        return (
+            f"[Verify] Tap then compare screenshot '{name}'",
+            [f"# verify_tap_screenshot_diff tap@({tx},{ty}) — missing locator target(s)"],
+        )
+
     # ── long press + capture-after during hold ───────────────────────────────
     if action == "long_press_capture_after_during_hold":
         lp = step.get("long_press", {})
@@ -682,7 +718,7 @@ def generate_script(steps: List[dict], case_name: str = "") -> str:
     steps = _merge_screenshot_diff_long_press_compare(steps)
     header = generate_header(case_name)
     body_lines: list[str] = []
-    _screenshot_actions = {"verify_screenshot_gt", "verify_screenshot_diff"}
+    _screenshot_actions = {"verify_screenshot_gt", "verify_screenshot_diff", "verify_tap_screenshot_diff"}
     has_screenshots = any(s.get("action") in _screenshot_actions for s in steps)
     for s in steps:
         label, code_lines = _action_call(s)

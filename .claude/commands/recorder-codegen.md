@@ -93,6 +93,7 @@ When the file is missing or invalid JSON, codegen falls back to defaults.
   "expected_text":    str,    # verify_get_text
   "screenshot_name":  str,    # verify_screenshot_*
   "phase":            str,    # verify_screenshot_diff: "before" | "after"
+  "wait_seconds":     float,  # verify_tap_screenshot_diff: wait after tap before AFTER capture
   "direction":        str,    # swipe: cardinal direction stored at record time by _record_move
   "velocity":         float,  # swipe: px/s stored at record time (max(50, min(5000, dist*1000/dur)))
   "fingers":          int,    # multi_finger_tap
@@ -119,6 +120,11 @@ When the file is missing or invalid JSON, codegen falls back to defaults.
   # ── Pre-gesture screenshot (set for every recorded step; stripped from GET /api/steps) ──
   "pre_screenshot":      str,   # base64 PNG captured before the action is sent to the device
   "pre_screenshot_size": dict,  # {"width": int, "height": int} — device screen dimensions
+
+  # verify_tap_screenshot_diff extras
+  "action_target":    dict,   # element to tap between BEFORE/AFTER captures
+  "action_coords":    dict,   # {"x": int, "y": int} tap coordinate fallback
+  "expected_result":  str,    # "same" | "different"
 }
 ```
 
@@ -131,6 +137,7 @@ When the file is missing or invalid JSON, codegen falls back to defaults.
 - **No trailing newlines** inside `with step(...)` blocks — one call per block
 - **`assert True`** appended after all `with step` blocks at function body level (4 spaces indent)
 - **Screenshot comparison pattern**: `verify_screenshot_gt` / `verify_screenshot_diff` steps only capture inline (`capture_for_gt` / `capture_for_preview`); a single `with step("[Verify] Screenshot comparisons"): actions.run_screenshot_comparisons()` is appended **once at the end** of the test when any screenshot steps exist — AND logic, all failures raised together
+- **Tap+Diff verify pattern**: `verify_tap_screenshot_diff` generates one DriverActions call that performs `before capture -> tap action -> wait N seconds -> after capture` without hierarchy-stability waits
 - **Long-press compare shortcut**: when the sequence is exactly `verify_screenshot_diff(before) -> long_press -> verify_screenshot_diff(after)` and the long-press target element id matches `recording_rules.json` keywords, codegen keeps `before` and replaces the remaining two steps with `long_press_capture_after_during_hold` so the AFTER image is captured during the press hold window
 - **`verify_visible` pattern**: generates `if not actions.verify_visible(...): assert False, '<val> is not visible'` (two lines inside the `with step` block)
 - **`verify_not_visible` pattern**: generates `actions.verify_not_visible(...)` (single line; the method raises `AssertionError` internally on failure)

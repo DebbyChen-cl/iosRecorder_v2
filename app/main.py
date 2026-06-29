@@ -420,6 +420,24 @@ class VerifyScreenshotDiffReq(BaseModel):
     phase: str = "before"  # "before" | "after"
     expected_result: str = "same"  # "same" | "different" (only meaningful for phase=="after")
 
+
+class VerifyTapScreenshotDiffReq(BaseModel):
+    target_x: float
+    target_y: float
+    target_bounds: dict = {}
+    target_type: Optional[str] = None
+    target_value: Optional[str] = None
+    target_selector_quality: Optional[str] = None
+    action_x: float
+    action_y: float
+    action_type: Optional[str] = None
+    action_value: Optional[str] = None
+    action_bounds: Optional[dict] = None
+    action_selector_quality: Optional[str] = None
+    wait_seconds: float = 2.0
+    expected_result: str = "same"  # "same" | "different"
+    screenshot_name: str = "tap_screenshot_diff"
+
 class ConfigIn(BaseModel):
     wda_url: str
 
@@ -777,6 +795,33 @@ async def record_verify_screenshot_gt(req: VerifyScreenshotGtReq):
 async def record_verify_screenshot_diff(req: VerifyScreenshotDiffReq):
     pre_ss = await _take_pre_gesture_screenshot()
     await _record_verify_screenshot_diff(req.target_x, req.target_y, req.bounds, req.phase, req.expected_result, pre_screenshot=pre_ss)
+    return {"ok": True}
+
+
+@app.post("/api/record/verify_tap_screenshot_diff")
+async def record_verify_tap_screenshot_diff(req: VerifyTapScreenshotDiffReq):
+    snapshot = _cache.get("root")
+    pre_ss = await _take_pre_gesture_screenshot()
+    await wda.tap(req.action_x, req.action_y)
+    await _record_verify_tap_screenshot_diff(
+        req.target_x,
+        req.target_y,
+        req.target_bounds,
+        req.action_x,
+        req.action_y,
+        req.wait_seconds,
+        req.expected_result,
+        req.screenshot_name,
+        snapshot=snapshot,
+        pre_screenshot=pre_ss,
+        target_type=req.target_type,
+        target_value=req.target_value,
+        target_selector_quality=req.target_selector_quality,
+        action_type=req.action_type,
+        action_value=req.action_value,
+        action_bounds=req.action_bounds,
+        action_selector_quality=req.action_selector_quality,
+    )
     return {"ok": True}
 
 
@@ -1515,6 +1560,140 @@ async def _record_verify_screenshot_diff(tx: float, ty: float, bounds: dict, pha
     logger.info(f"Recorded verify_screenshot_diff ({phase}, expected={expected_result})")
 
 
+def _build_preselected_target(
+    x: float,
+    y: float,
+    target_type: Optional[str],
+    target_value: Optional[str],
+    target_bounds: Optional[dict],
+    target_selector_quality: Optional[str],
+) -> Optional[dict]:
+    if not (target_type and target_value and target_type != "coordinate"):
+        return None
+    target: dict = {"type": target_type, "value": target_value}
+    if target_selector_quality:
+        target["selector_quality"] = target_selector_quality
+    if target_type == "xpath":
+        target["xpath"] = target_value
+    if target_bounds:
+        target["bounds"] = target_bounds
+        bw = float(target_bounds.get("w", 0) or 0)
+        bh = float(target_bounds.get("h", 0) or 0)
+        bx = float(target_bounds.get("x", 0) or 0)
+        by = float(target_bounds.get("y", 0) or 0)
+        if bw > 0 and bh > 0:
+            target["offset_pct"] = {
+                "x": max(0.0, min(100.0, round((x - bx) / bw * 100, 1))),
+                "y": max(0.0, min(100.0, round((y - by) / bh * 100, 1))),
+            }
+    return target
+
+
+def _resolve_target_from_snapshot(
+    x: float,
+    y: float,
+    snapshot,
+    target_type: Optional[str],
+    target_value: Optional[str],
+    target_bounds: Optional[dict],
+    target_selector_quality: Optional[str],
+    fallback_key: str = "target",
+) -> dict:
+    preselected = _build_preselected_target(
+        x,
+        y,
+        target_type,
+        target_value,
+        target_bounds,
+        target_selector_quality,
+    )
+    if preselected is not None:
+        return preselected
+    if snapshot is None:
+        return {"type": "coordinate", "x": x, "y": y}
+    el = hit_test(x, y, snapshot)
+    if el is not None:
+        return _build_target(x, y, el, snapshot)
+    return {"type": "coordinate", "x": x, "y": y}
+
+
+async def _record_verify_tap_screenshot_diff(
+    target_x: float,
+    target_y: float,
+    target_bounds: dict,
+    action_x: float,
+    action_y: float,
+    wait_seconds: float,
+    expected_result: str,
+    screenshot_name: str,
+    snapshot=None,
+    pre_screenshot: Optional[str] = None,
+    target_type: Optional[str] = None,
+    target_value: Optional[str] = None,
+    target_selector_quality: Optional[str] = None,
+    action_type: Optional[str] = None,
+    action_value: Optional[str] = None,
+    action_bounds: Optional[dict] = None,
+    action_selector_quality: Optional[str] = None,
+):
+    root = snapshot if snapshot is not None else (_cache.get("root") or await _cached_tree())
+    target = _resolve_target_from_snapshot(
+        target_x,
+        target_y,
+        root,
+        target_type,
+        target_value,
+        target_bounds,
+        target_selector_quality,
+    )
+    action_target = _resolve_target_from_snapshot(
+        action_x,
+        action_y,
+        root,
+        action_type,
+        action_value,
+        action_bounds,
+        action_selector_quality,
+    )
+
+    step: dict = {
+        "action": "verify_tap_screenshot_diff",
+        "coords": {"x": target_x, "y": target_y},
+        "target": target,
+        "action_coords": {"x": action_x, "y": action_y},
+        "action_target": action_target,
+        "target_bounds": target_bounds,
+        "wait_seconds": max(0.0, float(wait_seconds)),
+        "expected_result": expected_result,
+        "screenshot_name": screenshot_name or "tap_screenshot_diff",
+        "timestamp": time.time(),
+    }
+    if pre_screenshot:
+        step["pre_screenshot"] = pre_screenshot
+        step["pre_screenshot_size"] = dict(wda._last_screen_size)
+    _steps.append(step)
+    _unit_test_capture(
+        {
+            "action": "verify_tap_screenshot_diff",
+            "target_x": target_x,
+            "target_y": target_y,
+            "target_bounds": target_bounds,
+            "action_x": action_x,
+            "action_y": action_y,
+            "wait_seconds": wait_seconds,
+            "expected_result": expected_result,
+            "screenshot_name": screenshot_name,
+        },
+        step,
+        root,
+    )
+    logger.info(
+        "Recorded verify_tap_screenshot_diff wait=%.2fs expected=%s",
+        step["wait_seconds"],
+        expected_result,
+    )
+
+
 async def _record_move(action: str, x1: float, y1: float, x2: float, y2: float, duration: int, extra: dict = None, snapshot=None, pre_screenshot: Optional[str] = None):
     root = snapshot if snapshot is not None else await _cached_tree()
     step: dict = {
@@ -1752,6 +1931,25 @@ async def stream_proxy():
                 logger.warning(f"MJPEG stream disconnected: {e!r}")
             await asyncio.sleep(1.0)
     return StreamingResponse(gen(), media_type="multipart/x-mixed-replace; boundary=BoundaryString")
+
+
+@app.get("/api/frame")
+async def get_latest_frame(include_data: bool = True):
+    """Return the most recent cached MJPEG frame for AI/CLI vision workflows."""
+    frame = _latest_mjpeg_frame_b64
+    if not frame:
+        return JSONResponse({"error": "No frame available yet"}, status_code=503)
+
+    payload = {
+        "has_frame": True,
+        "format": "jpeg" if frame.startswith("/9j/") else "png",
+        "screen_size": dict(wda._last_screen_size),
+    }
+    if include_data:
+        payload["image_base64"] = frame
+    else:
+        payload["image_base64"] = ""
+    return payload
 
 
 # ── WebSocket (lowest latency) ─────────────────────────────────────────────────
@@ -2022,6 +2220,41 @@ async def ws_handler(ws: WebSocket):
                 expected_result = data.get("expected_result", "same")
                 pre_ss = await _take_pre_gesture_screenshot() if rec else None
                 if rec: asyncio.create_task(_record_verify_screenshot_diff(tx, ty, bounds, phase, expected_result, pre_screenshot=pre_ss))
+
+            elif t == "verify_tap_screenshot_diff":
+                target_x = float(data["target_x"])
+                target_y = float(data["target_y"])
+                target_bounds = data.get("target_bounds", {})
+                action_x = float(data["action_x"])
+                action_y = float(data["action_y"])
+                wait_seconds = float(data.get("wait_seconds", 2.0))
+                expected_result = data.get("expected_result", "same")
+                screenshot_name = data.get("screenshot_name", "tap_screenshot_diff")
+                snapshot = _cache.get("root") if rec else None
+                pre_ss = await _take_pre_gesture_screenshot() if rec else None
+                if rec:
+                    await wda.tap(action_x, action_y)
+                    asyncio.create_task(
+                        _record_verify_tap_screenshot_diff(
+                            target_x,
+                            target_y,
+                            target_bounds,
+                            action_x,
+                            action_y,
+                            wait_seconds,
+                            expected_result,
+                            screenshot_name,
+                            snapshot=snapshot,
+                            pre_screenshot=pre_ss,
+                            target_type=data.get("target_type"),
+                            target_value=data.get("target_value"),
+                            target_selector_quality=data.get("target_selector_quality"),
+                            action_type=data.get("action_type"),
+                            action_value=data.get("action_value"),
+                            action_bounds=data.get("action_bounds"),
+                            action_selector_quality=data.get("action_selector_quality"),
+                        )
+                    )
 
             await ws.send_json({"ok": True})
     except (WebSocketDisconnect, Exception):

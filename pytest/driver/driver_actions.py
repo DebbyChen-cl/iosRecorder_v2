@@ -67,6 +67,8 @@ _STABILITY_SKIP_METHODS = frozenset({
     "compare_with_gt",
     "compare_preview",
     "run_screenshot_comparisons",
+    "tap_then_capture_preview",
+    "tap_within_element_then_capture_preview",
 })
 
 
@@ -2202,6 +2204,82 @@ class DriverActions:
                 path, threshold, expected_result,
             )
         return path
+
+    @step("Tap element and capture before/after preview")
+    def tap_then_capture_preview(
+        self,
+        capture_by: str,
+        capture_value: str,
+        tap_by: str,
+        tap_value: str,
+        wait_seconds: float = 2.0,
+        capture_name: str = "tap_screenshot_diff",
+        expected_result: str = "same",
+        threshold: Optional[float] = 0.95,
+        timeout: int = DEFAULT_WAIT,
+    ) -> None:
+        """Capture target before/after a tap action without hierarchy-stability waits."""
+        self.capture_for_preview(capture_name, "before", capture_by, capture_value)
+        tap_el = self.wait_for_visible(tap_by, tap_value, timeout)
+        tx, ty = self._point_in_element(tap_el)
+        self.driver.execute_script("mobile: tap", {"x": int(tx), "y": int(ty)})
+        if wait_seconds > 0:
+            time.sleep(float(wait_seconds))
+        self.capture_for_preview(
+            capture_name,
+            "after",
+            capture_by,
+            capture_value,
+            threshold=threshold,
+            expected_result=expected_result,
+        )
+        logger.info(
+            "tap_then_capture_preview: tap=(%d,%d) wait=%.2fs capture=%s expected=%s",
+            int(tx),
+            int(ty),
+            float(wait_seconds),
+            capture_name,
+            expected_result,
+        )
+
+    @step("Tap within element and capture before/after preview")
+    def tap_within_element_then_capture_preview(
+        self,
+        capture_by: str,
+        capture_value: str,
+        tap_by: str,
+        tap_value: str,
+        tap_pct_x: float,
+        tap_pct_y: float,
+        wait_seconds: float = 2.0,
+        capture_name: str = "tap_screenshot_diff",
+        expected_result: str = "same",
+        threshold: Optional[float] = 0.95,
+        timeout: int = DEFAULT_WAIT,
+    ) -> None:
+        """Capture target before/after a %offset tap action without hierarchy-stability waits."""
+        self.capture_for_preview(capture_name, "before", capture_by, capture_value)
+        tap_el = self.wait_for_visible(tap_by, tap_value, timeout)
+        tx, ty = self._coord_at_pct(tap_el, tap_pct_x, tap_pct_y)
+        self.driver.execute_script("mobile: tap", {"x": int(tx), "y": int(ty)})
+        if wait_seconds > 0:
+            time.sleep(float(wait_seconds))
+        self.capture_for_preview(
+            capture_name,
+            "after",
+            capture_by,
+            capture_value,
+            threshold=threshold,
+            expected_result=expected_result,
+        )
+        logger.info(
+            "tap_within_element_then_capture_preview: tap=(%d,%d) wait=%.2fs capture=%s expected=%s",
+            int(tx),
+            int(ty),
+            float(wait_seconds),
+            capture_name,
+            expected_result,
+        )
 
     def _compare_images(
         self,
