@@ -1170,10 +1170,10 @@ function exitVerifyMode() {
 const MODE_LABELS = {
   visible:          "👁 VISIBLE",
   not_visible:      "🚫 NOT VISIBLE",
-  get_text:         "📝 TEXT",
-  screenshot_gt:    "📸 SCR GT",
-  screenshot_diff:  "🔀 SCR DIFF",
-  tap_screenshot_diff: "👉 TAP+DIFF",
+  get_text:         "📝 TEXT VALUE",
+  screenshot_gt:    "📸 COMPARE WITH GT",
+  screenshot_diff:  "🔀 PREVIEW COMPARE",
+  tap_screenshot_diff: "▶️ PLAY PREVIEW COMPARE",
 };
 
 function showVerifyPhaseLabel(phase, mode) {
@@ -2289,12 +2289,12 @@ function renderSteps() {
     } else if (s.action === "verify_get_text") {
       const t = s.target;
       cls = (t && t.type !== "coordinate") ? qualityClass(t) : "t-coord";
-      typeStr = "assert text";
+      typeStr = "assert text value";
       valStr = `"${s.expected_text ?? ""}" — ${t && t.type !== "coordinate" ? `${t.type}: ${t.value}` : "coord"}`;
     } else if (s.action === "verify_screenshot_gt") {
       const t = s.target;
       cls = (t && t.type !== "coordinate") ? qualityClass(t) : "t-coord";
-      typeStr = "screenshot GT";
+      typeStr = "compare with GT";
       const elInfo = t && t.type !== "coordinate" ? ` — ${t.type}: ${t.value}` : "";
       valStr = (s.screenshot_name ?? "") + elInfo;
     } else if (s.action === "verify_screenshot_diff") {
@@ -2303,7 +2303,7 @@ function renderSteps() {
       const phase = s.phase ?? "before";
       const expected = s.expected_result;
       const badge = expected === "same" ? " ✅" : expected === "different" ? " 🔄" : "";
-      typeStr = phase === "after" ? `scr diff after${badge}` : "scr diff before";
+      typeStr = phase === "after" ? `preview after${badge}` : "preview before";
       const elPart = t && t.type !== "coordinate" ? ` — ${t.type}: ${t.value}` : ` — (${s.coords?.x},${s.coords?.y})`;
       valStr = (s.screenshot_name ?? "") + elPart;
     } else if (s.action === "verify_tap_screenshot_diff") {
@@ -2312,7 +2312,7 @@ function renderSteps() {
       cls = (target && target.type !== "coordinate") ? qualityClass(target) : "t-coord";
       const waitText = Number.isFinite(Number(s.wait_seconds)) ? `${Number(s.wait_seconds).toFixed(1)}s` : "2.0s";
       const expected = s.expected_result === "different" ? "diff" : "same";
-      typeStr = `tap+diff (${waitText}, ${expected})`;
+      typeStr = `Play Preview Compare (${waitText}, ${expected})`;
       const targetStr = target && target.type !== "coordinate"
         ? `${target.type}: ${target.value}`
         : `(${s.coords?.x},${s.coords?.y})`;
