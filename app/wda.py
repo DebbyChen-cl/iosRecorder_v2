@@ -320,16 +320,17 @@ class WDAClient:
     async def pinch(self, x: float, y: float, scale: float, spread: int = 80, duration_ms: int = 600) -> bool:
         """Two-finger pinch. scale<1 = zoom out, scale>1 = zoom in."""
         xi, yi = int(x), int(y)
-        d = spread / math.sqrt(2)
-        d_end = d * scale
+        # Horizontal pinch path: fingers move left/right on the same y-axis.
+        d = max(1, int(spread))
+        d_end = max(1, int(round(d * scale)))
         return await self._actions([
             {
                 "type": "pointer", "id": "finger1",
                 "parameters": {"pointerType": "touch"},
                 "actions": [
-                    {"type": "pointerMove", "duration": 0, "x": xi - int(d), "y": yi - int(d)},
+                    {"type": "pointerMove", "duration": 0, "x": xi - d, "y": yi},
                     {"type": "pointerDown", "button": 0},
-                    {"type": "pointerMove", "duration": duration_ms, "x": xi - int(d_end), "y": yi - int(d_end)},
+                    {"type": "pointerMove", "duration": duration_ms, "x": xi - d_end, "y": yi},
                     {"type": "pointerUp", "button": 0},
                 ],
             },
@@ -337,9 +338,9 @@ class WDAClient:
                 "type": "pointer", "id": "finger2",
                 "parameters": {"pointerType": "touch"},
                 "actions": [
-                    {"type": "pointerMove", "duration": 0, "x": xi + int(d), "y": yi + int(d)},
+                    {"type": "pointerMove", "duration": 0, "x": xi + d, "y": yi},
                     {"type": "pointerDown", "button": 0},
-                    {"type": "pointerMove", "duration": duration_ms, "x": xi + int(d_end), "y": yi + int(d_end)},
+                    {"type": "pointerMove", "duration": duration_ms, "x": xi + d_end, "y": yi},
                     {"type": "pointerUp", "button": 0},
                 ],
             },

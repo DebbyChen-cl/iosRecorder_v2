@@ -247,8 +247,10 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
     if action == "pinch":
         scale    = round(step.get("scale", 0.5), 3)
         duration = step.get("duration", 500)  # ms
-        # velocity = how fast the scale changes (scale-factor/sec), min 0.1
-        velocity = round(max(0.1, abs(scale - 1.0) / (duration / 1000)), 3)
+        # velocity magnitude = how fast the scale changes (scale-factor/sec), min 0.1.
+        # XCUITest requires sign by direction: scale<1 => negative, scale>1 => positive.
+        vel_mag = round(max(0.1, abs(scale - 1.0) / max(0.1, (duration / 1000))), 3)
+        velocity = -vel_mag if scale < 1.0 else vel_mag
         if has_el:
             by, val = _locator(t)
             return (f"[Action] Pinch {val} scale={scale}",

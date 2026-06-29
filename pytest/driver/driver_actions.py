@@ -1651,11 +1651,61 @@ class DriverActions:
         scale   > 1.0  →  pinch out (zoom in).
         velocity: pinch speed in scale-factor/sec; -1.0 = XCUITest default.
         """
-        # velocity is required by xcuitest-driver; use a sensible default when not specified
-        effective_velocity = velocity if velocity > 0 else 1.0
+        rect = element.rect
+        width = max(1, int(rect.get("width", 0) or 0))
+        height = max(1, int(rect.get("height", 0) or 0))
+        center_x = int(rect.get("x", 0)) + width // 2
+        center_y = int(rect.get("y", 0)) + height // 2
+
+        # XCUITest requires velocity sign to match pinch direction:
+        # scale < 1 => velocity < 0, scale > 1 => velocity > 0.
+        requested_speed = abs(float(velocity)) if velocity not in (0, None) else 1.8
+        if abs(scale - 1.0) >= 0.3:
+            requested_speed = max(1.8, requested_speed)
+        if scale < 1.0:
+            effective_velocity = -requested_speed
+        elif scale > 1.0:
+            effective_velocity = requested_speed
+        else:
+            effective_velocity = requested_speed
+
+        # Timeline-style custom views often need focus before pinch is recognised.
+        try:
+            self.driver.execute_script("mobile: tap", {"x": center_x, "y": center_y})
+        except Exception:
+            pass
+
         params: dict = {"element": element.id, "scale": scale, "velocity": effective_velocity}
         self.driver.execute_script("mobile: pinch", params)
-        logger.info("pinch: scale=%.2f vel=%.1f", scale, velocity)
+
+        try:
+            name_hint = (element.get_attribute("name") or "").lower()
+        except Exception:
+            name_hint = ""
+        if any(token in name_hint for token in ("timeline", "track", "mastertrack", "piptrack")):
+            retry_speed = max(2.4, abs(effective_velocity))
+            retry_velocity = -retry_speed if scale < 1.0 else retry_speed
+            if abs(retry_velocity) > abs(effective_velocity):
+                self.driver.execute_script("mobile: pinch", {"element": element.id, "scale": scale, "velocity": retry_velocity})
+                logger.info(
+                    "pinch(mobile): timeline retry scale=%.2f vel=%.2f->%.2f center=(%d,%d)",
+                    scale,
+                    effective_velocity,
+                    retry_velocity,
+                    center_x,
+                    center_y,
+                )
+                return
+
+        logger.info(
+            "pinch(mobile): scale=%.2f vel=%.2f center=(%d,%d) size=%dx%d",
+            scale,
+            effective_velocity,
+            center_x,
+            center_y,
+            width,
+            height,
+        )
 
     @step("Rotate")
     def rotate(

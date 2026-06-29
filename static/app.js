@@ -29,7 +29,7 @@ let _rightDblCtx = { count: 0, timer: null }; // tracks consecutive right-clicks
 
 // Pinch/Rotate overlay state
 const PGST_INIT_R           = 70;               // display px — initial finger radius
-const PGST_INIT_ANGLE       = Math.PI / 4;      // pinch: 45° diagonal
+const PGST_PINCH_INIT_ANGLE = 0;                // pinch: horizontal (left/right)
 const PGST_ROTATE_INIT_ANGLE = -Math.PI / 2;    // rotate: vertical (dots top/bottom) = 0°
 let pgst = null;           // { cx, cy, r, angle, initAngle }
 let activeDotIdx = null;   // null | 0 | 1 — which side dot is being dragged
@@ -568,7 +568,7 @@ clickLayer.addEventListener("pointerdown", e => {
 
   // In pinch/rotate mode: click places the three-dot overlay
   if (gestureMode !== "normal") {
-    const initAngle = gestureMode === "rotate" ? PGST_ROTATE_INIT_ANGLE : PGST_INIT_ANGLE;
+    const initAngle = gestureMode === "rotate" ? PGST_ROTATE_INIT_ANGLE : PGST_PINCH_INIT_ANGLE;
     pgst = { cx: e.offsetX, cy: e.offsetY, r: PGST_INIT_R, angle: initAngle, initAngle,
              totalRotation: 0, lastDragAngle: null };
     renderPgstOverlay();
