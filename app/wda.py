@@ -1,8 +1,11 @@
 import asyncio
 import logging
 import math
+import os
 import re
+import subprocess
 import xml.etree.ElementTree as ET
+from urllib.parse import urlparse
 from typing import Optional
 
 import httpx
@@ -41,6 +44,7 @@ def _parse_xml(text: str) -> ET.Element:
 class WDAClient:
     def __init__(self, base_url: str = "http://localhost:8100"):
         self.base_url = base_url.rstrip("/")
+        self.appium_url = os.environ.get("RECORDER_APPIUM_SERVER_URL", "http://localhost:4723").rstrip("/")
         self.mjpeg_url: str = ""
         self._client: Optional[httpx.AsyncClient] = None
         self._session_id: Optional[str] = None
@@ -48,6 +52,107 @@ class WDAClient:
         self._source_task: Optional[asyncio.Task] = None
         self._action_in_progress = False
         self._last_screen_size: dict = {"width": 390, "height": 844}
+
+    async def _create_session_unlocked(self, reason: str = "") -> bool:
+        """Create a WDA session. Caller must hold _session_lock."""
+        try:
+            resp = await self._client.post(
+                f"{self.base_url}/session",
+                json={"capabilities": {"alwaysMatch": {}}},
+                timeout=5.0,
+            )
+            data = resp.json()
+            sid = data.get("sessionId") or data.get("value", {}).get("sessionId")
+            if sid:
+                self._session_id = sid
+                if reason:
+                    logger.info(f"WDA session created ({reason}): {sid}")
+                else:
+                    logger.info(f"WDA session created: {sid}")
+                return True
+            logger.warning(f"WDA session failed: status={resp.status_code} body={resp.text[:200]}")
+        except Exception as e:
+            logger.warning(f"WDA session failed: {e!r}")
+        return False
+
+    def _appium_session_probe_urls(self) -> list[str]:
+        """Return candidate Appium /sessions endpoints (root and /wd/hub variants)."""
+        base = (self.appium_url or "").rstrip("/")
+        if not base:
+            return []
+        parsed = urlparse(base)
+        origin = f"{parsed.scheme}://{parsed.netloc}"
+        path = parsed.path.rstrip("/")
+        urls: list[str] = []
+
+        def _add(url: str):
+            if url not in urls:
+                urls.append(url)
+
+        _add(f"{base}/sessions")
+        if path == "":
+            _add(f"{origin}/wd/hub/sessions")
+        elif path == "/wd/hub":
+            _add(f"{origin}/sessions")
+        else:
+            _add(f"{origin}/sessions")
+            _add(f"{origin}/wd/hub/sessions")
+        return urls
+
+    async def _has_active_appium_session(self) -> Optional[bool]:
+        """Return True/False when Appium state is known, otherwise None.
+
+        None means unknown (for example, endpoint mismatch where all probes return
+        404). Callers should treat None conservatively to avoid disrupting tests.
+        """
+        probe_urls = self._appium_session_probe_urls()
+        if not probe_urls:
+            return None
+
+        saw_200 = False
+        saw_network_error = False
+        for url in probe_urls:
+            try:
+                resp = await self._client.get(url, timeout=2.5)
+            except (httpx.ConnectError, httpx.ConnectTimeout):
+                saw_network_error = True
+                continue
+            except Exception:
+                continue
+
+            if resp.status_code == 200:
+                saw_200 = True
+                try:
+                    sessions = resp.json().get("value", [])
+                except Exception:
+                    sessions = []
+                if sessions:
+                    return True
+                # Keep checking other probe URLs in case one endpoint is stale.
+                continue
+
+            if resp.status_code == 404:
+                continue
+
+        if saw_200:
+            return False
+        if saw_network_error:
+            return False
+        return None
+
+    def _is_pytest_running_local(self) -> bool:
+        """Best-effort local guard: detect running pytest process on this host."""
+        try:
+            # pgrep returns 0 when at least one matching process exists.
+            result = subprocess.run(
+                ["pgrep", "-f", "pytest"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=False,
+            )
+            return result.returncode == 0
+        except Exception:
+            return False
 
     async def connect(self, base_url: Optional[str] = None):
         if base_url:
@@ -119,23 +224,8 @@ class WDAClient:
                             return True
             except Exception as e:
                 logger.debug(f"WDA GET /sessions failed: {e!r} — will try POST /session")
-            try:
-                # No existing session (or GET failed) — create a new one
-                resp = await self._client.post(
-                    f"{self.base_url}/session",
-                    json={"capabilities": {"alwaysMatch": {}}},
-                    timeout=5.0,
-                )
-                data = resp.json()
-                sid = data.get("sessionId") or data.get("value", {}).get("sessionId")
-                if sid:
-                    self._session_id = sid
-                    logger.info(f"WDA session created: {sid}")
-                    return True
-                logger.warning(f"WDA session failed: status={resp.status_code} body={resp.text[:200]}")
-            except Exception as e:
-                logger.warning(f"WDA session failed: {e!r}")
-            return False
+            # No existing session (or GET failed) — create a new one
+            return await self._create_session_unlocked(reason="ensure")
 
     async def tap(self, x: float, y: float) -> bool:
         if not self._client:
@@ -606,8 +696,8 @@ class WDAClient:
         Rules:
           - GET /sessions succeeds and returns sessions → adopt (never disrupt)
           - GET /sessions succeeds and returns EMPTY list → safe to POST (no Appium)
-          - GET /sessions throws / non-200 → do nothing (Appium might be busy)
-        This prevents the heartbeat from ever killing an Appium-owned session.
+                    - GET /sessions throws / non-200 → create only when Appium has no session
+                This keeps recorder recovery automatic without disrupting active pytest runs.
         """
         if not self._client or self._action_in_progress:
             return bool(self._session_id)
@@ -638,10 +728,43 @@ class WDAClient:
             try:
                 resp = await self._client.get(f"{self.base_url}/sessions", timeout=5.0)
             except Exception as e:
-                logger.debug(f"WDA heartbeat GET /sessions failed: {e!r} — skip")
-                return False  # unknown state; don't risk POSTing
+                appium_state = await self._has_active_appium_session()
+                if appium_state is True:
+                    logger.debug(f"WDA heartbeat GET /sessions failed: {e!r} — Appium active, skip create")
+                    return False
+                if appium_state is None:
+                    if self._is_pytest_running_local():
+                        logger.debug(
+                            f"WDA heartbeat GET /sessions failed: {e!r} — Appium unknown + pytest running, skip create"
+                        )
+                        return False
+                    logger.info(
+                        f"WDA heartbeat GET /sessions failed: {e!r} — Appium unknown + pytest idle, recreate session"
+                    )
+                    return await self._create_session_unlocked(reason="heartbeat-get-sessions-unknown-pytest-idle")
+                logger.info(f"WDA heartbeat GET /sessions failed: {e!r} — Appium idle, recreate session")
+                return await self._create_session_unlocked(reason="heartbeat-get-sessions-error")
             if resp.status_code != 200:
-                return False
+                appium_state = await self._has_active_appium_session()
+                if appium_state is True:
+                    logger.debug(
+                        f"WDA heartbeat GET /sessions status={resp.status_code} — Appium active, skip create"
+                    )
+                    return False
+                if appium_state is None:
+                    if self._is_pytest_running_local():
+                        logger.debug(
+                            f"WDA heartbeat GET /sessions status={resp.status_code} — Appium unknown + pytest running, skip create"
+                        )
+                        return False
+                    logger.info(
+                        f"WDA heartbeat GET /sessions status={resp.status_code} — Appium unknown + pytest idle, recreate session"
+                    )
+                    return await self._create_session_unlocked(reason="heartbeat-get-sessions-non200-unknown-pytest-idle")
+                logger.info(
+                    f"WDA heartbeat GET /sessions status={resp.status_code} — Appium idle, recreate session"
+                )
+                return await self._create_session_unlocked(reason="heartbeat-get-sessions-non200")
             sessions = resp.json().get("value", [])
             if sessions:
                 # Someone (Appium/pytest) owns WDA — adopt without disrupting
@@ -652,21 +775,7 @@ class WDAClient:
                     return True
                 return False
             # Definitively empty list → no one owns WDA → safe to create
-            try:
-                r = await self._client.post(
-                    f"{self.base_url}/session",
-                    json={"capabilities": {"alwaysMatch": {}}},
-                    timeout=5.0,
-                )
-                data = r.json()
-                sid = data.get("sessionId") or data.get("value", {}).get("sessionId")
-                if sid:
-                    self._session_id = sid
-                    logger.info(f"WDA heartbeat created session: {sid}")
-                    return True
-            except Exception as e:
-                logger.warning(f"WDA heartbeat create session failed: {e!r}")
-            return False
+            return await self._create_session_unlocked(reason="heartbeat-empty-sessions")
 
     async def press_home(self) -> bool:
         """Press the hardware Home button via WDA."""
