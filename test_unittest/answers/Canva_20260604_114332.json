@@ -536,18 +536,18 @@
     },
     "target": {
       "type": "xpath",
-      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "value": "//XCUIElementTypeCell[@name=\"EffectMenuCell-1\"]/XCUIElementTypeOther/XCUIElementTypeImage",
       "selector_quality": "xpath_only",
-      "xpath": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "xpath": "//XCUIElementTypeCell[@name=\"EffectMenuCell-1\"]/XCUIElementTypeOther/XCUIElementTypeImage",
       "offset_pct": {
-        "x": 58.8,
-        "y": 75.4
+        "x": 44.0,
+        "y": 60.0
       },
       "bounds": {
-        "x": 0,
-        "y": 38,
-        "w": 320,
-        "h": 626
+        "x": 177,
+        "y": 495,
+        "w": 25,
+        "h": 25
       }
     },
     "scroll_container": {
@@ -593,18 +593,18 @@
     },
     "target": {
       "type": "accessibility id",
-      "value": "Join PhotoDirector Premium to unlock the current effect.",
+      "value": "OK",
       "selector_quality": "id_eq_label",
-      "xpath": "//XCUIElementTypeStaticText[@name='Join PhotoDirector Premium to unlock the current effect.']",
+      "xpath": "//XCUIElementTypeStaticText[@name='OK']",
       "offset_pct": {
-        "x": 82.8,
-        "y": 84.8
+        "x": 68.2,
+        "y": 47.4
       },
       "bounds": {
-        "x": 64,
-        "y": 369,
-        "w": 192,
-        "h": 33
+        "x": 208,
+        "y": 388,
+        "w": 22,
+        "h": 19
       }
     }
   }

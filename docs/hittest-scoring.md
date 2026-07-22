@@ -77,6 +77,7 @@
 ```python
 (
     int(is_container),
+    int(not is_visible),
     int(is_generic_wrapper),
     -int(has_stable_id),
     -int(is_interactive),
@@ -86,24 +87,25 @@
 )
 ```
 
-其中 hidden 的 inactive renderer/ROI layer（目前以 `rendererViewController.*`、`rOI.*` 命名開頭辨識）不會拿 `has_stable_id` 或 `is_interactive` 加分。其他 hidden element 仍保留既有幾何/語意行為，避免破壞舊的 xpath fallback fixture。
+其中 hidden 的 inactive renderer/ROI layer（目前以 `rendererViewController.*`、`rOI.*` 命名開頭辨識）不會拿 `has_stable_id` 或 `is_interactive` 加分。
 
 ### 各欄位說明與設計原因
 
 | 順位 | 欄位 | 數值 | 設計原因 |
 |:---:|---|---|---|
 | 1 | `is_container` | 0 / 1 | **非容器優先**。`TAP_CONTAINER_TAGS`（ScrollView、CollectionView 等）是版面結構，不是點擊目標。這是最粗粒度的過濾，「根本不可能是目標」的應該最先被排到後面，不需要看後面任何條件。 |
-| 2 | `is_generic_wrapper` | 0 / 1 | **互動元素優先於 generic wrapper**。只有同一批候選元素裡存在 Switch、Button、TextField、Slider 等互動元件時，`XCUIElementTypeOther` / `XCUIElementTypeView` 才會被降權；這避免背景或結構層即使有穩定 `name`，仍壓過真正被點擊的控制項。 |
-| 3 | `-has_stable_id` | -1 / 0 | **穩定 ID 葉節點優先**。`quality == "id"` 或 `"id_eq_label"` **且無子元素**才算。有穩定 accessibility id 的葉節點幾乎一定是開發者刻意命名的可操作元素，是最可靠的點擊目標。加上「無子元素」限制，是因為 ViewController 根 View 也常有穩定 ID（如 `"com.app.MyVC"`）但面積極大，若不排除有子元素的情況，這類大容器反而會搶走葉節點的優先權。hidden renderer/ROI layer 例外：這些 stale frame 不應靠 stable id 搶走可見目標。容器與 generic wrapper 過濾必須先做，才輪到 ID 品質判斷。 |
-| 4 | `-is_interactive` | -1 / 0 | **互動元素次優先**。Button、TextField、Slider 等語意上就是「使用者能互動的東西」。hidden renderer/ROI layer 不拿這個加分，避免 inactive renderer control 搶走可見目標。在找不到穩定 ID 葉節點的情況下，這些比匿名的 Image 或 Other 更接近使用者意圖。穩定 ID 比「元素類型是 Button」更能代表精確意圖，所以排在第 3 位之後。 |
-| 5 | `area` | 浮點數 | **面積越小越具體**。iOS UI 樹是嵌套結構，子元素的 rect 一定在父元素之內，所以面積越小代表層次越深、越精確命中。面積只是幾何事實，沒有語意，所以排在語意條件之後，作為「語意相同時」的幾何 tiebreaker。 |
-| 6 | `-has_id` | -1 / 0 | **有識別符優於純 xpath**。到了這一步代表前五個條件都相同（如 cell 與裡面的 image 剛好同大）。有 `name` 或 `label` 至少能生成有意義的選擇器，不會退化成 `//XCUIElementTypeOther`。 |
-| 7 | `has_children` | 0 / 1 | **葉節點優先**。最後手段：以上全部相同時，無子元素的葉節點比中間層節點更「具體」，更接近實際被渲染的 UI 元件。 |
+| 2 | `not is_visible` | 0 / 1 | **可見元素優先**。WDA 樹中隱藏的 sibling（如訂閱對話框、overlay）會帶著過期的 frame 留在樹裡，與可見內容重疊。若不先過濾，隱藏元素可能因面積較小而搶贏可見目標。可見性在容器之後、語意條件之前，確保隱藏元素不會因穩定 ID 或互動標記而搶走可見目標。 |
+| 3 | `is_generic_wrapper` | 0 / 1 | **互動元素優先於 generic wrapper**。只有同一批候選元素裡存在 Switch、Button、TextField、Slider 等互動元件時，`XCUIElementTypeOther` / `XCUIElementTypeView` 才會被降權；這避免背景或結構層即使有穩定 `name`，仍壓過真正被點擊的控制項。 |
+| 4 | `-has_stable_id` | -1 / 0 | **穩定 ID 葉節點優先**。`quality == "id"` 或 `"id_eq_label"` **且無子元素**才算。有穩定 accessibility id 的葉節點幾乎一定是開發者刻意命名的可操作元素，是最可靠的點擊目標。加上「無子元素」限制，是因為 ViewController 根 View 也常有穩定 ID（如 `"com.app.MyVC"`）但面積極大，若不排除有子元素的情況，這類大容器反而會搶走葉節點的優先權。hidden renderer/ROI layer 例外：這些 stale frame 不應靠 stable id 搶走可見目標。容器與 generic wrapper 過濾必須先做，才輪到 ID 品質判斷。 |
+| 5 | `-is_interactive` | -1 / 0 | **互動元素次優先**。Button、TextField、Slider 等語意上就是「使用者能互動的東西」。hidden renderer/ROI layer 不拿這個加分，避免 inactive renderer control 搶走可見目標。在找不到穩定 ID 葉節點的情況下，這些比匿名的 Image 或 Other 更接近使用者意圖。穩定 ID 比「元素類型是 Button」更能代表精確意圖，所以排在第 4 位之後。 |
+| 6 | `area` | 浮點數 | **面積越小越具體**。iOS UI 樹是嵌套結構，子元素的 rect 一定在父元素之內，所以面積越小代表層次越深、越精確命中。面積只是幾何事實，沒有語意，所以排在語意條件之後，作為「語意相同時」的幾何 tiebreaker。 |
+| 7 | `-has_id` | -1 / 0 | **有識別符優於純 xpath**。到了這一步代表前六個條件都相同（如 cell 與裡面的 image 剛好同大）。有 `name` 或 `label` 至少能生成有意義的選擇器，不會退化成 `//XCUIElementTypeOther`。 |
+| 8 | `has_children` | 0 / 1 | **葉節點優先**。最後手段：以上全部相同時，無子元素的葉節點比中間層節點更「具體」，更接近實際被渲染的 UI 元件。 |
 
 **整體設計邏輯：**
 ```
-排掉結構容器 → 視情境排掉 generic wrapper → 找最精確命名的葉節點 → 找語意互動元素 → 找最小幾何元素 → 找有識別符的 → 找葉節點
- (語意最粗)                                                                                                      (最後手段)
+排掉結構容器 → 排掉隱藏元素 → 排掉 generic wrapper → 找最精確命名的葉節點 → 找語意互動元素 → 找最小幾何元素 → 找有識別符的 → 找葉節點
+ (語意最粗)                                                                                                                        (最後手段)
 ```
 每一層都在上一層「無法區分」時才出場，避免讓幾何數字（面積）蓋過語意判斷。
 
@@ -158,7 +160,18 @@
 
 ---
 
-### 場景 D：Button（有穩定 ID）vs Image（有穩定 ID）
+### 場景 D：隱藏的 AppLogo（小面積）vs 可見的 Image（大面積）
+
+| 元素 | is_container | not_visible | has_stable_id | is_interactive | area | 勝負 |
+|---|:---:|:---:|:---:|:---:|---|:---:|
+| `AppLogo`（Image, visible=false） | 0 | ✅ 1 | ✅ `id` | 0 | 小 (9216) | ❌ 輸 |
+| 匿名 Image（visible=true） | 0 | 0 | ❌ | 0 | 大 (132480) | ✅ 贏 |
+
+`not_visible` 決定勝負（0 < 1）。即使隱藏元素有穩定 ID 且面積更小，可見性仍優先。
+
+---
+
+### 場景 E：Button（有穩定 ID）vs Image（有穩定 ID）
 
 | 元素 | is_container | has_stable_id | is_interactive | area | 勝負 |
 |---|:---:|:---:|:---:|---|:---:|

@@ -44,7 +44,7 @@
   },
   "step_000_t2": {
     "type": "xpath",
-    "value": "//XCUIElementTypeImage"
+    "value": "//XCUIElementTypeOther"
   },
   "step_001_t2": {
     "type": "xpath",
@@ -73,34 +73,34 @@
     "duration": 1000,
     "start_target": {
       "type": "xpath",
-      "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeImage",
+      "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[5]",
       "selector_quality": "xpath_only",
-      "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeImage",
+      "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther[5]",
       "offset_pct": {
         "x": 46.9,
-        "y": 59.8
+        "y": 58.8
       },
       "bounds": {
         "x": 112,
-        "y": 263,
+        "y": 258,
         "w": 96,
-        "h": 87
+        "h": 97
       }
     },
     "end_target": {
-      "type": "accessibility id",
-      "value": "Join PhotoDirector Premium to unlock the current effect.",
-      "selector_quality": "id_eq_label",
-      "xpath": "//XCUIElementTypeStaticText[@name='Join PhotoDirector Premium to unlock the current effect.']",
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage",
       "offset_pct": {
-        "x": 99.0,
-        "y": 97.0
+        "x": 79.4,
+        "y": 79.4
       },
       "bounds": {
-        "x": 64,
-        "y": 369,
-        "w": 192,
-        "h": 33
+        "x": 0,
+        "y": 146,
+        "w": 320,
+        "h": 321
       }
     }
   },

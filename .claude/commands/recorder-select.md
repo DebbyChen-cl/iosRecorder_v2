@@ -59,13 +59,15 @@ When `RECORDER_XPATH_ONLY=1` (enabled by `bash start.sh --xpath`):
 
 ### How Scoring Works
 
-**`_score()`** — used by `hit_test` (taps). Lower score = better. Tuple `(is_container, -has_stable_id, -is_interactive, area, -has_id, has_children)`. Prefers:
+**`_score()`** — used by `hit_test` (taps). Lower score = better. Tuple `(is_container, not_visible, is_generic_wrapper, -has_stable_id, -is_interactive, area, -has_id, has_children)`. Prefers:
 1. **Non-container** — `TAP_CONTAINER_TAGS` (`XCUIElementTypeCollectionView`, `ScrollView`, `Table`, `WebView`, `TextView`, `Application`, `Window`) are sorted last
-2. **Stable-ID leaf** — `get_selector_quality()` returns `"id"` or `"id_eq_label"` **and** element has no children; containers with stable names (e.g. ViewController root views) do NOT get this bonus
-3. **Interactive** (buttons, links, text fields) — tiebreaker within same ID quality
-4. **Smallest bounding area** (most specific element)
-5. **Has any identifier** — over pure xpath fallback
-6. **Leaf node** preferred over elements with children
+2. **Visible** — elements with `visible="false"` are penalized; prevents invisible overlays (e.g. hidden subscription dialogs) from winning over visible content due to smaller area
+3. **Non-generic wrapper** — interactive elements preferred over `XCUIElementTypeOther` / `XCUIElementTypeView`
+4. **Stable-ID leaf** — `get_selector_quality()` returns `"id"` or `"id_eq_label"` **and** element has no children; containers with stable names (e.g. ViewController root views) do NOT get this bonus
+5. **Interactive** (buttons, links, text fields) — tiebreaker within same ID quality
+6. **Smallest bounding area** (most specific element)
+7. **Has any identifier** — over pure xpath fallback
+8. **Leaf node** preferred over elements with children
 
 Note: `XCUIElementTypeCell` is NOT in `INTERACTIVE_TAGS` — cells are containers, not leaf interactive elements.
 

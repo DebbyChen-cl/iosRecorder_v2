@@ -233,18 +233,18 @@
     },
     "target": {
       "type": "xpath",
-      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "value": "//XCUIElementTypeCell[@name=\"EditViewControllerBottomPhotoEditFeatureCell-2\"]/XCUIElementTypeOther/XCUIElementTypeImage[1]",
       "selector_quality": "xpath_only",
-      "xpath": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "xpath": "//XCUIElementTypeCell[@name=\"EditViewControllerBottomPhotoEditFeatureCell-2\"]/XCUIElementTypeOther/XCUIElementTypeImage[1]",
       "offset_pct": {
-        "x": 45.3,
-        "y": 87.7
+        "x": 69.2,
+        "y": 60.0
       },
       "bounds": {
-        "x": 0,
-        "y": 38,
-        "w": 320,
-        "h": 626
+        "x": 127,
+        "y": 572,
+        "w": 26,
+        "h": 25
       }
     },
     "scroll_container": {
@@ -267,18 +267,18 @@
     },
     "target": {
       "type": "xpath",
-      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "value": "//XCUIElementTypeCell[@name=\"EffectMenuCell-1\"]/XCUIElementTypeOther/XCUIElementTypeImage",
       "selector_quality": "xpath_only",
-      "xpath": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "xpath": "//XCUIElementTypeCell[@name=\"EffectMenuCell-1\"]/XCUIElementTypeOther/XCUIElementTypeImage",
       "offset_pct": {
-        "x": 58.4,
-        "y": 74.9
+        "x": 40.0,
+        "y": 48.0
       },
       "bounds": {
-        "x": 0,
-        "y": 38,
-        "w": 320,
-        "h": 626
+        "x": 177,
+        "y": 495,
+        "w": 25,
+        "h": 25
       }
     },
     "scroll_container": {
@@ -373,13 +373,13 @@
     },
     "target": {
       "type": "xpath",
-      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeImage",
       "selector_quality": "xpath_only",
       "bounds": {
         "x": 0,
-        "y": 38,
+        "y": 158,
         "w": 320,
-        "h": 626
+        "h": 320
       }
     }
   },
@@ -399,13 +399,13 @@
     "expected_result": "same",
     "target": {
       "type": "xpath",
-      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeImage",
       "selector_quality": "xpath_only",
       "bounds": {
         "x": 0,
-        "y": 38,
+        "y": 158,
         "w": 320,
-        "h": 626
+        "h": 320
       }
     }
   },
@@ -424,13 +424,13 @@
     },
     "target": {
       "type": "xpath",
-      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeImage",
       "selector_quality": "xpath_only",
       "bounds": {
         "x": 0,
-        "y": 38,
+        "y": 158,
         "w": 320,
-        "h": 626
+        "h": 320
       }
     }
   }
