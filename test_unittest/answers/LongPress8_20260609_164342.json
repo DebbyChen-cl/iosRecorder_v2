@@ -118,13 +118,13 @@
     },
     "target": {
       "type": "xpath",
-      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeImage",
       "selector_quality": "xpath_only",
       "bounds": {
         "x": 0,
-        "y": 38,
+        "y": 110,
         "w": 320,
-        "h": 626
+        "h": 416
       }
     }
   },
@@ -144,13 +144,13 @@
     "expected_result": "same",
     "target": {
       "type": "xpath",
-      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeImage",
       "selector_quality": "xpath_only",
       "bounds": {
         "x": 0,
-        "y": 38,
+        "y": 110,
         "w": 320,
-        "h": 626
+        "h": 416
       }
     }
   }

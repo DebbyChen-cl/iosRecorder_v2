@@ -33,7 +33,7 @@
   },
   "step_002_t2": {
     "type": "xpath",
-    "value": "//XCUIElementTypeImage"
+    "value": "//XCUIElementTypeOther"
   },
   "step_003_t2": {
     "type": "accessibility id",
@@ -167,18 +167,18 @@
     },
     "target": {
       "type": "xpath",
-      "value": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "value": "//XCUIElementTypeCell[@name=\"EffectMenuCell-0\"]/XCUIElementTypeOther/XCUIElementTypeImage",
       "selector_quality": "xpath_only",
-      "xpath": "//XCUIElementTypeOther[@name=\"EditViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeButton",
+      "xpath": "//XCUIElementTypeCell[@name=\"EffectMenuCell-0\"]/XCUIElementTypeOther/XCUIElementTypeImage",
       "offset_pct": {
-        "x": 42.8,
-        "y": 75.6
+        "x": 76.0,
+        "y": 64.0
       },
       "bounds": {
-        "x": 0,
-        "y": 38,
-        "w": 320,
-        "h": 626
+        "x": 118,
+        "y": 495,
+        "w": 25,
+        "h": 25
       }
     },
     "scroll_container": {
@@ -200,19 +200,19 @@
       "y": 337.0
     },
     "target": {
-      "type": "accessibility id",
-      "value": "leaveButton",
-      "selector_quality": "id",
-      "xpath": "//XCUIElementTypeButton[@name='leaveButton']",
+      "type": "xpath",
+      "value": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeOther[4]/XCUIElementTypeButton[2]",
+      "selector_quality": "xpath_only",
+      "xpath": "//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeOther[4]/XCUIElementTypeButton[2]",
       "offset_pct": {
-        "x": 46.7,
-        "y": 35.5
+        "x": 39.4,
+        "y": 50.0
       },
       "bounds": {
-        "x": 283,
-        "y": 326,
-        "w": 30,
-        "h": 31
+        "x": 284,
+        "y": 320,
+        "w": 33,
+        "h": 34
       }
     }
   }

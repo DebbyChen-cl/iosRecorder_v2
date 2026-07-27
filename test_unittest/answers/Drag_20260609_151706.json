@@ -23,9 +23,9 @@
     "duration": 1000,
     "start_target": {
       "type": "xpath",
-      "value": "//XCUIElementTypeOther[@name=\"AIReplaceViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage/XCUIElementTypeOther[1]/XCUIElementTypeOther[2]",
+      "value": "//XCUIElementTypeOther[@name=\"AIReplaceViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage/XCUIElementTypeOther[2]/XCUIElementTypeOther",
       "selector_quality": "xpath_only",
-      "xpath": "//XCUIElementTypeOther[@name=\"AIReplaceViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage/XCUIElementTypeOther[1]/XCUIElementTypeOther[2]",
+      "xpath": "//XCUIElementTypeOther[@name=\"AIReplaceViewController\"]/XCUIElementTypeOther[2]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage/XCUIElementTypeOther[2]/XCUIElementTypeOther",
       "offset_pct": {
         "x": 19.4,
         "y": 49.3

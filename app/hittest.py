@@ -362,13 +362,16 @@ def _score(el: ET.Element, prefer_interactive_over_generic: bool = False) -> tup
     )
     # Priority:
     #   1. Non-container over structural containers (CollectionView, ScrollView …)
-    #   2. Interactive controls over generic XCUIElementTypeOther/View wrappers
-    #   3. Visible stable ID leaf (non-indexed, no children) over anything without one
-    #   4. Visible interactive element (Button, TextField …) as tiebreaker
-    #   5. Smallest area (most specific element)
-    #   6. Has any identifier > pure xpath fallback
+    #   2. Visible over invisible (WDA keeps hidden siblings in the tree with
+    #      stale frames that overlap visible content — never let them win)
+    #   3. Interactive controls over generic XCUIElementTypeOther/View wrappers
+    #   4. Visible stable ID leaf (non-indexed, no children) over anything without one
+    #   5. Visible interactive element (Button, TextField …) as tiebreaker
+    #   6. Smallest area (most specific element)
+    #   7. Has any identifier > pure xpath fallback
     return (
         int(is_container),
+        int(not is_visible),
         int(is_generic_wrapper),
         -int(has_stable_id),
         -int(is_interactive),
