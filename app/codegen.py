@@ -83,6 +83,8 @@ _BY_MAP = {
     "name":             "AppiumBy.NAME",
     "xpath":            "AppiumBy.XPATH",
     "id":               "AppiumBy.ID",
+    "-ios class chain": "AppiumBy.IOS_CLASS_CHAIN",
+    "-ios predicate string": "AppiumBy.IOS_PREDICATE",
 }
 
 
@@ -418,7 +420,7 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
             by, val = _locator(t)
             sc_kw = _sc_kwargs(step.get("scroll_container"))
             return (f"[Verify] {val} is visible",
-                    [f"actions.verify_visible({by}, '{val}'{sc_kw})"])
+                    [f"assert actions.verify_visible({by}, '{val}'{sc_kw}), 'element {val} should be visible'"])
         return (f"[Verify] element visible at ({c.get('x')},{c.get('y')})",
                 [f"# verify_visible at ({c.get('x')},{c.get('y')}) — no element matched"])
 
@@ -427,7 +429,7 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
         if has_el:
             by, val = _locator(t)
             return (f"[Verify] {val} is not visible",
-                    [f"actions.verify_not_visible({by}, '{val}')"])
+                    [f"assert actions.verify_not_visible({by}, '{val}'), 'element {val} should not be visible'"])
         return (f"[Verify] element not visible at ({c.get('x')},{c.get('y')})",
                 [f"# verify_not_visible at ({c.get('x')},{c.get('y')}) — no element matched"])
 
@@ -703,7 +705,7 @@ def _merge_screenshot_diff_long_press_compare(steps: List[dict]) -> List[dict]:
         return out
 
 
-def generate_script(steps: List[dict], case_name: str = "") -> str:
+def generate_script(steps: List[dict], case_name: str = "", test_passed: bool = True) -> str:
     """
     Convert a list of recorded step dicts into a complete pytest test file
     using DriverActions methods, each wrapped in a reportportal step context.
@@ -726,9 +728,19 @@ def generate_script(steps: List[dict], case_name: str = "") -> str:
         body_lines.append(f'    with step("{safe_label}"):')
         for line in code_lines:
             body_lines.append(f"        {line}")
+        # If the step could not be turned into a real action/verification (every
+        # generated line is just a comment), fail loudly instead of silently
+        # passing — a no-op step must not let a broken recording report PASS.
+        if code_lines and all(line.lstrip().startswith("#") for line in code_lines):
+            body_lines.append(f'        assert False, "{safe_label} — step could not be generated; re-record this step"')
     if has_screenshots:
         body_lines.append('    with step("[Verify] Screenshot comparisons"):')
         body_lines.append("        actions.run_screenshot_comparisons(threshold=0.95)")
-    body_lines.append("    assert True")
+    # Mirror the original pytest outcome: a failing original run must never be
+    # regenerated as a passing test.
+    if test_passed:
+        body_lines.append("    assert True")
+    else:
+        body_lines.append('    assert False, "original pytest run failed — this recording reproduces a failing run"')
 
     return header + "\n".join(body_lines) + "\n"

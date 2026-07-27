@@ -71,6 +71,20 @@ _STABILITY_SKIP_METHODS = frozenset({
     "tap_within_element_then_capture_preview",
 })
 
+# These are lookup/verification primitives.  Lookup failures must propagate
+# to the action method that called them, while verify_* methods must preserve
+# their assertion semantics.
+_MISSING_ELEMENT_PROPAGATION_METHODS = frozenset({
+    "find_element",
+    "find_elements",
+    "wait_for_visible",
+    "wait_for_invisible",
+    "is_element_present",
+    "verify_visible",
+    "verify_not_visible",
+    "verify_text",
+})
+
 
 def _compile_stability_patterns(patterns):
     compiled = []
@@ -145,10 +159,30 @@ def wait_for_stable_hierarchy(fn):
         # Track nesting depth so only the outermost call triggers the check.
         depth = getattr(self, "_stability_depth", 0)
         self._stability_depth = depth + 1
+        skipped_missing_element = False
         try:
-            result = fn(self, *args, **kwargs)
+            try:
+                result = fn(self, *args, **kwargs)
+            except (TimeoutException, NoSuchElementException) as exc:
+                # Action methods are best-effort: generated test cases often
+                # contain optional UI actions (for example, launch popups).
+                # Verification methods must keep their assertion semantics;
+                # they are normally excluded from this decorator, but keep
+                # the name check here as a defensive guarantee.
+                if fn.__name__.startswith("verify_"):
+                    raise
+                logger.warning(
+                    "Action '%s' skipped; element not found: %s",
+                    fn.__name__,
+                    exc,
+                )
+                result = None
+                skipped_missing_element = True
         finally:
             self._stability_depth -= 1
+
+        if skipped_missing_element:
+            return result
 
         if self._stability_depth == 0 and getattr(self, "stability_check", False):
             interval = getattr(self, "stability_interval", 0.4)
@@ -208,21 +242,51 @@ def wait_for_stable_hierarchy(fn):
     return wrapper
 
 
-def _apply_stability_to_all(cls):
+def allow_missing_element(fn):
+    """Make non-verification actions best-effort for missing elements.
+
+    Only locator failures are ignored.  Session, transport, assertion, and
+    other infrastructure errors continue to propagate normally.
     """
-    Class decorator: automatically wraps every public (non-dunder) method with
-    wait_for_stable_hierarchy so that the ``stability_check`` instance flag
-    applies uniformly to the entire class.
-    Individual ``@wait_for_stable_hierarchy`` decorators are no longer needed.
+    @functools.wraps(fn)
+    def wrapper(self, *args, **kwargs):
+        try:
+            return fn(self, *args, **kwargs)
+        except (TimeoutException, NoSuchElementException) as exc:
+            if fn.__name__.startswith("verify_"):
+                raise
+            logger.warning(
+                "Action '%s' skipped; element not found: %s",
+                fn.__name__,
+                exc,
+            )
+            return None
+
+    return wrapper
+
+
+def _apply_stability_to_all(cls):
+    """Apply best-effort missing-element handling and optional stability waits.
+
+    Individual ``@wait_for_stable_hierarchy`` decorators are not needed.  The
+    lookup and verify methods listed above remain responsible for propagating
+    their own failures.
     """
     for attr_name in list(vars(cls)):
         if attr_name.startswith('_'):
             continue
-        if attr_name in _STABILITY_SKIP_METHODS:
-            continue
         method = vars(cls)[attr_name]
-        if callable(method):
-            setattr(cls, attr_name, wait_for_stable_hierarchy(method))
+        if not callable(method):
+            continue
+
+        # Apply missing-element handling independently from hierarchy
+        # stability, so actions that intentionally skip stability checks get
+        # the same best-effort behaviour.
+        if attr_name not in _MISSING_ELEMENT_PROPAGATION_METHODS:
+            method = allow_missing_element(method)
+        if attr_name not in _STABILITY_SKIP_METHODS:
+            method = wait_for_stable_hierarchy(method)
+        setattr(cls, attr_name, method)
     return cls
 
 
@@ -421,9 +485,22 @@ class DriverActions:
         self, by: str, value: str, timeout: int = DEFAULT_WAIT,
         container_by: Optional[str] = None, container_value: Optional[str] = None,
         container_w: int = 0, container_h: int = 0,
-    ) -> None:
-        """Find an element then tap it."""
-        self.tap(self.wait_for_visible(by, value, timeout, container_by, container_value, container_w, container_h))
+    ) -> bool:
+        """Tap an element when found; skip the action when it is absent.
+
+        This is intentionally a best-effort action because many generated test
+        cases target optional launch-time popups. Infrastructure/session errors
+        are not swallowed and will still fail the test.
+        """
+        try:
+            element = self.wait_for_visible(
+                by, value, timeout, container_by, container_value, container_w, container_h
+            )
+            self.tap(element)
+            return True
+        except (TimeoutException, NoSuchElementException) as exc:
+            logger.warning("tap_by_locator skipped; element not found (%s, %r): %s", by, value, exc)
+            return False
 
     @step("Tap at coordinates")
     def tap_by_coordinates(self, x: int, y: int) -> None:
@@ -1780,6 +1857,7 @@ class DriverActions:
         """
         try:
             element = self.wait_for_visible(by, value, timeout, container_by, container_value, container_w, container_h)
+            return True
         except (TimeoutException, NoSuchElementException):
             label = msg or f"({by}, {value!r})"
             raise AssertionError(f"verify_visible FAILED – element not visible: {label}")

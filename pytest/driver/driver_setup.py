@@ -22,7 +22,9 @@ def build_options() -> XCUITestOptions:
     options.automation_name      = caps["appium:automationName"]
     options.udid                 = caps["appium:udid"]
     options.device_name          = caps["appium:deviceName"]
-    options.bundle_id            = caps.get("appium:bundleId")
+    bundle_id = caps.get("appium:bundleId")
+    if bundle_id:
+        options.bundle_id = bundle_id
     options.xcode_org_id         = caps.get("appium:xcodeOrgId")
     options.xcode_signing_id     = caps.get("appium:xcodeSigningId")
     options.no_reset             = caps.get("appium:noReset", True)
@@ -59,6 +61,14 @@ def create_driver() -> webdriver.Remote:
             options=options,
         )
         logger.info("Session created: %s", driver.session_id)
+        # Keep WDA's active-application detection in "auto" so element searches
+        # follow whichever app is frontmost. This lets find_element see system
+        # permission alerts (owned by com.apple.springboard / tccd) the moment
+        # they overlay the app under test, instead of staying scoped to the AUT.
+        try:
+            driver.update_settings({"defaultActiveApplication": "auto"})
+        except Exception as exc:
+            logger.warning("Could not set defaultActiveApplication=auto: %s", exc)
         return driver
     except Exception as exc:
         raise RuntimeError(
