@@ -560,6 +560,11 @@ async def api_launch_app(req: LaunchAppReq):
     return {"ok": await wda.launch_app(req.bundle_id)}
 
 
+@app.post("/api/activate_app")
+async def api_activate_app(req: LaunchAppReq):
+    return {"ok": await wda.activate_app(req.bundle_id)}
+
+
 @app.post("/api/terminate_app")
 async def api_terminate_app(req: LaunchAppReq):
     return {"ok": await wda.terminate_app(req.bundle_id)}
@@ -755,6 +760,13 @@ async def record_home():
 async def record_launch_app(req: LaunchAppReq):
     ok = await wda.launch_app(req.bundle_id)
     asyncio.create_task(_record_launch_app(req.bundle_id))
+    return {"ok": ok}
+
+
+@app.post("/api/record/activate_app")
+async def record_activate_app(req: LaunchAppReq):
+    ok = await wda.activate_app(req.bundle_id)
+    asyncio.create_task(_record_activate_app(req.bundle_id))
     return {"ok": ok}
 
 
@@ -1432,6 +1444,15 @@ async def _record_launch_app(bundle_id: str):
     _steps.append(step)
     _unit_test_capture({"action": "launch_app", "bundle_id": bundle_id}, step, None)
     logger.info(f"Recorded launch_app: {bundle_id}")
+
+
+async def _record_activate_app(bundle_id: str):
+    apps = _load_apps()
+    name = next((a["name"] for a in apps if a["bundle_id"] == bundle_id), bundle_id)
+    step: dict = {"action": "activate_app", "bundle_id": bundle_id, "app_name": name, "timestamp": time.time()}
+    _steps.append(step)
+    _unit_test_capture({"action": "activate_app", "bundle_id": bundle_id}, step, None)
+    logger.info(f"Recorded activate_app: {bundle_id}")
 
 
 async def _record_terminate_app(bundle_id: str):

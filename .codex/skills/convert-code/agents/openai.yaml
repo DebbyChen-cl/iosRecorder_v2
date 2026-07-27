@@ -1,0 +1,4 @@
+interface:
+  display_name: "Convert Code"
+  short_description: "Convert legacy iOS cases into recorded pytest tests"
+  default_prompt: "Use $convert-code to convert legacy iOS test cases into recorded pytest tests."

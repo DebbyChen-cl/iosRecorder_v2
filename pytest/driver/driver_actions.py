@@ -69,6 +69,8 @@ _STABILITY_SKIP_METHODS = frozenset({
     "run_screenshot_comparisons",
     "tap_then_capture_preview",
     "tap_within_element_then_capture_preview",
+    "long_press_capture_for_preview",
+    "long_press_capture_for_preview_within_element",
 })
 
 # These are lookup/verification primitives.  Lookup failures must propagate
@@ -159,30 +161,10 @@ def wait_for_stable_hierarchy(fn):
         # Track nesting depth so only the outermost call triggers the check.
         depth = getattr(self, "_stability_depth", 0)
         self._stability_depth = depth + 1
-        skipped_missing_element = False
         try:
-            try:
-                result = fn(self, *args, **kwargs)
-            except (TimeoutException, NoSuchElementException) as exc:
-                # Action methods are best-effort: generated test cases often
-                # contain optional UI actions (for example, launch popups).
-                # Verification methods must keep their assertion semantics;
-                # they are normally excluded from this decorator, but keep
-                # the name check here as a defensive guarantee.
-                if fn.__name__.startswith("verify_"):
-                    raise
-                logger.warning(
-                    "Action '%s' skipped; element not found: %s",
-                    fn.__name__,
-                    exc,
-                )
-                result = None
-                skipped_missing_element = True
+            result = fn(self, *args, **kwargs)
         finally:
             self._stability_depth -= 1
-
-        if skipped_missing_element:
-            return result
 
         if self._stability_depth == 0 and getattr(self, "stability_check", False):
             interval = getattr(self, "stability_interval", 0.4)
@@ -243,30 +225,29 @@ def wait_for_stable_hierarchy(fn):
 
 
 def allow_missing_element(fn):
-    """Make non-verification actions best-effort for missing elements.
+    """Propagate missing-element errors from actions.
 
-    Only locator failures are ignored.  Session, transport, assertion, and
-    other infrastructure errors continue to propagate normally.
+    The decorator name is kept for compatibility with the class decorator, but
+    locator failures are intentionally not swallowed: a generated action must
+    fail immediately when its target element is absent.
     """
     @functools.wraps(fn)
     def wrapper(self, *args, **kwargs):
         try:
             return fn(self, *args, **kwargs)
         except (TimeoutException, NoSuchElementException) as exc:
-            if fn.__name__.startswith("verify_"):
-                raise
-            logger.warning(
-                "Action '%s' skipped; element not found: %s",
+            logger.error(
+                "Action '%s' failed; element not found: %s",
                 fn.__name__,
                 exc,
             )
-            return None
+            raise
 
     return wrapper
 
 
 def _apply_stability_to_all(cls):
-    """Apply best-effort missing-element handling and optional stability waits.
+    """Apply missing-element propagation and optional stability waits.
 
     Individual ``@wait_for_stable_hierarchy`` decorators are not needed.  The
     lookup and verify methods listed above remain responsible for propagating
@@ -279,9 +260,8 @@ def _apply_stability_to_all(cls):
         if not callable(method):
             continue
 
-        # Apply missing-element handling independently from hierarchy
-        # stability, so actions that intentionally skip stability checks get
-        # the same best-effort behaviour.
+        # Apply missing-element propagation independently from hierarchy
+        # stability, so actions that skip stability checks behave the same.
         if attr_name not in _MISSING_ELEMENT_PROPAGATION_METHODS:
             method = allow_missing_element(method)
         if attr_name not in _STABILITY_SKIP_METHODS:
@@ -421,14 +401,20 @@ class DriverActions:
         value: str,
         timeout: int = DEFAULT_WAIT,
     ) -> list[WebElement]:
-        """Return all matching elements (empty list if none found within timeout)."""
+        """Return all matching elements or raise when none are found."""
         try:
             WebDriverWait(self.driver, timeout).until(
                 EC.presence_of_element_located((by, value))
             )
-        except TimeoutException:
-            return []
-        return self.driver.find_elements(by, value)
+        except TimeoutException as exc:
+            raise NoSuchElementException(
+                f"Elements not found: ({by}, {value!r})"
+            ) from exc
+
+        elements = self.driver.find_elements(by, value)
+        if not elements:
+            raise NoSuchElementException(f"Elements not found: ({by}, {value!r})")
+        return elements
 
     @staticmethod
     def _point_in_element(element: WebElement, pct_x: float = 50.0, pct_y: float = 50.0) -> Tuple[int, int]:
@@ -486,21 +472,12 @@ class DriverActions:
         container_by: Optional[str] = None, container_value: Optional[str] = None,
         container_w: int = 0, container_h: int = 0,
     ) -> bool:
-        """Tap an element when found; skip the action when it is absent.
-
-        This is intentionally a best-effort action because many generated test
-        cases target optional launch-time popups. Infrastructure/session errors
-        are not swallowed and will still fail the test.
-        """
-        try:
-            element = self.wait_for_visible(
-                by, value, timeout, container_by, container_value, container_w, container_h
-            )
-            self.tap(element)
-            return True
-        except (TimeoutException, NoSuchElementException) as exc:
-            logger.warning("tap_by_locator skipped; element not found (%s, %r): %s", by, value, exc)
-            return False
+        """Find and tap an element; raise immediately when it is absent."""
+        element = self.wait_for_visible(
+            by, value, timeout, container_by, container_value, container_w, container_h
+        )
+        self.tap(element)
+        return True
 
     @step("Tap at coordinates")
     def tap_by_coordinates(self, x: int, y: int) -> None:
@@ -772,14 +749,14 @@ class DriverActions:
         capture_by: str,
         capture_value: str,
         expected_result: str = "same",
-        threshold: Optional[float] = 0.95,
+        threshold: Optional[float] = None,
         timeout: int = DEFAULT_WAIT,
         container_by: Optional[str] = None,
         container_value: Optional[str] = None,
         container_w: int = 0,
         container_h: int = 0,
         compare_folder: str = "pytest/screenshots/compare",
-    ) -> None:
+    ) -> bool:
         """Capture preview AFTER while a long-press gesture is still holding.
 
         Sequence: press-down/hold starts -> capture target screenshot -> release.
@@ -839,6 +816,7 @@ class DriverActions:
             logger.warning("long_press_capture_for_preview: hold thread did not finish in expected window")
         if hold_exc:
             raise hold_exc[0]
+        return True
 
     @step("Long press within element and capture preview during hold")
     def long_press_capture_for_preview_within_element(
@@ -852,14 +830,14 @@ class DriverActions:
         capture_by: str,
         capture_value: str,
         expected_result: str = "same",
-        threshold: Optional[float] = 0.95,
+        threshold: Optional[float] = None,
         timeout: int = DEFAULT_WAIT,
         container_by: Optional[str] = None,
         container_value: Optional[str] = None,
         container_w: int = 0,
         container_h: int = 0,
         compare_folder: str = "pytest/screenshots/compare",
-    ) -> None:
+    ) -> bool:
         """Hold at an offset inside press element, capture target screenshot during hold."""
         el = self.wait_for_visible(
             press_by,
@@ -913,6 +891,7 @@ class DriverActions:
             logger.warning("long_press_capture_for_preview_within_element: hold thread did not finish in expected window")
         if hold_exc:
             raise hold_exc[0]
+        return True
 
     def _perform_w3c_hold(self, x: int, y: int, duration: float) -> None:
         """Perform touch down -> hold -> touch up in one W3C action sequence."""
@@ -1828,6 +1807,12 @@ class DriverActions:
         self.driver.execute_script("mobile: launchApp", {"bundleId": bundle_id})
         logger.info("launch_app: %s", bundle_id)
 
+    @step("Activate app")
+    def activate_app(self, bundle_id: str) -> None:
+        """Bring *bundle_id* to the foreground without cold-launching it."""
+        self.driver.execute_script("mobile: activateApp", {"bundleId": bundle_id})
+        logger.info("activate_app: %s", bundle_id)
+
     @step("Terminate app")
     def terminate_app(self, bundle_id: str) -> None:
         """Force-quit *bundle_id*. No-op if the app is not running."""
@@ -2293,7 +2278,7 @@ class DriverActions:
         wait_seconds: float = 2.0,
         capture_name: str = "tap_screenshot_diff",
         expected_result: str = "same",
-        threshold: Optional[float] = 0.95,
+        threshold: Optional[float] = None,
         timeout: int = DEFAULT_WAIT,
     ) -> None:
         """Capture target before/after a tap action without hierarchy-stability waits."""
@@ -2332,7 +2317,7 @@ class DriverActions:
         wait_seconds: float = 2.0,
         capture_name: str = "tap_screenshot_diff",
         expected_result: str = "same",
-        threshold: Optional[float] = 0.95,
+        threshold: Optional[float] = None,
         timeout: int = DEFAULT_WAIT,
     ) -> None:
         """Capture target before/after a %offset tap action without hierarchy-stability waits."""

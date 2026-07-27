@@ -46,9 +46,10 @@ def test_<safe_name>(actions: DriverActions):
 
 | Fixture | Scope | Notes |
 |---------|-------|-------|
-| `driver` | function | Fresh Appium/WDA session per test — quits and recreates the driver before every test function. First test of the session also runs onboarding (C-1..C-5), popup close loop (D-1→D-2→D-3), and ATT/push Allow prompts; subsequent tests restart the app (terminate → crash dialog → activate → close popups). Teardown terminates app + quits driver. |
-| `actions` | function | New `DriverActions` wrapper per test; uses the per-test `driver` |
+| `driver` | session | One Appium session for the entire test suite — never re-create; runs one-time pre-test flow: restart app, conditional onboarding (C-1..C-5), popup close loop (D-1→D-2→D-3, max 3 loops), ATT/push Allow prompts, and session teardown terminate+quit |
+| `actions` | function | New `DriverActions` wrapper per test; shares session `driver` |
 | `screenshot_on_failure` | function (autouse) | Auto-attached to every test — do NOT add as parameter |
+| `reset_app` | function (optional) | Terminates + relaunches app; use only when test needs clean state |
 
 ---
 
@@ -72,8 +73,8 @@ def test_<safe_name>(actions: DriverActions):
 - `triple_tap(element)` / `triple_tap_within_element(by, value, pct_x, pct_y, ..., container_by=None, ...)`
 - `five_tap(element)` / `five_tap_within_element(by, value, pct_x, pct_y, ..., container_by=None, ...)` — tap 5 times
 - `long_press(element, duration=1.0)` / `long_press_within_element(by, value, pct_x, pct_y, duration=1.0, ..., container_by=None, ...)`
-- `long_press_capture_for_preview(press_by, press_value, duration, capture_name, capture_by, capture_value, expected_result="same", threshold=None, ..., container_by=None, ...)` — starts long press, captures preview AFTER during hold, then releases; `None` uses the global threshold from `run_screenshot_comparisons()`; returns `True` after success
-- `long_press_capture_for_preview_within_element(press_by, press_value, pct_x, pct_y, duration, capture_name, capture_by, capture_value, expected_result="same", threshold=None, ..., container_by=None, ...)` — same as above but press point uses % offset inside element; `None` uses the global threshold from `run_screenshot_comparisons()`; returns `True` after success
+- `long_press_capture_for_preview(press_by, press_value, duration, capture_name, capture_by, capture_value, expected_result="same", threshold=0.95, ..., container_by=None, ...)` — starts long press, captures preview AFTER during hold, then releases; returns `True` after success
+- `long_press_capture_for_preview_within_element(press_by, press_value, pct_x, pct_y, duration, capture_name, capture_by, capture_value, expected_result="same", threshold=0.95, ..., container_by=None, ...)` — same as above but press point uses % offset inside element; returns `True` after success
 - `two_finger_tap(element)`
 - `multi_finger_tap(element, fingers=3)`
 
@@ -98,7 +99,6 @@ def test_<safe_name>(actions: DriverActions):
 ### System
 - `press_home()` — press Home button
 - `launch_app(bundle_id)` — launch or foreground an app
-- `activate_app(bundle_id)` — bring an app to the foreground without cold-launching it
 - `terminate_app(bundle_id)` — force-quit an app
 - `hide_keyboard()` — dismiss keyboard
 - `background_app(seconds=3)` — background then restore
@@ -111,8 +111,8 @@ def test_<safe_name>(actions: DriverActions):
 - `verify_text(by, value, expected, timeout=30)` — assert element text equals expected
 - `capture_for_gt(name, by=None, value=None)` — capture element (or full screen) screenshot to `screenshots/compare/{name}_{ts}_compare.png`; queues `(name, path, threshold)` for GT comparison; timestamp prevents overwrite on repeated calls
 - `capture_for_preview(name, phase, by=None, value=None)` — capture element screenshot as `{name}_{ts}_{phase}.png` in compare folder; `before` saves ts in `_preview_pending[name]`; `after` pops the ts to pair files, queues `(name, before_path, after_path, threshold, expected_result)` for preview comparison
-- `tap_then_capture_preview(capture_by, capture_value, tap_by, tap_value, wait_seconds=2.0, capture_name="tap_screenshot_diff", expected_result="same", threshold=None)` — one-shot flow: capture BEFORE, tap action element, wait N seconds, capture AFTER; `None` uses the global threshold from `run_screenshot_comparisons()`
-- `tap_within_element_then_capture_preview(capture_by, capture_value, tap_by, tap_value, tap_pct_x, tap_pct_y, wait_seconds=2.0, capture_name="tap_screenshot_diff", expected_result="same", threshold=None)` — same flow but tap point uses percent offset inside action element; `None` uses the global threshold from `run_screenshot_comparisons()`
+- `tap_then_capture_preview(capture_by, capture_value, tap_by, tap_value, wait_seconds=2.0, capture_name="tap_screenshot_diff", expected_result="same", threshold=0.95)` — one-shot flow: capture BEFORE, tap action element, wait N seconds, capture AFTER
+- `tap_within_element_then_capture_preview(capture_by, capture_value, tap_by, tap_value, tap_pct_x, tap_pct_y, wait_seconds=2.0, capture_name="tap_screenshot_diff", expected_result="same", threshold=0.95)` — same flow but tap point uses percent offset inside action element
 - `run_screenshot_comparisons()` — evaluate all queued GT and preview comparisons (AND logic); uploads failing pairs to ReportPortal with label showing both filenames (`diff: A vs B`); raises one `AssertionError` with all failure messages
 - `compare_with_gt(name, compare_path, threshold)` — single GT comparison with explicit path; if GT missing → saves compare as GT; if diff > threshold → uploads diff to RP with `diff: compare vs gt` label; does not raise
 - `compare_preview(name, before_path, after_path, threshold, expected_result)` — single before/after comparison with explicit paths; uploads diff to RP with `diff: before vs after` label on failure; does not raise
@@ -185,7 +185,7 @@ Defined in `pytest/pytest.ini`. Always use `@pytest.mark.name(...)` — it is th
 ## Never Do
 
 - Never call `driver` directly inside test files — all interactions go through `actions`
-- Never change `driver` fixture back to `scope="session"` — it must stay `"function"` for per-test WDA restart
+- Never use `scope="function"` for the `driver` fixture — it must stay `"session"`
 - Never add `screenshot_on_failure` as a test parameter — it's `autouse=True`
 - Never use raw `W3C Actions` for iOS gestures — use XCUITest `mobile:*` scripts instead
 - Never `assert` inside test files without a `with step(...)` context — assertions need RP context

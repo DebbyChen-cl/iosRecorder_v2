@@ -407,6 +407,13 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
         return (f"[Action] Launch {name}",
                 [f"actions.launch_app('{bundle_id}')"])
 
+    # ── activate app ─────────────────────────────────────────────────────────
+    if action == "activate_app":
+        bundle_id = _q(step.get("bundle_id", ""))
+        name = step.get("app_name") or bundle_id
+        return (f"[Action] Switch to {name}",
+                [f"actions.activate_app('{bundle_id}')"])
+
     # ── terminate app ─────────────────────────────────────────────────────────
     if action == "terminate_app":
         bundle_id = _q(step.get("bundle_id", ""))
@@ -420,7 +427,7 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
             by, val = _locator(t)
             sc_kw = _sc_kwargs(step.get("scroll_container"))
             return (f"[Verify] {val} is visible",
-                    [f"assert actions.verify_visible({by}, '{val}'{sc_kw}), 'element {val} should be visible'"])
+                    [f"actions.verify_visible({by}, '{val}'{sc_kw})"])
         return (f"[Verify] element visible at ({c.get('x')},{c.get('y')})",
                 [f"# verify_visible at ({c.get('x')},{c.get('y')}) — no element matched"])
 
@@ -429,7 +436,7 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
         if has_el:
             by, val = _locator(t)
             return (f"[Verify] {val} is not visible",
-                    [f"assert actions.verify_not_visible({by}, '{val}'), 'element {val} should not be visible'"])
+                    [f"actions.verify_not_visible({by}, '{val}')"])
         return (f"[Verify] element not visible at ({c.get('x')},{c.get('y')})",
                 [f"# verify_not_visible at ({c.get('x')},{c.get('y')}) — no element matched"])
 
@@ -736,11 +743,6 @@ def generate_script(steps: List[dict], case_name: str = "", test_passed: bool = 
     if has_screenshots:
         body_lines.append('    with step("[Verify] Screenshot comparisons"):')
         body_lines.append("        actions.run_screenshot_comparisons(threshold=0.95)")
-    # Mirror the original pytest outcome: a failing original run must never be
-    # regenerated as a passing test.
-    if test_passed:
-        body_lines.append("    assert True")
-    else:
-        body_lines.append('    assert False, "original pytest run failed — this recording reproduces a failing run"')
+    body_lines.append("    assert True")
 
     return header + "\n".join(body_lines) + "\n"

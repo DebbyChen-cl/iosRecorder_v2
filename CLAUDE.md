@@ -26,7 +26,7 @@ iosRecorder_v2/
 │   ├── app.js              # Frontend controller (WebSocket + REST)
 │   └── style.css           # UI styling
 └── pytest/                 # Appium + pytest test framework
-    ├── conftest.py          # Fixtures: driver (session), actions (function), screenshot_on_failure (autouse)
+    ├── conftest.py          # Fixtures: driver (function — fresh WDA session per test), actions (function), screenshot_on_failure (autouse)
     ├── config.py            # Device capabilities (UDID, bundle ID, Appium URL)
     ├── driver/
     │   ├── driver_setup.py  # Creates/quits the Appium driver
@@ -64,7 +64,7 @@ iosRecorder_v2/
   "scale":     float,           # pinch
   "rotation":  float,           # degrees (rotate)
   "text":      str,             # type_text
-  "bundle_id": str,             # launch_app
+  "bundle_id": str,             # launch_app / activate_app / terminate_app
   "expected_text": str,         # verify_get_text
   "screenshot_name": str,       # verify_screenshot_*
   "wait_seconds": float,        # verify_tap_screenshot_diff: delay after tap before AFTER screenshot

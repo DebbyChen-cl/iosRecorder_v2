@@ -33,7 +33,7 @@
     "quality": "id",
     "is_problematic": false
   },
-  "step_000_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Verify] promptTextField text equals 'aaa'\"):\n        actions.verify_text(AppiumBy.ACCESSIBILITY_ID, 'promptTextField', 'aaa')\n    assert True\n",
+  "step_000_t5": "import pytest\nfrom appium.webdriver.common.appiumby import AppiumBy\nfrom reportportal_client import step\n\nfrom driver.driver_actions import DriverActions\n\n\n@pytest.mark.name(\"test_case\")\ndef test_test_case(actions: DriverActions):\n    with step(\"[Verify] promptTextField text equals 'aaa'\"):\n        assert actions.verify_text(AppiumBy.ACCESSIBILITY_ID, 'promptTextField', 'aaa') is not False, 'promptTextField text does not equal aaa'\n    assert True\n",
   "step_000_t3b": {
     "action": "verify_get_text",
     "coords": {

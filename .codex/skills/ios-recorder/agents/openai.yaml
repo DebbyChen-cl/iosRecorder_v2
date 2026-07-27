@@ -1,0 +1,4 @@
+interface:
+  display_name: "iOS Recorder"
+  short_description: "Project rules for iOS recorder automation"
+  default_prompt: "Use $ios-recorder to work on the iOS Recorder v2 project."

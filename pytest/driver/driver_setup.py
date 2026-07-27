@@ -61,14 +61,6 @@ def create_driver() -> webdriver.Remote:
             options=options,
         )
         logger.info("Session created: %s", driver.session_id)
-        # Keep WDA's active-application detection in "auto" so element searches
-        # follow whichever app is frontmost. This lets find_element see system
-        # permission alerts (owned by com.apple.springboard / tccd) the moment
-        # they overlay the app under test, instead of staying scoped to the AUT.
-        try:
-            driver.update_settings({"defaultActiveApplication": "auto"})
-        except Exception as exc:
-            logger.warning("Could not set defaultActiveApplication=auto: %s", exc)
         return driver
     except Exception as exc:
         raise RuntimeError(

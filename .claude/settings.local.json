@@ -25,7 +25,20 @@
       "Bash(curl -s -X POST http://localhost:8888/api/record -H 'Content-Type: application/json' -d '{\"x\": 22, \"y\": 56}')",
       "Bash(tree -aL 3 /Users/rdqe/iosRecorder_v2)",
       "Bash(python3 -m pytest test_unittest/ -q --tb=short)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(find /Users/rdqe/Desktop/rdqe-ios-autotest-phdm -type f -name \"conftest.py\" 2>/dev/null)",
+      "Read(//Users/rdqe/Desktop/rdqe-ios-autotest-phdm/**)",
+      "Bash(find /Users/rdqe/Desktop/rdqe-ios-autotest-phdm -type f -name \"*.py\" | head -80)",
+      "Bash(grep -rl \"wda\\\\|WDA\\\\|WebDriverAgent\\\\|driver.*restart\\\\|restart.*driver\\\\|xcodebuild\\\\|iproxy\\\\|wda_url\\\\|appium\\\\|desired_cap\" /Users/rdqe/Desktop/rdqe-ios-autotest-phdm --include=\"*.py\" 2>/dev/null)",
+      "Bash(ls -la /Users/rdqe/Desktop/rdqe-ios-autotest-phdm/)",
+      "Bash(ls /Users/rdqe/Desktop/rdqe-ios-autotest-phdm/)",
+      "Bash(find /Users/rdqe/Desktop/rdqe-ios-autotest-phdm -name \"*.py\" | xargs grep -l \"defaultActiveApplication\\\\|bundleId\\\\|bundle_id\\\\|activeAppDetectionPoint\" 2>/dev/null)",
+      "Bash(find /Users/rdqe/Desktop/rdqe-ios-autotest-phdm -name \"conftest.py\" -o -name \"driver_config.py\" | head -5)",
+      "Bash(grep -n \"bundleId\\\\|bundle_id\\\\|defaultActiveApplication\\\\|activeApp\\\\|springboard\\\\|Allow\\\\|alert\" /Users/rdqe/Desktop/rdqe-ios-autotest-phdm/SFT/tests/test_pytest_iPHD_SFT_v20.py | head -30)",
+      "Read(//Users/rdqe/Desktop/rdqe-ios-autotest-phdm/SFT/tests/**)",
+      "Bash(grep -n \"Allow Full Access\\\\|Allow\\\\|photo.*library\\\\|permission\\\\|springboard\" /Users/rdqe/Desktop/rdqe-ios-autotest-phdm/SFT/tests/test_pytest_iPHD_SFT_v20.py | head -20)",
+      "Bash(grep -rn \"Allow\\\\|alert\\\\|springboard\\\\|permission\\\\|defaultActive\" /Users/rdqe/Desktop/rdqe-ios-autotest-phdm/SFT/conftest.py /Users/rdqe/Desktop/rdqe-ios-autotest-phdm/ATFramework/pages/base_page.py 2>/dev/null | head -20)",
+      "Read(//Users/rdqe/Desktop/rdqe-ios-autotest-phdm/SFT/**)"
     ]
   }
 }

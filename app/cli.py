@@ -43,6 +43,7 @@ _KNOWN_ACTIONS = frozenset(
         "type_text",
         "home",
         "launch_app",
+        "activate_app",
         "terminate_app",
         "verify_visible",
         "verify_not_visible",
@@ -71,6 +72,7 @@ _RECORD_ENDPOINT_BY_ACTION = {
     "type_text": "/api/record/type_text",
     "home": "/api/record/home",
     "launch_app": "/api/record/launch_app",
+    "activate_app": "/api/record/activate_app",
     "terminate_app": "/api/record/terminate_app",
     "verify_visible": "/api/record/verify_visible",
     "verify_get_text": "/api/record/verify_get_text",
@@ -99,6 +101,7 @@ _LIVE_ENDPOINT_BY_ACTION = {
     "type_text": "/api/type_text",
     "home": "/api/home",
     "launch_app": "/api/launch_app",
+    "activate_app": "/api/activate_app",
     "terminate_app": "/api/terminate_app",
 }
 

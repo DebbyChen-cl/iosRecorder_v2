@@ -824,6 +824,26 @@ class WDAClient:
             logger.error(f"launch_app activate fallback failed: {e}")
             return False
 
+    async def activate_app(self, bundle_id: str) -> bool:
+        """Bring an app to the foreground without cold-launching it."""
+        if not self._session_id:
+            await self._ensure_session()
+        if not self._session_id or not self._client:
+            return False
+        try:
+            resp = await self._client.post(
+                f"{self.base_url}/session/{self._session_id}/wda/apps/activate",
+                json={"bundleId": bundle_id},
+                timeout=10.0,
+            )
+            if resp.status_code in (200, 204):
+                return True
+            logger.error(f"activate_app {resp.status_code}: {resp.text[:300]}")
+            return False
+        except Exception as e:
+            logger.error(f"activate_app failed: {e}")
+            return False
+
     async def terminate_app(self, bundle_id: str) -> bool:
         """Terminate (force-quit) an app by bundle ID."""
         if not self._session_id:

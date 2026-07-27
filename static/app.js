@@ -66,6 +66,7 @@ const textCancelBtn     = document.getElementById("textCancelBtn");
 const textSendBtn       = document.getElementById("textSendBtn");
 const homeBtn           = document.getElementById("homeBtn");
 const launchAppBtn      = document.getElementById("launchAppBtn");
+const activateAppBtn    = document.getElementById("activateAppBtn");
 const terminateAppBtn   = document.getElementById("terminateAppBtn");
 const appPickerModal    = document.getElementById("appPickerModal");
 const appPickerList     = document.getElementById("appPickerList");
@@ -1099,6 +1100,14 @@ function sendLaunchApp(bundleId) {
   });
 }
 
+function sendActivateApp(bundleId) {
+  const record = isRecording;
+  trackActionLoading("activate_app", { bundle_id: bundleId }, () => {
+    if (record) return api("POST", "/api/record/activate_app", { bundle_id: bundleId });
+    return api("POST", "/api/activate_app", { bundle_id: bundleId });
+  });
+}
+
 function sendTerminateApp(bundleId) {
   const record = isRecording;
   trackActionLoading("terminate_app", { bundle_id: bundleId }, () => {
@@ -1108,6 +1117,7 @@ function sendTerminateApp(bundleId) {
 }
 
 launchAppBtn.addEventListener("click", () => openAppPicker());
+activateAppBtn.addEventListener("click", () => openAppPicker(sendActivateApp));
 terminateAppBtn.addEventListener("click", () => openAppPicker(sendTerminateApp));
 appPickerClose.addEventListener("click", () => closeAppPicker());
 appPickerModal.addEventListener("click", e => {
@@ -1335,6 +1345,7 @@ function getActionVisualSettleMs(type, data = {}) {
     type_text: 450,
     home: 900,
     launch_app: 1200,
+    activate_app: 800,
     terminate_app: 800,
   };
   return defaults[type] ?? 450;
@@ -2271,6 +2282,10 @@ function renderSteps() {
     } else if (s.action === "launch_app") {
       cls = "t-name";
       typeStr = "launch";
+      valStr = s.app_name ?? s.bundle_id ?? "";
+    } else if (s.action === "activate_app") {
+      cls = "t-name";
+      typeStr = "switch";
       valStr = s.app_name ?? s.bundle_id ?? "";
     } else if (s.action === "terminate_app") {
       cls = "t-name";

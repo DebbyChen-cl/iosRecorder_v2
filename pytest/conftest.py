@@ -12,7 +12,7 @@ from datetime import datetime
 
 import pytest
 from appium.webdriver.common.appiumby import AppiumBy
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
 
 import config
 from driver.driver_actions import DriverActions
@@ -241,38 +241,51 @@ def _session_setup_flow(actions: DriverActions, bundle_id: str) -> None:
 
 
 # ──────────────────────────────────────────────────────────────
-# Session-scoped driver (ONE Appium session for the whole suite)
+# Function-scoped driver (fresh Appium/WDA session per test)
 # ──────────────────────────────────────────────────────────────
 
-@pytest.fixture(scope="session")
+_session_first_run = True
+
+
+@pytest.fixture(scope="function")
 def driver():
     """
-    Create the Appium driver once for the entire test session and quit it
-    when all tests have finished.
+    Create a fresh Appium driver for every test function and quit it
+    after the test finishes.
 
-    Scope: session  →  setup runs once before the first test,
-                        teardown runs once after the last test.
+    First test of the session additionally runs onboarding and
+    permission-alert flows; subsequent tests only restart the app.
     """
-    logger.info("=== SESSION SETUP: creating Appium driver ===")
+    global _session_first_run
+
+    logger.info("=== TEST SETUP: creating fresh Appium driver ===")
     _driver = create_driver()
-    actions = DriverActions(_driver)
-    # Prefer the dedicated target bundle id; fall back to the session capability
-    # (the session's appium:bundleId is intentionally left unset so it can attach
-    # to foreground apps / SpringBoard alerts).
+
     bundle_id = getattr(config, "TARGET_BUNDLE_ID", "") or config.IOS_CAPABILITIES.get("appium:bundleId", "")
+
     if bundle_id:
-        _session_setup_flow(actions, bundle_id)
+        if _session_first_run:
+            _session_setup_flow(DriverActions(_driver), bundle_id)
+            _session_first_run = False
+        else:
+            logger.info("=== TEST SETUP: restarting app ===")
+            _terminate_app_resilient(_driver, bundle_id)
+            _close_crash_dialog(_driver)
+            time.sleep(1)
+            _driver.activate_app(bundle_id)
+            time.sleep(1)
+            _close_all_pop_dialog_when_launch(DriverActions(_driver))
     else:
-        logger.warning("Bundle ID is empty; skip session app setup flow")
+        logger.warning("Bundle ID is empty; skip app setup flow")
 
     yield _driver
 
-    logger.info("=== SESSION TEARDOWN: terminate app and quit Appium driver ===")
+    logger.info("=== TEST TEARDOWN: quitting Appium driver ===")
     if bundle_id:
         try:
-            actions.terminate_app(bundle_id)
+            _driver.terminate_app(bundle_id)
         except Exception as exc:
-            logger.warning("Session terminate_app failed: %s", exc)
+            logger.warning("terminate_app failed: %s", exc)
     quit_driver(_driver)
 
 
@@ -283,9 +296,7 @@ def driver():
 @pytest.fixture(scope="function")
 def actions(driver):
     """
-    Provide a DriverActions instance that shares the session driver.
-    Scope: function  →  a new DriverActions wrapper is created for
-                        every individual test function.
+    Provide a DriverActions instance wrapping the per-test driver.
     """
     return DriverActions(driver)
 
@@ -338,10 +349,19 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
     rep = outcome.get_result()
     setattr(item, f"rep_{rep.when}", rep)
+    if (
+        rep.when == "call"
+        and rep.failed
+        and call.excinfo is not None
+        and isinstance(call.excinfo.value, (TimeoutException, NoSuchElementException))
+    ):
+        item.session.shouldstop = (
+            f"Element not found during {item.nodeid}; stopping pytest"
+        )
 
 
 # ──────────────────────────────────────────────────────────────
-# Optional: reset app state between tests
+# Resilient terminate helper (used by driver fixture)
 # ──────────────────────────────────────────────────────────────
 
 _TERMINATE_MAX_RETRIES = 3
@@ -367,28 +387,3 @@ def _terminate_app_resilient(driver, bundle_id: str) -> None:
             )
             time.sleep(_TERMINATE_RETRY_DELAY_SEC)
     logger.warning("terminate_app gave up after %d attempts; continuing", _TERMINATE_MAX_RETRIES)
-
-
-@pytest.fixture(scope="function", autouse=True)
-def reset_app(driver):
-    """
-    Terminate and re-launch the app before EVERY test (autouse).
-    Ensures each test starts from a clean, freshly-launched app state:
-    terminate -> dismiss crash dialog -> activate -> close post-launch popups.
-    """
-    bundle_id = getattr(config, "TARGET_BUNDLE_ID", "") or config.IOS_CAPABILITIES.get("appium:bundleId", "")
-    if not bundle_id:
-        logger.info("reset_app skipped: no bundle ID configured")
-        yield
-        return
-    logger.info("Resetting app: %s", bundle_id)
-    _terminate_app_resilient(driver, bundle_id)
-
-    _close_crash_dialog(driver)
-
-    driver.activate_app(bundle_id)
-
-    _close_all_pop_dialog_when_launch(DriverActions(driver))
-
-    yield
-    # (no teardown needed – next test will reset again if required)
