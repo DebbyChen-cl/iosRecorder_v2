@@ -69,7 +69,6 @@ class SourceIndex:
     root: Path
     functions: dict[str, list[FunctionRecord]] = field(default_factory=dict)
     locators: dict[tuple[str | None, str], dict[str, str]] = field(default_factory=dict)
-    attribute_types: dict[str, set[str]] = field(default_factory=dict)
 
     @classmethod
     def load(cls, source: Path, project_root: Path | None = None) -> "SourceIndex":
@@ -102,22 +101,6 @@ class SourceIndex:
                     visit(getattr(node, "orelse", []), class_name)
 
         visit(getattr(tree, "body", []))
-        # Suite setup fixtures commonly initialise page objects on ``self``.
-        # The test methods themselves live in other modules, so retain this
-        # project-wide type information instead of relying only on locals.
-        for node in ast.walk(tree):
-            if not isinstance(node, (ast.Assign, ast.AnnAssign)):
-                continue
-            value = node.value
-            if not isinstance(value, ast.Call):
-                continue
-            class_name = _called_name(value.func)
-            if not class_name:
-                continue
-            targets = [node.target] if isinstance(node, ast.AnnAssign) else node.targets
-            for target in targets:
-                if isinstance(target, ast.Attribute):
-                    self.attribute_types.setdefault(target.attr, set()).add(class_name)
 
     def _index_locator(self, node: ast.Assign | ast.AnnAssign, class_name: str | None) -> None:
         value = node.value if isinstance(node, ast.AnnAssign) else node.value
@@ -147,10 +130,6 @@ class SourceIndex:
             return self.locators[(class_name, attr)]
         matches = [value for (owner, name), value in self.locators.items() if name == attr]
         return matches[0] if len(matches) == 1 else None
-
-    def resolve_attribute_type(self, attr: str) -> str | None:
-        matches = self.attribute_types.get(attr, set())
-        return next(iter(matches)) if len(matches) == 1 else None
 
 
 def _source(node: ast.AST) -> str:
@@ -212,14 +191,6 @@ def _attribute_chain(node: ast.AST | None) -> list[str]:
     return list(reversed(chain))
 
 
-def _called_name(node: ast.AST) -> str | None:
-    if isinstance(node, ast.Name):
-        return node.id
-    if isinstance(node, ast.Attribute):
-        return node.attr
-    return None
-
-
 def _receiver_and_method(node: ast.Call) -> tuple[str | None, str]:
     if isinstance(node.func, ast.Attribute):
         chain = _attribute_chain(node.func.value)
@@ -227,23 +198,6 @@ def _receiver_and_method(node: ast.Call) -> tuple[str | None, str]:
     if isinstance(node.func, ast.Name):
         return None, node.func.id
     return None, "legacy_call"
-
-
-def _object_type_for_chain(chain: list[str], index: SourceIndex, object_types: dict[str, str]) -> str | None:
-    """Resolve a page-object type from a local name or a ``self.foo`` chain."""
-    for name in reversed(chain):
-        if object_types.get(name):
-            return object_types[name]
-        attribute_type = index.resolve_attribute_type(name)
-        if attribute_type:
-            return attribute_type
-    return None
-
-
-def _class_name_for_call(call: ast.Call, index: SourceIndex, object_types: dict[str, str]) -> str | None:
-    if not isinstance(call.func, ast.Attribute):
-        return None
-    return _object_type_for_chain(_attribute_chain(call.func.value), index, object_types)
 
 
 def _locator_from_expr(node: ast.AST | None, index: SourceIndex, bindings: dict[str, ast.AST], object_types: dict[str, str]) -> dict[str, str] | None:
@@ -259,7 +213,7 @@ def _locator_from_expr(node: ast.AST | None, index: SourceIndex, bindings: dict[
     chain = _attribute_chain(node)
     if not chain:
         return None
-    owner = _object_type_for_chain(chain, index, object_types)
+    owner = object_types.get(chain[0])
     return index.resolve_locator(chain[-1], owner)
 
 
@@ -344,26 +298,6 @@ def _disabled_test_names(text: str) -> list[str]:
     return names
 
 
-def _condition_call(node: ast.AST) -> tuple[ast.Call, bool] | None:
-    """Return a simple action condition and its successful branch polarity.
-
-    ``if page.tap_xxx()`` and ``if not page.tap_xxx()`` are common legacy
-    success/failure guards.  They can be represented by the action itself:
-    successful DriverActions calls continue, while failures raise.
-    """
-    if isinstance(node, ast.Call):
-        return node, True
-    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not) and isinstance(node.operand, ast.Call):
-        return node.operand, False
-    if isinstance(node, ast.Compare) and len(node.ops) == 1 and len(node.comparators) == 1 and isinstance(node.left, ast.Call):
-        expected = _literal(node.comparators[0])
-        if isinstance(node.ops[0], (ast.Is, ast.Eq)) and expected is True:
-            return node.left, True
-        if isinstance(node.ops[0], (ast.Is, ast.Eq)) and expected is False:
-            return node.left, False
-    return None
-
-
 class _Expander:
     def __init__(self, source: Path, index: SourceIndex):
         self.source = source.resolve()
@@ -396,25 +330,8 @@ class _Expander:
             if isinstance(statement, ast.Assert):
                 steps.append({"kind": "assertion", "mapping": "assertion", "source": _source(statement.test), "line": statement.lineno, "method": "assert", "locator": self._locator_for_test(statement.test, bindings, object_types)})
                 continue
-            if isinstance(statement, (ast.With, ast.AsyncWith)):
-                # ``rp_step`` and similar context managers are reporting
-                # structure.  Their bodies contain the actual device actions.
-                steps.extend(self._block(statement.body, bindings, object_types, stack))
-                continue
             if isinstance(statement, ast.If):
                 self.branch_count += 1
-                condition_call = _condition_call(statement.test)
-                if condition_call:
-                    call, succeeds_when_true = condition_call
-                    # Legacy suites often use ``if not page.tap_xxx(): assert
-                    # False`` as error handling.  A DriverActions operation
-                    # already raises on failure, so convert the successful
-                    # path directly instead of emitting a runtime hook that
-                    # cannot evaluate the old Page Object expression.
-                    steps.extend(self._call(call, bindings, object_types, stack))
-                    selected = statement.body if succeeds_when_true else statement.orelse
-                    steps.extend(self._block(selected, bindings, object_types, stack))
-                    continue
                 nested_bindings = dict(bindings)
                 nested_types = dict(object_types)
                 body = self._block(statement.body, nested_bindings, nested_types, stack)
@@ -444,9 +361,9 @@ class _Expander:
 
     def _call(self, call: ast.Call, bindings: dict[str, ast.AST], object_types: dict[str, str], stack: set[str]) -> list[dict[str, Any]]:
         receiver, method = _receiver_and_method(call)
-        class_name = _class_name_for_call(call, self.index, object_types)
+        class_name = object_types.get(receiver or "")
         record = self.index.resolve_function(method, class_name)
-        if record and record.name not in stack and not _is_low_level(method) and _is_safe_to_inline(record):
+        if record and record.name not in stack and not _is_low_level(method):
             self.helpers.append(record.name)
             parameters = list(record.node.args.args)
             child_bindings: dict[str, ast.AST] = dict(bindings)
@@ -456,12 +373,7 @@ class _Expander:
             child_types = dict(object_types)
             if receiver:
                 child_types["self"] = class_name or object_types.get(receiver, "")
-            for key, value in child_bindings.items():
-                if not isinstance(value, ast.Name):
-                    continue
-                inferred_type = object_types.get(_source(value)) or self.index.resolve_attribute_type(value.id)
-                if inferred_type:
-                    child_types[key] = inferred_type
+            child_types.update({key: object_types.get(_source(value), "") for key, value in child_bindings.items() if isinstance(value, ast.Name)})
             child = self._block(record.node.body, child_bindings, child_types, stack | {record.name})
             return child
         operation = _classify_call(call, self.index, bindings, object_types)
@@ -475,20 +387,6 @@ class _Expander:
 def _is_low_level(method: str) -> bool:
     lower = method.lower()
     return lower in {"find_element", "find_elements", "get_element", "get_elements", "is_displayed", "get_attribute", "page_source"}
-
-
-def _is_safe_to_inline(record: FunctionRecord) -> bool:
-    """Avoid expanding Page Object recovery/diagnostic implementations.
-
-    The legacy page modules contain large methods with retries, screenshots,
-    and fallback locators.  Those are implementation details, not the intent
-    of a generated case.  Inline simple page methods (which expose a concrete
-    locator), but keep complex ones as one operation for later repair.
-    """
-    if record.path.parent.name != "pages":
-        return True
-    control_flow = (ast.If, ast.For, ast.While, ast.Try, ast.With, ast.AsyncWith)
-    return not any(isinstance(node, control_flow) for node in ast.walk(record.node))
 
 
 def _is_expandable_record(record: FunctionRecord) -> bool:
@@ -759,8 +657,6 @@ def validate_artifacts(inventory_path: Path | str, tests_dir: Path | str) -> dic
     if incomplete:
         errors.append(f"mapping incomplete for: {', '.join(incomplete)}")
     files = sorted(directory.glob("test_*.py")) if directory.exists() else []
-    runtime_hooks = {"external_action": 0, "legacy_condition": 0, "legacy_iterable": 0}
-    runtime_hook_files: set[str] = set()
     expected = {case["source_case"] for case in active}
     seen: set[str] = set()
     for case in active:
@@ -771,16 +667,10 @@ def validate_artifacts(inventory_path: Path | str, tests_dir: Path | str) -> dic
         for file in matches:
             seen.add(str(file))
             try:
-                content = file.read_text(encoding="utf-8")
-                tree = ast.parse(content, filename=str(file))
+                tree = ast.parse(file.read_text(encoding="utf-8"), filename=str(file))
             except (OSError, SyntaxError) as exc:
                 errors.append(f"{file}: invalid Python: {exc}")
                 continue
-            for hook in runtime_hooks:
-                count = content.count(f"actions.{hook}(")
-                runtime_hooks[hook] += count
-                if count:
-                    runtime_hook_files.add(str(file))
             functions = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name.startswith("test_")]
             if len(functions) != 1:
                 errors.append(f"{file}: expected exactly one test function")
@@ -817,10 +707,5 @@ def validate_artifacts(inventory_path: Path | str, tests_dir: Path | str) -> dic
         "ok": not errors and len(seen) >= len(expected) and collection["ok"],
         "files_checked": len(seen),
         "collection": collection,
-        "runtime_readiness": {
-            "ready": not any(runtime_hooks.values()),
-            "hook_counts": runtime_hooks,
-            "files_with_hooks": len(runtime_hook_files),
-        },
         "errors": errors,
     }

@@ -76,10 +76,6 @@ The inventory is the approval gate: it links feature mappings to every active
 case, lists disabled definitions separately, preserves branch/external steps,
 and refuses generation when a step is unmapped. Generated identities use five
 digits and collision suffixes; existing files are never overwritten.
-`static-validate` returning `ok: true` means the files are structurally valid
-and collectable. Check `runtime_readiness.ready` before treating them as
-executable: it is false while `external_action`, `legacy_condition`, or
-`legacy_iterable` placeholders remain.
 
 ### server-status
 

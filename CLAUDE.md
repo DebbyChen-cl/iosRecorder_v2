@@ -117,7 +117,7 @@ Runtime override: when started with `bash start.sh --xpath` (`RECORDER_XPATH_ONL
 - `server-vision-loop` runs scripted `snapshot` + `action` plans for closed-loop automation
 - `static-inventory` analyzes a legacy suite into feature/case mapping JSON without importing or running it
 - `static-generate` emits collision-safe five-digit standalone pytest files from an approved inventory
-- `static-validate` checks inventory coverage and generated-file AST structure without a device, and reports whether runtime placeholders remain
+- `static-validate` checks inventory coverage and generated-file AST structure without a device
 - CLI output is JSON-only to support deterministic AI/automation pipelines
 
 ### DriverActions (pytest/driver/driver_actions.py)

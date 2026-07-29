@@ -64,9 +64,6 @@ python -m app.cli static-validate --inventory tmp/static_inventory.json --tests-
 
 The inventory is the approval gate and generated identities use five digits;
 existing files are preserved with a collision suffix.
-`static-validate` returning `ok: true` means the files are structurally valid
-and collectable. Check `runtime_readiness.ready` before treating them as
-executable: it is false while runtime placeholders remain.
 
 ### server-status
 
