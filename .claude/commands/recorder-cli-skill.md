@@ -51,6 +51,32 @@ python -m app.cli export-bundle \
 
 Use `--no-append-timestamp` for deterministic output names.
 
+### Static legacy conversion
+
+The static conversion commands analyze a legacy suite with Python ASTs only;
+they never import or execute the legacy project and never contact a device.
+
+```bash
+python -m app.cli static-inventory \
+  --source /path/to/legacy_suite.py \
+  --project-root /path/to/legacy_project \
+  --expected-active 193 \
+  --output tmp/static_inventory.json
+
+python -m app.cli static-generate \
+  --inventory tmp/static_inventory.json \
+  --tests-dir pytest/tests
+
+python -m app.cli static-validate \
+  --inventory tmp/static_inventory.json \
+  --tests-dir pytest/tests
+```
+
+The inventory is the approval gate: it links feature mappings to every active
+case, lists disabled definitions separately, preserves branch/external steps,
+and refuses generation when a step is unmapped. Generated identities use five
+digits and collision suffixes; existing files are never overwritten.
+
 ### server-status
 
 Check recorder server + WDA session status.

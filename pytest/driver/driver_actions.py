@@ -1819,6 +1819,34 @@ class DriverActions:
         self.driver.execute_script("mobile: terminateApp", {"bundleId": bundle_id})
         logger.info("terminate_app: %s", bundle_id)
 
+    @step("Preserve external legacy operation")
+    def external_action(self, operation: str, source: str = "") -> bool:
+        """Keep a statically converted external step explicit and non-silent.
+
+        Static conversion must not submit feedback, upload files, call paid
+        services, or make network requests.  Generated tests retain the source
+        operation through this seam and fail clearly if replay is attempted
+        before a project-specific, authorized implementation is supplied.
+        """
+        detail = f" ({source})" if source else ""
+        raise NotImplementedError(
+            f"External legacy operation '{operation}' requires explicit replay authorization{detail}"
+        )
+
+    @step("Evaluate static legacy condition")
+    def legacy_condition(self, source: str) -> bool:
+        """Require an explicit runtime translation for a legacy branch condition."""
+        raise NotImplementedError(
+            f"Legacy branch condition requires a DriverActions translation: {source}"
+        )
+
+    @step("Iterate static legacy loop")
+    def legacy_iterable(self, source: str):
+        """Require an explicit runtime translation for a legacy loop iterable."""
+        raise NotImplementedError(
+            f"Legacy loop iterable requires a DriverActions translation: {source}"
+        )
+
     # ──────────────────────────────────────────
     # Verify (assertions)
     # ──────────────────────────────────────────
