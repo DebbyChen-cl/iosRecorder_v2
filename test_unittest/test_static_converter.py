@@ -104,6 +104,8 @@ def test_validation_checks_generated_ast_and_inventory_coverage(tmp_path: Path):
     assert report["ok"] is True
     assert report["files_checked"] == len(result["files"])
     assert report["collection"]["ok"] is True
+    assert report["runtime_readiness"]["ready"] is False
+    assert report["runtime_readiness"]["hook_counts"]["external_action"] == 1
     assert report["errors"] == []
 
 
@@ -112,6 +114,49 @@ def test_inventory_rejects_missing_expected_case_count(tmp_path: Path):
 
     with pytest.raises(static_converter.StaticConversionError, match="expected 2 active cases"):
         static_converter.build_inventory(source, expected_active=2)
+
+
+def test_generator_unwraps_step_context_and_normalizes_page_action_conditions(tmp_path: Path):
+    root = tmp_path / "project"
+    root.mkdir()
+    (root / "pages.py").write_text(
+        """
+from appium.webdriver.common.appiumby import AppiumBy as By
+
+class SettingsPage:
+    feedback = (By.ACCESSIBILITY_ID, "Feedback")
+
+    def open_feedback(self):
+        self.driver.find_element(*self.feedback).click()
+""",
+        encoding="utf-8",
+    )
+    source = root / "suite.py"
+    source.write_text(
+        """
+from pages import SettingsPage
+
+class Tests:
+    def setup_pages(self):
+        self.settings_page = SettingsPage(driver)
+
+    def test_case_one(self):
+        with self.rp_step("Open feedback"):
+            if not self.settings_page.open_feedback():
+                assert False, "could not open feedback"
+""",
+        encoding="utf-8",
+    )
+    inventory = static_converter.build_inventory(source, project_root=root)
+    inventory_path = tmp_path / "inventory.json"
+    inventory_path.write_text(json.dumps(inventory), encoding="utf-8")
+
+    result = static_converter.generate_tests(inventory_path, tmp_path / "generated")
+    generated = Path(result["files"][0]).read_text(encoding="utf-8")
+
+    assert "actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Feedback')" in generated
+    assert "legacy_condition" not in generated
+    assert "external_action" not in generated
 
 
 def test_static_conversion_cli_runs_the_inventory_generation_and_validation_gates(tmp_path: Path):
