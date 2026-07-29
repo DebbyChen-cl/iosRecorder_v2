@@ -104,8 +104,6 @@ def test_<safe_name>(actions: DriverActions):
 - `background_app(seconds=3)` — background then restore
 - `get_screen_size()` — returns `(width, height)` in points
 - `take_screenshot(path)` — save PNG
-- `external_action(operation, source="")` — retain a statically converted external step and fail until authorized replay behavior is supplied
-- `legacy_condition(source)` / `legacy_iterable(source)` — preserve static legacy control flow while requiring a project-specific runtime translation
 
 ### Assertions
 - `verify_visible(by, value, timeout=30, msg="")` — assert element visible; returns element

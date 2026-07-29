@@ -21,7 +21,6 @@ from typing import Any
 import httpx
 
 from .codegen import generate_script
-from .static_converter import StaticConversionError, build_inventory, generate_tests, validate_artifacts
 
 _WARN_QUALITIES = frozenset({"id_indexed", "id_eq_label", "label_only", "xpath_only"})
 _STRIP_STEP_KEYS = frozenset({"pre_screenshot", "pre_screenshot_size"})
@@ -501,48 +500,6 @@ def cmd_export_bundle(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
     )
 
 
-def cmd_static_inventory(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
-    try:
-        inventory = build_inventory(
-            args.source,
-            project_root=args.project_root or None,
-            expected_active=args.expected_active,
-        )
-    except StaticConversionError as exc:
-        return 2, _err("static-inventory", "INVENTORY_FAILED", str(exc))
-    output = Path(args.output)
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(inventory, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    return 0, _ok(
-        "static-inventory",
-        output_path=str(output),
-        source_file=inventory["source_file"],
-        active_case_count=inventory["active_case_count"],
-        disabled_case_count=inventory["disabled_case_count"],
-        feature_count=len(inventory["feature_mapping"]),
-    )
-
-
-def cmd_static_generate(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
-    try:
-        result = generate_tests(
-            args.inventory,
-            args.tests_dir,
-            start_sequence=args.start_sequence,
-            case_name=args.case_name or None,
-        )
-    except StaticConversionError as exc:
-        return 2, _err("static-generate", "GENERATION_FAILED", str(exc))
-    return 0, _ok("static-generate", **result)
-
-
-def cmd_static_validate(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
-    report = validate_artifacts(args.inventory, args.tests_dir)
-    if report["ok"]:
-        return 0, _ok("static-validate", **report)
-    return 2, _err("static-validate", "VALIDATION_FAILED", "static conversion validation failed", report)
-
-
 def cmd_server_status(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
     code, payload = _http_json(base_url=args.base_url, method="GET", path="/api/status", timeout=args.timeout)
     if code != 0:
@@ -810,22 +767,6 @@ def build_parser() -> argparse.ArgumentParser:
     p_export.add_argument("--append-timestamp", action="store_true", default=True, help="Append timestamp suffix")
     p_export.add_argument("--no-append-timestamp", dest="append_timestamp", action="store_false", help="Disable timestamp suffix")
 
-    p_static_inventory = sub.add_parser("static-inventory", help="Inventory a legacy suite without importing or running it")
-    p_static_inventory.add_argument("--source", required=True, help="Legacy suite Python file")
-    p_static_inventory.add_argument("--project-root", default="", help="Legacy project root used for helper/page resolution")
-    p_static_inventory.add_argument("--expected-active", type=int, default=None, help="Fail if this many active test methods are not extracted")
-    p_static_inventory.add_argument("--output", required=True, help="Inventory JSON output path")
-
-    p_static_generate = sub.add_parser("static-generate", help="Generate standalone pytest files from static inventory")
-    p_static_generate.add_argument("--inventory", required=True, help="Inventory JSON path")
-    p_static_generate.add_argument("--tests-dir", default="pytest/tests", help="Output directory for generated tests")
-    p_static_generate.add_argument("--start-sequence", type=int, default=1, help="First five-digit output sequence")
-    p_static_generate.add_argument("--case-name", default="", help="Generate one named source case")
-
-    p_static_validate = sub.add_parser("static-validate", help="Validate static inventory coverage and generated test ASTs")
-    p_static_validate.add_argument("--inventory", required=True, help="Inventory JSON path")
-    p_static_validate.add_argument("--tests-dir", default="pytest/tests", help="Directory containing generated tests")
-
     p_server_status = sub.add_parser("server-status", help="Get recorder server/device status")
     _add_server_common_flags(p_server_status)
 
@@ -887,12 +828,6 @@ def run_cli(argv: list[str]) -> tuple[int, dict[str, Any]]:
         return cmd_generate_test(args)
     if args.command == "export-bundle":
         return cmd_export_bundle(args)
-    if args.command == "static-inventory":
-        return cmd_static_inventory(args)
-    if args.command == "static-generate":
-        return cmd_static_generate(args)
-    if args.command == "static-validate":
-        return cmd_static_validate(args)
     if args.command == "server-status":
         return cmd_server_status(args)
     if args.command == "server-set-config":

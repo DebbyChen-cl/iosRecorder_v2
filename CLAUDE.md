@@ -17,7 +17,6 @@ iosRecorder_v2/
 │   ├── main.py             # All API endpoints + recording engine + WDA proxy
 │   ├── codegen.py          # Converts recorded steps → pytest code
 │   ├── cli.py              # JSON-first CLI for validate/codegen/export automation
-│   ├── static_converter.py # AST-only legacy-suite inventory and pytest conversion
 │   ├── hittest.py          # Score-based element detection at a coordinate
 │   ├── selector.py         # Builds the most stable selector for an element
 │   ├── unit_test_gen.py    # Generates test_gen1..5 + test_gen3b pytest files from --unit_test captures
@@ -115,9 +114,6 @@ Runtime override: when started with `bash start.sh --xpath` (`RECORDER_XPATH_ONL
 - `server-vision-snapshot` returns AI-readable status/tree/frame bundles
 - `server-vision-execute` executes one AI-selected action in `record` or `live` mode
 - `server-vision-loop` runs scripted `snapshot` + `action` plans for closed-loop automation
-- `static-inventory` analyzes a legacy suite into feature/case mapping JSON without importing or running it
-- `static-generate` emits collision-safe five-digit standalone pytest files from an approved inventory
-- `static-validate` checks inventory coverage and generated-file AST structure without a device
 - CLI output is JSON-only to support deterministic AI/automation pipelines
 
 ### DriverActions (pytest/driver/driver_actions.py)
@@ -126,7 +122,6 @@ Runtime override: when started with `bash start.sh --xpath` (`RECORDER_XPATH_ONL
 - `@wait_for_stable_hierarchy` on tap/drag/press methods (optional polling)
 - All multi-touch uses XCUITest `mobile:*` script APIs, not raw W3C Actions
 - `find_element(by, value, ..., container_by, container_value, container_w, container_h)` — when container params are provided and element is absent or < 50 % visible, calls `_find_with_scroll()` automatically. All `*_by_locator`, `*_within_element`, `verify_visible`, and `swipe_on_element` forward these params here, so scroll fallback applies uniformly to every action.
-- `external_action(operation, source)` keeps statically converted external operations explicit and blocks replay until separately authorized; `legacy_condition` and `legacy_iterable` do the same for legacy control-flow expressions.
 
 ### Frontend ↔ Backend communication
 - **WebSocket** `/ws/tap` — low-latency tap events during live recording
