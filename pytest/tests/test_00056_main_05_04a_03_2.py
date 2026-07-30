@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-from tests.SFT_renew import testdata as TD
+import testdata as TD
 
 
 @pytest.mark.name('00056_main_05_04a_03_2')

@@ -15,4 +15,9 @@ skills-lock.json
 .DS_Store
 pytest/tests/.DS_Store
 tmp/
+pytest/tests/__pycache__
+app/__pycache__
+test_unittest/__pycache__
+pytest/__pycache__
+pytest/dirver/__pycache__
 
