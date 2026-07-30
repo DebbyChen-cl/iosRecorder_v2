@@ -458,6 +458,119 @@ class DriverActions:
             return False
 
     # ──────────────────────────────────────────
+    # Element state / value queries  (SFT conversion additions)
+    # ──────────────────────────────────────────
+
+    def is_element_enabled(self, by: str, value: str, timeout: int = 3) -> bool:
+        """Non-throwing check: True if the element is present and enabled."""
+        try:
+            el = self.find_element(by, value, timeout=timeout)
+            return bool(el.is_enabled())
+        except (TimeoutException, NoSuchElementException):
+            return False
+
+    def is_element_highlighted(self, by: str, value: str, timeout: int = 3) -> bool:
+        """Non-throwing check: True if the element reports a selected/highlighted state.
+
+        iOS surfaces highlight/selection through the ``selected`` or ``value``
+        attribute depending on the control, so both are inspected.
+        """
+        try:
+            el = self.find_element(by, value, timeout=timeout)
+        except (TimeoutException, NoSuchElementException):
+            return False
+        for attr in ("selected", "value"):
+            try:
+                v = el.get_attribute(attr)
+            except Exception:
+                v = None
+            if str(v).lower() in ("true", "1"):
+                return True
+        return False
+
+    def get_element(self, by: str, value: str, timeout: int = 3):
+        """Non-throwing element fetch: returns the WebElement or None (legacy parity).
+
+        Mirrors the legacy page-object ``get_element`` so preserved expressions like
+        ``el = actions.get_element(...)`` / ``if actions.get_element(...) is not None``
+        translate faithfully. Use ``find_element`` when you want a raise-on-absence fetch.
+        """
+        try:
+            return self.find_element(by, value, timeout=timeout)
+        except (TimeoutException, NoSuchElementException):
+            return None
+
+    def get_text(self, by: str, value: str, timeout: int = DEFAULT_WAIT) -> str:
+        """Return the element's visible text/label; raises when the element is absent.
+
+        Falls back to the ``label`` / ``value`` / ``name`` attribute when ``.text``
+        is empty (common for iOS controls).
+        """
+        el = self.find_element(by, value, timeout=timeout)
+        txt = el.text
+        if not txt:
+            for attr in ("label", "value", "name"):
+                try:
+                    a = el.get_attribute(attr)
+                except Exception:
+                    a = None
+                if a:
+                    txt = a
+                    break
+        return txt or ""
+
+    def get_element_bounds(
+        self, by: str, value: str, timeout: int = DEFAULT_WAIT
+    ) -> Tuple[int, int, int, int]:
+        """Return (x, y, w, h) in points for the element; raises when absent."""
+        el = self.find_element(by, value, timeout=timeout)
+        r = el.rect
+        return int(r["x"]), int(r["y"]), int(r["width"]), int(r["height"])
+
+    def set_slider(self, by: str, value: str, percent: float, timeout: int = DEFAULT_WAIT) -> None:
+        """Drag a horizontal slider thumb to *percent* (0–100) of the track width.
+
+        Implemented via the drag primitive (no dedicated slider gesture in XCUITest):
+        reads the slider element's on-device bounds, then drags along its horizontal
+        mid-line from the current left edge to the target percentage position.
+        """
+        x, y, w, h = self.get_element_bounds(by, value, timeout=timeout)
+        cy = y + h // 2
+        target_x = x + int(w * max(0.0, min(100.0, float(percent))) / 100.0)
+        self.drag_coordinates(x, cy, target_x, cy)
+        logger.info("set_slider (%s,%r) -> %.1f%% (x=%d)", by, value, percent, target_x)
+        return True
+
+    def try_tap(self, by: str, value: str, timeout: int = 3) -> bool:
+        """Non-throwing tap: tap the element if present, return True/False (legacy
+        bool-style parity, for use in `if not actions.try_tap(...):` conditions)."""
+        try:
+            el = self.find_element(by, value, timeout=timeout)
+        except (TimeoutException, NoSuchElementException):
+            return False
+        try:
+            el.click(); return True
+        except Exception:
+            return False
+
+    def try_tap_any(self, candidates, timeout: int = 1) -> bool:
+        """Tap the first present element among (by, value) candidates; return True if any tapped."""
+        for by, value in candidates:
+            if self.try_tap(by, value, timeout=timeout):
+                return True
+        return False
+
+    def execute_script(self, script: str, args: Optional[dict] = None):
+        """Passthrough to the underlying Appium driver (e.g. ``mobile:`` commands)."""
+        if args is None:
+            return self.driver.execute_script(script)
+        return self.driver.execute_script(script, args)
+
+    def open_url(self, url: str) -> None:
+        """Open a URL / deep link in the current context (webview or Safari handoff)."""
+        self.driver.get(url)
+
+    # ──────────────────────────────────────────
     # Tap / click
     # ──────────────────────────────────────────
 
@@ -2174,6 +2287,33 @@ class DriverActions:
         )
         return True
 
+    def _settle_hierarchy(self) -> None:
+        """Block until the UI hierarchy stops changing, so that a capture taken
+        immediately afterwards lands on a settled screen.  No-op unless the
+        instance has ``stability_check = True`` (same tunables as the
+        ``wait_for_stable_hierarchy`` decorator)."""
+        if not getattr(self, "stability_check", False):
+            return
+        interval = getattr(self, "stability_interval", 0.4)
+        timeout = getattr(self, "stability_timeout", 120.0)
+        min_wait = getattr(self, "stability_min_wait", 0.8)
+        required = max(1, int(getattr(self, "stability_required_samples", 3)))
+        if min_wait > 0:
+            time.sleep(min_wait)
+        last, stable, start = None, 0, time.time()
+        while time.time() - start < timeout:
+            try:
+                sig = self._hierarchy_stability_signature(self.driver.page_source)
+            except Exception:
+                return
+            if sig == last:
+                stable += 1
+                if stable >= required:
+                    return
+            else:
+                stable, last = 1, sig
+            time.sleep(interval)
+
     @step("Capture screenshot for GT comparison")
     def capture_for_gt(
         self,
@@ -2182,11 +2322,18 @@ class DriverActions:
         value: Optional[str] = None,
         compare_folder: str = "pytest/screenshots/compare",
         threshold: Optional[float] = None,
+        crop_rect: Optional[Tuple[int, int, int, int]] = None,
     ) -> str:
         """
-        Capture the target element (or full screen if no locator) and save it
-        to *compare_folder* as ``{name}_{ts}_compare.png`` (timestamp added to
-        prevent overwrite on repeated calls).
+        Capture the target and save it to *compare_folder* as
+        ``{name}_{ts}_compare.png`` (timestamp added to prevent overwrite).
+
+        Capture target precedence:
+          1. *crop_rect* ``(x1, y1, x2, y2)`` in **points** — crop a fixed pixel
+             region of the full screen (legacy ``snapshot(crop=(...))`` parity;
+             scaled point→pixel via ``_save_image_crop_by_rect``).
+          2. *by* / *value* — crop to that element's bounding box.
+          3. neither — full screen.
 
         The name is queued for GT comparison; call ``run_screenshot_comparisons()``
         at the end of the test to evaluate all queued items.
@@ -2194,10 +2341,19 @@ class DriverActions:
         *threshold*: per-image SSIM threshold (0–1).  When ``None``, the global
         threshold passed to ``run_screenshot_comparisons()`` is used instead.
         """
+        self._settle_hierarchy()   # wait for a stable screen before capturing
         os.makedirs(compare_folder, exist_ok=True)
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         path = os.path.join(compare_folder, f"{name}_{ts}_compare.png")
-        if by and value:
+        if crop_rect is not None:
+            x1, y1, x2, y2 = crop_rect
+            rect_pts = {"x": x1, "y": y1, "width": x2 - x1, "height": y2 - y1}
+            screen_pts = self.driver.get_window_size()
+            png = self._fetch_wda_screenshot_png()
+            if not (png and self._save_image_crop_by_rect(png, path, rect_pts, screen_pts)):
+                logger.warning("crop_rect capture failed for %s; falling back to full-screen", name)
+                self.driver.save_screenshot(path)
+        elif by and value:
             try:
                 el = self.find_element(by, value)
                 el.screenshot(path)
