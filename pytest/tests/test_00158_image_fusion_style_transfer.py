@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00158_image_fusion_style_transfer')
@@ -128,7 +128,7 @@ def test_00158_image_fusion_style_transfer(actions: DriverActions):
     with step('[Verify] snapshot: G02_02_02_after_backing_to_home.png'):
         actions.capture_for_gt('G02_02_02_after_backing_to_home.png')
     with step('[Action] tap_editphoto'):
-        actions.tap_by_locator(AppiumBy.NAME, 'Edit Photo')
+        actions.tap_by_locator(AppiumBy.NAME, 'Edit')
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
     with step('[Action] select_category'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '_AT')

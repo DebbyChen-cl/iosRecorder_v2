@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00027_removal_auto')
@@ -12,7 +12,7 @@ def test_00027_removal_auto(actions: DriverActions):
     mode = 1
     uuid = ['e7d2eeed-5513-463e-b80f-0f81f085dc2c', '44374028-b434-439b-9aaa-5f37fc9a83f1', '0c80d203-e38d-423a-8650-f664f10fb00a', 'b91c1c57-afd3-4b5e-838a-072a93279ecd', 'b1cad862-3726-4cda-857e-4db630d6aa28', 'd9a891e4-8919-4d19-b181-80376f527e1c', '7eff47af-0857-4dd2-8331-9d43a4e96338', '11606f03-91b1-483e-978f-24ee0bda09f6', '7133da22-0a14-453e-8592-b0d6e30893f0', 'af9d8887-e930-4287-8d7d-4773a608e3d6', '1f7bbe7a-e0ac-4313-a553-45618df23724', 'ba649b27-bae9-4013-95d8-997ca70c3479', 'd71b25d3-68b9-476b-bd0d-1fc086922caa']
     with step('[Action] tap_editphoto'):
-        actions.tap_by_locator(AppiumBy.NAME, 'Edit Photo')
+        actions.tap_by_locator(AppiumBy.NAME, 'Edit')
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
     with step('[Action] select_category'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '_AT')

@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00030_ai_replace_ref')
@@ -38,7 +38,7 @@ def test_00030_ai_replace_ref(actions: DriverActions):
             assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnHome')
     with step('Tap "Edit"'):
         with step('[Action] tap_editphoto'):
-            assert actions.tap_by_locator(AppiumBy.NAME, 'Edit Photo')
+            assert actions.tap_by_locator(AppiumBy.NAME, 'Edit')
             assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
     with step('Select "Sample photos" album'):
         with step('[Action] select_category'):

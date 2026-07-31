@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00116_main_05_13_01_1n')
@@ -12,7 +12,7 @@ def test_00116_main_05_13_01_1n(actions: DriverActions):
     mode = 1
     uuid = ['4871262e-b110-438a-a617-aa45776176cf', '27a9229e-2819-44d6-b87c-72e9d42eccd3', 'ea2a7430-367c-40e9-b2c5-b630140051a7', '30420d7a-13b0-4588-9dfe-b05664bfa61e', '461dfca5-2061-4463-a740-9939889248da', '565a5505-22b7-47d6-a1da-121efcbe0f61', 'aea3702d-eecb-432a-a966-20f3836be247', '15271efe-229f-45e9-b66e-6ebeb283546c', '2a5e7804-c296-46c2-b4cc-c8e143f45d14', '0aa23e3c-855a-496d-b47a-10655a4719fd', 'd06fef5d-4d17-4138-834e-218fe442aa74', 'c5041816-ff17-43e3-a77d-a6c688192913', 'e5cdd950-1da9-4240-9bfa-299880676de7', '3fd3c20e-f9f3-4080-bd4a-16fd9d865131', '2801a489-5789-4a11-8d9d-595586d69794', 'd600af39-a3f8-4f5f-bab1-d7c7f870836f', '85d97ec9-a6db-4ab0-b555-d6532708c3b4', '25b98e25-19be-436b-860a-12d90088e063', '324aa461-3dcd-42a9-8c8e-5f25cf5d6dcd', '323e1d22-70f5-4d69-af5a-46f0b9969255', 'f5a0073d-13b2-4406-af0d-d6cd5626c4d7', '4f0271d6-e4fb-4772-86e2-7959dd0793b9', '9b58ef5c-8ad7-4a16-9d6d-b12f06bcaa53', '81d26af9-86f1-40ad-aabd-f5e9fd18b111', 'bfa87272-afa3-4ee1-be7d-4d0ba1641ff4', '1a3a5009-c69c-44ae-bdd3-642f5253b64d', '80f8a3a3-3a8b-45d7-af54-4a904877adcd', 'fb13609c-f69f-47b4-9670-5a6270dfd396', '9868fd04-d5b5-4bb7-abb3-1279bb195f9c', 'f2a77b1a-14a9-4158-a748-e8b9c981d0bd', '445ad034-4892-4bfe-a9a6-c7aaf655d9af', '075c0015-eca3-4933-94e3-62f141b18461', 'f7255742-bb90-4125-8587-e0389db61ed9', 'f7255742-bb90-4125-8587-e0389db61ed9', 'f924d993-73ec-4c80-8d21-00dc40a4d901', 'fe75ef74-e7f2-48c4-a18b-a52615a44b9c', '6d9648d8-d9a0-4cb4-886a-9ac373427a12', '30f8971f-6ff2-489d-b3be-b491aa7e01db', '84b4e024-c0d3-4391-af41-48544e9929a1', '8682d821-f754-46ff-9973-507aa62ee216']
     with step('[Action] tap_editphoto'):
-        actions.tap_by_locator(AppiumBy.NAME, 'Edit Photo')
+        actions.tap_by_locator(AppiumBy.NAME, 'Edit')
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
     with step('[Action] select_category'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '_AT')

@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00053_glitch')
@@ -12,7 +12,7 @@ def test_00053_glitch(actions: DriverActions):
     mode = 1
     uuid = ['8537a54d-a7f8-437f-beb8-f19bcfb6b3de', '84d18433-9ec6-4aa0-a49f-1cbe3ccc93ec', '46a04393-ce71-4de6-b7f8-cbb6d3e69fc1', 'a8ee2818-b9cc-4379-9798-bead1b8f31cc', '4305aac3-aff9-4033-95c4-52fc42385ad2', 'ce2f0178-b64d-4d47-8742-7880b8ca6891', 'cda3eb88-9e01-453f-83ba-0fed26b6164f', '5ae56bf7-560d-4468-8820-a022343b18e3', '1d107d4f-52d0-4aa6-9039-335cdf5bfe26', '90042052-2b7f-45ba-9423-2934477a05ef', 'ab2bc9f1-1197-4d34-8b7e-fb7541148d4a', '23d1ec03-8786-438b-a71c-fa08e129d47f', 'e12e139e-885a-41f3-acd8-655584d69bcc', '1d6d56aa-8f1d-423b-97a3-c81280e4d733', '50ec37a6-e911-42f2-b291-b39502b28c07', 'c647a318-fd8c-476a-8f58-3da1a907aadc', 'cbc164b4-d861-476f-8071-84e67c0dfc8d', 'defa1434-e9b4-4e46-ad7e-6bdc963f1fb8', '013ff7ec-f019-4c3c-b46f-da429e607ac0', 'de165bf4-6a82-4cb7-93f7-46c89653095d', 'f2f8867e-a2a9-4491-8bb6-b78cc542d08e', '0b2f1ee8-3779-4b6a-b974-245b9eaa0a51', '6d4b26fa-6c55-477b-ad5a-54a4a79f017e', '919ed412-9a8f-4e10-83fe-a6cbd7a54776', 'a24fdef9-2a8f-4b37-ab0e-adcd7921f762', '974fad40-0eb2-4880-8060-3b857b1db144', 'b82441ea-86ac-4467-91d4-185f4c820abd', 'bcc98de0-f330-4711-836d-2e358227553a', 'ac89d0c9-23c7-4964-bb7a-1e94988e4806', 'cd87ce57-5164-4627-bf34-717360af592d', '3e4c3ab5-fe39-4a28-b765-962db6ec79c3', '11e44f5d-e23d-4dfb-9681-66790f7143ce', 'fe74831d-caac-45c0-a24f-d73079a1462d', 'b229c1dc-2a37-43b8-a9bf-a2c86dc39c17']
     with step('[Action] tap_editphoto'):
-        actions.tap_by_locator(AppiumBy.NAME, 'Edit Photo')
+        actions.tap_by_locator(AppiumBy.NAME, 'Edit')
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
     with step('[Action] select_category'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '_AT')

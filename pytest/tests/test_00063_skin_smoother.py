@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00063_skin_smoother')
@@ -12,7 +12,7 @@ def test_00063_skin_smoother(actions: DriverActions):
     mode = 1
     uuid = ['460d6f62-3435-4762-b996-d0fd9769ea8d', '22b74bf7-8d4a-4217-808b-0a4a80e5760d', 'f5853a19-4ec8-40c9-9700-b3f41e90e667', 'dc1173fc-4a3d-43e2-9752-6f9c4b0fb00f', '0429b9d5-02b6-4706-a053-7de10e2c0f91', 'e3861d51-10e0-4780-8686-c1e4971213e5', '5445e0db-4211-44b7-858e-6aa9a4e38d60', 'efcbde55-9b68-46d7-a286-f147e94ae3bb', 'd5f4c8af-6192-40d3-b3c4-c1357d1d5a09']
     with step('[Action] tap_editphoto'):
-        actions.tap_by_locator(AppiumBy.NAME, 'Edit Photo')
+        actions.tap_by_locator(AppiumBy.NAME, 'Edit')
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
     with step('[Action] select_category'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '_AT')

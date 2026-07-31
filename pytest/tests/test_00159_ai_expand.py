@@ -21,7 +21,7 @@ def test_00159_ai_expand(actions: DriverActions):
 
     with step('[Action] open_ai_expand'):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'navHomeButton')
-        assert actions.tap_by_locator(AppiumBy.NAME, 'Edit Photo')
+        assert actions.tap_by_locator(AppiumBy.NAME, 'Edit')
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '_AT')
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'photoCell-4')

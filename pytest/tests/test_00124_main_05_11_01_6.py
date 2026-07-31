@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00124_main_05_11_01_6')
@@ -12,7 +12,7 @@ def test_00124_main_05_11_01_6(actions: DriverActions):
     mode = 1
     uuid = ['2f7f2e6c-1dd2-11b2-8000-080027b246c3', '2f7f2e6c-1dd2-11b2-8001-080027b246c3', '2f7f2e6c-1dd2-11b2-8002-080027b246c3', '2f7f2e6c-1dd2-11b2-8003-080027b246c3', '2f7f2e6c-1dd2-11b2-8004-080027b246c3', '83933c69-4eeb-428d-a587-4638c62b8b43', '66930736-6a6b-4f88-9725-f96583082424', 'a3b283e5-aebd-4577-9270-8703106ee3cf', 'd2bdf663-d017-4ed7-8df2-2941b11678dd', '2f7f2e6c-1dd2-11b2-8005-080027b246c3', 'c121a89c-99b4-4b2f-a66b-f4927ae1049d', '9a63bd29-f398-4446-88e8-9a6cc8b5357e', '3cedbf13-cf32-4599-9ce8-cd0ba31bb619', 'a3b283e5-aebd-4577-9270-8703106ee3cf', '136337ef-bf62-4589-a468-e8169f91c8f0', '50783f34-3202-4994-a27a-d4b3b5ab972b', '8baaee7e-a2a7-4c84-977d-80cdc3a5a6ed']
     with step('[Action] tap_editphoto'):
-        actions.tap_by_locator(AppiumBy.NAME, 'Edit Photo')
+        actions.tap_by_locator(AppiumBy.NAME, 'Edit')
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
     with step('[Action] select_category'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '_AT')

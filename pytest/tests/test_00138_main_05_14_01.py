@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00138_main_05_14_01')
@@ -12,7 +12,7 @@ def test_00138_main_05_14_01(actions: DriverActions):
     mode = 1
     uuid = ['c9670047-7b30-49ee-94a6-aa3244ce0e00', '54c50d77-f5af-4087-8681-fa64569f7051', '82b038e0-6313-458e-bdde-9bf681c665aa', 'c5f9fe5b-6032-481e-beaa-4b3cefe34067', 'e232b940-2fac-4e3d-80ca-bd1e64861c9e', '43374901-04ea-4781-bb4a-406adefa249f', '07f943d7-a85e-4ef5-9982-1ae998a1fa65', 'a084c85e-e6b6-4664-bf68-e3ed75018f73', '807a7c0e-6d9a-4172-bd34-d0aa39420b03', 'b6133ee0-70e6-4f13-89b3-1da7fd854ef9', 'db514658-72c2-43b5-ad29-40564e8773cd', '65f36e2f-0209-44eb-a882-8729ba0fe735', 'cc2cd90e-fe04-4201-a266-16c4966aa5a5', '0591ef73-322c-4a65-b582-8e230ea98d5b', '87588153-4a2d-4428-a429-9b98199156ca', '1118e4cd-d5a9-4cfe-8131-f9adece97243', 'ad7a4043-8841-4ab6-8bec-db756665cd6d', '17659d4c-8cb5-4eaa-b6b3-77327b7ecf8b', '4dd2ee4c-ded0-4b4a-955b-b0c9231dceda', 'e82e37fb-bb3f-440b-87ba-7aa54ec8ba46', '36dac41e-456b-465e-9b0d-df004605b73c', 'fe39e9a2-4606-4d8d-914c-6a48d2ac5631', '2b053746-0fd4-4236-8df8-f57b5dd39947', 'c4475870-e675-4cb5-ba97-ee5ff597df3a', '6fa6dbdf-42e0-43ed-9e20-11f43d8168a2', '18c0882a-513b-47e7-8b74-a295b1554667', '8bbf284d-f8ca-49b9-a111-a6bd449adbbb', '33db4e00-6255-4ba0-915e-969dc8978226', '25e7122a-f8ac-4ebe-b0d0-ae997c3796cf', 'e3526b7e-db43-4cb6-b5a9-364759d3cfdc', 'ee40bd0e-f672-4faa-8e38-65c083c6ce2c', 'a388dd7a-cb79-4787-95c9-a240bd12c4ba', 'ee2e92c2-a582-4eb7-969a-8ba272404a75', '9c6a3a31-bd0e-4939-a0ee-57a98a73b74a', '3379f812-3122-4748-9208-23ec4503971d', '5e5054c8-12a3-4c3d-90e0-83ddbefdd193', '48968c0e-bd42-4b86-bdfc-e6660b8f5841', '95dd451b-b11c-4c2b-9126-359c7660b6fd', 'c23b9acb-0798-4e81-9e4f-961d9f411f12', 'efacde80-19ad-42ca-82d9-d22e89d87a34', '024bec56-5f8e-41b1-a973-6cc9d58d5365', '89584fb4-940a-4037-90f8-f8ca26ef4e72']
     with step('[Action] tap_editphoto'):
-        actions.tap_by_locator(AppiumBy.NAME, 'Edit Photo')
+        actions.tap_by_locator(AppiumBy.NAME, 'Edit')
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
     with step('[Action] select_category'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '_AT')

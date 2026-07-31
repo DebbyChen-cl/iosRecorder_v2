@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00025_removal')
@@ -20,7 +20,7 @@ def test_00025_removal(actions: DriverActions):
         elif actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'navCloseButton', timeout=2):
             actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'navCloseButton')
     with step('[Action] tap_editphoto'):
-        actions.tap_by_locator(AppiumBy.NAME, 'Edit Photo')
+        actions.tap_by_locator(AppiumBy.NAME, 'Edit')
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
     with step('[Action] select_category'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '_AT')

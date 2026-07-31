@@ -49,6 +49,39 @@ def test_<safe_name>(actions: DriverActions):
 | `driver` | function | Fresh Appium/WDA session per test — quits and recreates the driver before every test function. First test of the session also runs onboarding (C-1..C-5), popup close loop (D-1→D-2→D-3), and ATT/push Allow prompts; subsequent tests restart the app (terminate → crash dialog → activate → close popups). Teardown terminates app + quits driver. |
 | `actions` | function | New `DriverActions` wrapper per test; uses the per-test `driver` |
 | `screenshot_on_failure` | function (autouse) | Auto-attached to every test — do NOT add as parameter |
+| `_failure_evidence_workspace` | function (autouse) | Auto-healing: allocates one evidence folder per test; deleted again when the test passes — do NOT add as parameter |
+| `_log_auto_healing_context` | function (autouse) | Auto-healing: logs `AUTO_HEALING_CONTEXT` onto the RP item during agent replay runs — do NOT add as parameter |
+
+---
+
+## Auto-Healing (`auto_healing.py`)
+
+Ported from `rdqe-ios-autotest-phdm/SFT/conftest.py`. `conftest.py` only holds thin
+hook wrappers (`pytest_configure`, `pytest_collection_modifyitems`,
+`pytest_runtest_protocol`, `pytest_runtest_makereport`, `pytest_sessionfinish`)
+that delegate into `auto_healing.py`.
+
+Phase 1 runs inside the pytest session:
+
+| Piece | Behaviour |
+|-------|-----------|
+| Test registry | Every collected test gets a stable `IOSREC-AUTO-nnnn` id in `<healing project>/registry/test_registry_ios_recorder.json`; ids are reused across runs (keyed by nodeid). `@pytest.mark.case_id("...")` overrides the generated id. |
+| Failure evidence | On any failed phase, saves `fail_moment.png`, `fail_moment_hierarchy.xml`, `stack_trace.txt` and `metadata.json` under `pytest/Self-healing/evidence/<ts>-<test>/`. Passing tests have their folder removed at teardown. |
+| `fail_step` | This suite has no runtime step tracker, so the failing step is inferred from the nearest `with step("...")` above the failing line **within the same test function**. |
+| Heuristic lane (C2) | App not running / black screenshot → `app_crash`; network keywords in the stack → `network_issue`; both retry immediately while budget lasts. Everything else is deferred to Phase 2. |
+| Immediate retry (C1) | Up to 3 cases per run (`AUTO_HEALING_MAX_RETRY_CASES`) are re-run once via `runtestprotocol`; the original evidence folder is preserved. |
+| `state.json` | `<healing project>/runs/<run_id>/state.json` is the run ledger the agent reads. |
+| Phase 2 trigger | If any case is deferred, `pytest_sessionfinish` opens a Terminal running the healing agent's `tools/orchestrator.py` and blocks up to 11 min, passing `TEST_PROJECT=pytest/` and the still-open ReportPortal launch id so replays report into the same launch. |
+
+Environment switches: `AUTO_HEALING=0` (off), `AUTO_HEALING_PHASE2=0` (evidence +
+state only), `AUTO_HEALING_PROJECT_PATH`, `AUTO_HEALING_REGISTRY_PATH`,
+`AUTO_HEALING_APP_VERSION`, `AUTO_HEALING_PHASE2_TIMEOUT`.
+Set by the agent itself: `AUTO_HEALING_REPLAY=1`, `AUTO_HEALING_CONTEXT`,
+`AUTO_HEALING_NOT_HEALED_REASON`, `AUTO_HEALING_RP_LAUNCH_ID`.
+
+The `driver` fixture publishes its session via `auto_healing.set_active_driver()`
+— any new driver fixture must do the same or failure evidence loses the screenshot
+and hierarchy.
 
 ---
 
@@ -179,6 +212,7 @@ test teardown when one of these locator failures reaches the test call.
 ## pytest.ini Markers
 
 Defined in `pytest/pytest.ini`. Always use `@pytest.mark.name(...)` — it is the primary test identifier in ReportPortal.
+`case_id(id)` pins a test's auto-healing case id; `auto_healing` is added automatically during agent replay runs.
 
 ---
 

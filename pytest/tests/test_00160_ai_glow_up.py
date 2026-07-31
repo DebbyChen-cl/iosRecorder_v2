@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00160_ai_glow_up')
@@ -11,7 +11,7 @@ def test_00160_ai_glow_up(actions: DriverActions):
     """AI glow up"""
     uuid = ['5f9de67c-8ef2-40b0-a9d8-8d2267188861', '3a615761-3449-4183-8aad-760727f2e6ca', 'cf6e1619-6138-4f44-9c6a-a1ebd29070c6', '2abc3706-e519-4ecf-9968-4a5fa2b4d1cf', '7e76a806-ba4d-4709-b6f6-8fcdd41e068a', '375d4b78-2f73-4dbb-86ce-74cab3d7df93', '4bddbca1-2090-444c-8c2f-218c069ff95a', 'abb79a3f-5e58-48ba-8ecc-8a4259eb7c66', 'c19d90b5-c9e5-450a-b173-13cba1b84893', 'c538a24c-5fdd-4b81-b599-67c757ffd94f', 'c10f421c-0349-4034-97a8-009e7fa73b2f', '7e3368b0-b0ec-46b2-97b9-6c7a407a2109', '8a219c87-b753-4e0d-9973-adacd231a8d9', 'a0911329-9bee-4030-8207-4f106e049d19']
     with step('[Action] tap_editphoto'):
-        actions.tap_by_locator(AppiumBy.NAME, 'Edit Photo')
+        actions.tap_by_locator(AppiumBy.NAME, 'Edit')
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
     with step('[Action] select_category'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '_AT')

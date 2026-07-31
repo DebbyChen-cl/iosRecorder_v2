@@ -15,8 +15,8 @@ IOS_CAPABILITIES = {
     "platformName": "iOS",
     "appium:automationName": "XCUITest",
     # ------ Physical device identifiers ------
-    "appium:udid": "00008020-001E49603CE9002E",          # e.g. "00008101-001234AB3456001E"
-    "appium:deviceName": "Amber 的 iPhone",    # e.g. "John's iPhone 15"
+    "appium:udid": "00008130-000A750C36F0001C",          # e.g. "00008101-001234AB3456001E"
+    "appium:deviceName": "QADM_DST2311025_iPhine15ProMax",    # e.g. "John's iPhone 15"
     # ------ App ------
     "appium:bundleId": "com.cyberlink.photodirector",
     # "appium:app": "/path/to/your.ipa",        # or install from .ipa

@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00051_lightray')
@@ -12,7 +12,7 @@ def test_00051_lightray(actions: DriverActions):
     mode = 1
     uuid = ['10eba25d-44c5-4dd4-96cb-031a5e246c44', '3ee72789-1313-4151-80c8-dbca443672a7', 'b98b19c9-b3e7-48fd-a803-3e26c25320bb', '94a496db-a74c-4fd6-87d5-8818bd029d2a', '2a590601-c82c-4298-bb95-c0972fb61405', 'dcc54f34-64fc-46ec-9474-0ce6d057ce28', '334fe2d0-0c48-4536-8d60-2e7797edc2ac', '33a2c9dd-0cf3-449c-8794-12437fe1e296', 'b8295918-56aa-4adb-9fd3-fd6f58acc2ae', 'd28d568d-cf28-416e-9bd8-e5feea20e6ba', 'd51710e1-132f-4f35-83d2-e66400189451', '3c7bd413-fa81-4c0c-a067-a298009e2817', '49c71033-182f-41d3-9308-6f66d7d9c96c', 'f8cc92d7-6e5c-434c-b445-1cdbe74928e2', '95bf82a6-8e9f-4847-b0bc-d99e8c7fe356', 'face12ac-5858-4174-9bc4-9678fe23d30a', 'b256064e-0c0d-46eb-b196-55e2b3040594', '28cffd51-6a1c-4797-ace8-92acd5b700b3', '22705744-24e0-43b0-8f85-b540ebd75a08', '55df32b4-e6cb-461b-984b-35377ddebbd6', 'af41c317-82f3-48f5-b8ec-4a6d8e1de7c3', '4c309447-cf89-49ff-8aff-6169a9cf09f6', '54d73900-f9d2-4172-8ea9-c6594ea7f4a1', '7d254808-f453-4312-8426-02563cbb3afa', 'f1eaf0cf-5413-41d6-86d4-a3decc8ede3d', '3f951809-21c6-4d23-9d8f-a3c33002f623', 'f838a93f-0db3-4aa4-ae10-7e6b09284b1e', 'ef477c6d-3387-4575-8ef9-d4eb8f93e19c', '0ae8b74e-78c2-47a6-8208-bbb07ce1ff9a', 'e4f1ed49-ba0e-42f7-9ea6-4b8cbf4e3629', '01b9d45c-176c-4f72-b0db-ae4daf54a9d9', 'd799b59d-5ba9-47d5-a434-db7a8b7b0281', 'bc16f46a-d337-4703-aad3-b0358364aedf', '2a322154-6b88-4d3b-aef2-a7c113ed4a2f', 'd50845b6-65f4-44f6-8eca-5fb7c5d6b227', 'e7ab0d56-2379-4c59-997d-0caebdf381e3', '9452df0c-33cc-413e-aa7e-fcb32c218e8f', '2b35ee32-6069-4173-9898-22af2fe03b91', 'cd007b10-15b9-49f7-9800-3157b60432d9', 'ce162701-45c2-46a1-b7d1-b7433477c2ff', '3a215b79-7deb-47e0-bc20-46dd4b5f5cc4', 'e7dfb6d3-a2e7-43c1-8a4f-e099b52ed897', '2db48b00-021b-4b75-b6b1-36e0310ba8b8', '2f7fbbec-8be5-4359-8cd8-c1b4573126a3', 'd37bd8de-3f72-424b-8ca1-ac1ed52b969f', '291f6934-aca5-4c99-8b3d-45ebaa346a4a', 'd911c6ff-0708-452f-8d76-726ec5c25922', '771b8b08-b805-4aee-8e5d-00275f0f779c', '984541e0-3431-410b-b587-24df000b31c2', 'f9d1bc82-a188-4779-a056-35626460d2ff', '4889e706-a04a-494c-8f7b-57dccf62470d', 'f5cc0f51-c665-465c-8733-602417c23a9d']
     with step('[Action] tap_editphoto'):
-        actions.tap_by_locator(AppiumBy.NAME, 'Edit Photo')
+        actions.tap_by_locator(AppiumBy.NAME, 'Edit')
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
     with step('[Action] select_category'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '_AT')

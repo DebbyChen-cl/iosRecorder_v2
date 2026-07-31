@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00048_main_05_04_01_n')
@@ -12,7 +12,7 @@ def test_00048_main_05_04_01_n(actions: DriverActions):
     mode = 1
     uuid = ['9d516a63-9272-49de-9d6f-3b10181382e2', 'bebc7fd0-740d-4cbb-941b-6c0cbbf668c6', '354896a6-3d01-4251-b2d9-00988f631429', '398a6181-0e27-48d2-9d8c-06cdac297c4c', 'f9081a1b-1cce-4a21-b42b-30313ad583f3', '04c9b1d6-3132-4358-9fcc-8cea0a936f16', '9362b6c0-d8f0-490c-aee7-100636a633f2']
     with step('[Action] tap_editphoto'):
-        actions.tap_by_locator(AppiumBy.NAME, 'Edit Photo')
+        actions.tap_by_locator(AppiumBy.NAME, 'Edit')
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
     with step('[Action] select_category'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '_AT')

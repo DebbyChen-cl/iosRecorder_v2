@@ -26,7 +26,8 @@ iosRecorder_v2/
 │   ├── app.js              # Frontend controller (WebSocket + REST)
 │   └── style.css           # UI styling
 └── pytest/                 # Appium + pytest test framework
-    ├── conftest.py          # Fixtures: driver (function — fresh WDA session per test), actions (function), screenshot_on_failure (autouse)
+    ├── conftest.py          # Fixtures: driver (function — fresh WDA session per test), actions (function), screenshot_on_failure (autouse), _failure_evidence_workspace (autouse), _log_auto_healing_context (autouse); auto-healing hooks
+    ├── auto_healing.py      # Auto-healing integration: failure evidence, state.json, retry lane, Phase 2 trigger
     ├── config.py            # Device capabilities (UDID, bundle ID, Appium URL)
     ├── driver/
     │   ├── driver_setup.py  # Creates/quits the Appium driver
@@ -79,6 +80,16 @@ iosRecorder_v2/
                                 # [ {"x_pct": float, "y_pct": float, "t_ms": int}, ... ]
 }
 ```
+
+### Device selection (start.sh)
+`start.sh` always passes `iproxy -u <UDID>` — never rely on iproxy's implicit "first device" pick, which silently tunnels to the wrong device when more than one is attached (symptom: `Error connecting to device: Connection refused` in `/tmp/ios-recorder-iproxy.log` and `WDA session failed: ReadError('')` in the server log). UDID resolution order:
+
+1. `--udid <UDID>` argument or `RECORDER_UDID` env var
+2. `appium:udid` from `pytest/config.py` — if that device is attached; keeps recording and playback on the same device
+3. The only attached device
+4. Multiple devices, no config match — probe each one's port 8100 and pick the one answering WDA `/status`
+
+A leftover `iproxy` already listening on 8100 is only reused after WDA `/status` answers; otherwise the script exits and tells you which pid to kill. Health probes retry with a 15s timeout because a WDA busy with a page-source fetch (routinely 4–5s) serialises requests.
 
 ### Selector priority (app/selector.py)
 1. `accessibility id` — element `name` attribute (skip if starts with `0x`)

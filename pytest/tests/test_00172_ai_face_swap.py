@@ -5,7 +5,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00172_ai_face_swap')
@@ -134,7 +134,7 @@ def test_00172_ai_face_swap(actions: DriverActions):
     with step('[Action] close_IAP'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnClose')
     with step('[Action] tap_editphoto'):
-        actions.tap_by_locator(AppiumBy.NAME, 'Edit Photo')
+        actions.tap_by_locator(AppiumBy.NAME, 'Edit')
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
     with step('[Action] select_category'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '_AT')
@@ -165,7 +165,7 @@ def test_00172_ai_face_swap(actions: DriverActions):
         assert actions.tap_by_locator(AppiumBy.NAME, 'ic indi home')
     with step('[Verify] snapshot: G02_01_03_home1.png'):
         actions.capture_for_gt('G02_01_03_home1.png')
-    assert actions.try_tap(AppiumBy.NAME, 'Edit Photo'), '[G02_01_03] Failed to tap_editphoto'
+    assert actions.try_tap(AppiumBy.NAME, 'Edit'), '[G02_01_03] Failed to tap_editphoto'
     with step('[Action] select_category'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '_AT')
     with step('[Action] select_photo'):

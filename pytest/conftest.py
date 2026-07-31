@@ -12,8 +12,9 @@ from datetime import datetime
 
 import pytest
 from appium.webdriver.common.appiumby import AppiumBy
-from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
+from selenium.common.exceptions import WebDriverException
 
+import auto_healing
 import config
 from driver.driver_actions import DriverActions
 from driver.driver_setup import create_driver, quit_driver
@@ -260,6 +261,8 @@ def driver():
 
     logger.info("=== TEST SETUP: creating fresh Appium driver ===")
     _driver = create_driver()
+    # Publish the live session so auto-healing can grab failure evidence.
+    auto_healing.set_active_driver(_driver)
 
     bundle_id = getattr(config, "TARGET_BUNDLE_ID", "") or config.IOS_CAPABILITIES.get("appium:bundleId", "")
 
@@ -287,6 +290,7 @@ def driver():
         except Exception as exc:
             logger.warning("terminate_app failed: %s", exc)
     quit_driver(_driver)
+    auto_healing.set_active_driver(None)
 
 
 # ──────────────────────────────────────────────────────────────
@@ -344,20 +348,78 @@ def screenshot_on_failure(request, driver):
 def pytest_runtest_makereport(item, call):
     """
     Expose the test outcome on ``request.node.rep_call`` so that the
-    ``screenshot_on_failure`` fixture can read it.
+    ``screenshot_on_failure`` fixture can read it, and collect auto-healing
+    failure evidence while the Appium session is still alive.
     """
     outcome = yield
     rep = outcome.get_result()
     setattr(item, f"rep_{rep.when}", rep)
-    if (
-        rep.when == "call"
-        and rep.failed
-        and call.excinfo is not None
-        and isinstance(call.excinfo.value, (TimeoutException, NoSuchElementException))
-    ):
-        item.session.shouldstop = (
-            f"Element not found during {item.nodeid}; stopping pytest"
-        )
+
+    if not auto_healing.ENABLED:
+        return
+
+    if rep.failed and rep.when in ("setup", "call", "teardown"):
+        try:
+            auto_healing.collect_failure_evidence(item, rep, call)
+        except Exception as exc:
+            logger.warning("Failure evidence collection failed: %s", exc)
+    if rep.when == "teardown":
+        auto_healing.cleanup_passed_evidence(item)
+
+
+# ──────────────────────────────────────────────────────────────
+# Auto-Healing hooks  (implementation lives in auto_healing.py)
+# ──────────────────────────────────────────────────────────────
+
+# NOTE: the parameter must stay named `config` — pluggy matches hook arguments
+# by name. It shadows the imported `config` module inside these two functions
+# only; module-level users of `config` (the driver fixture) are unaffected.
+
+def pytest_configure(config):
+    """Record session start time and initialise the run's state.json."""
+    auto_healing.configure(config)
+
+
+def pytest_collection_modifyitems(config, items):
+    """Bootstrap stable case ids; mark/skip items for agent-driven replay runs."""
+    auto_healing.collection_modifyitems(config, items)
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_protocol(item, nextitem):
+    """Immediate-retry protocol for crash/network failures (Lane A)."""
+    return auto_healing.runtest_protocol(item, nextitem)
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """Finalise state.json and hand deferred cases to the Phase 2 agent."""
+    auto_healing.sessionfinish(session, exitstatus)
+
+
+@pytest.fixture(autouse=True)
+def _log_auto_healing_context():
+    """Log the healing agent's current root_cause/patch summary onto this
+    replay attempt's RP test item — the item closes when the test finishes,
+    so this has to happen live, not after result.json is written."""
+    if auto_healing.IS_REPLAY:
+        context = os.environ.get("AUTO_HEALING_CONTEXT")
+        if context:
+            logger.info("[Auto-Healing] Context for this replay attempt:\n%s", context)
+    yield
+
+
+@pytest.fixture(autouse=True)
+def _failure_evidence_workspace(request):
+    """Provide one evidence folder path per test; keep it only when the test fails."""
+    if not auto_healing.ENABLED:
+        yield
+        return
+
+    test_name = getattr(request.node, "originalname", request.node.name)
+    evidence_dir = auto_healing.new_evidence_dir(test_name)
+    request.node._failure_evidence_dir = evidence_dir
+    request.node._failure_evidence_rel_dir = os.path.relpath(evidence_dir, auto_healing.PROJECT_ROOT)
+    yield
 
 
 # ──────────────────────────────────────────────────────────────
