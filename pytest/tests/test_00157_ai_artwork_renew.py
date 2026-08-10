@@ -18,7 +18,14 @@ def test_00157_ai_artwork_renew(actions: DriverActions):
     def open_artwork(feature: str):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'AI Photos')
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'My Artwork')
-        assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, feature)
+        assert actions.tap_by_locator(
+            AppiumBy.ACCESSIBILITY_ID,
+            feature,
+            container_by=AppiumBy.ACCESSIBILITY_ID,
+            container_value='ScrollableMenuView',
+            container_w=430,
+            container_h=62,
+        )
 
     def download_share_delete(download_id: str, share_id: str, delete_id: str):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, download_id)
@@ -36,7 +43,7 @@ def test_00157_ai_artwork_renew(actions: DriverActions):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'My Artwork')
         assert actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'AIArtworkImageToVideoCell-0')
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'AIArtworkImageToVideoCell-0')
-        assert actions.is_element_present(AppiumBy.NAME, 'Save & Share')
+        assert actions.is_element_present(AppiumBy.NAME, 'Save & Share', timeout=30)
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'navBackButton')
         assert actions.tap_by_locator(AppiumBy.NAME, 'Select')
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'AIArtworkImageToVideoCell-0')

@@ -402,6 +402,18 @@ class VerifyVisibleReq(BaseModel):
     target_bounds: Optional[dict] = None
     target_selector_quality: Optional[str] = None
 
+class WaitUntilNotShowReq(BaseModel):
+    target_x: float
+    target_y: float
+    # Two independently-counted budgets (seconds): show up, then go away again
+    appear_timeout: float = 5.0
+    disappear_timeout: float = 1200.0
+    # Pre-resolved selector saved at selection time (optional)
+    target_type: Optional[str] = None
+    target_value: Optional[str] = None
+    target_bounds: Optional[dict] = None
+    target_selector_quality: Optional[str] = None
+
 class VerifyGetTextReq(BaseModel):
     target_x: float
     target_y: float
@@ -789,6 +801,18 @@ async def record_verify_visible(req: VerifyVisibleReq):
     return {"ok": True}
 
 
+@app.post("/api/record/wait_until_not_show")
+async def record_wait_until_not_show(req: WaitUntilNotShowReq):
+    pre_ss = await _take_pre_gesture_screenshot()
+    await _record_wait_until_not_show(
+        req.target_x, req.target_y, req.appear_timeout, req.disappear_timeout,
+        pre_screenshot=pre_ss,
+        target_type=req.target_type, target_value=req.target_value,
+        target_bounds=req.target_bounds, target_selector_quality=req.target_selector_quality,
+    )
+    return {"ok": True}
+
+
 @app.post("/api/record/verify_get_text")
 async def record_verify_get_text(req: VerifyGetTextReq):
     pre_ss = await _take_pre_gesture_screenshot()
@@ -1164,7 +1188,7 @@ async def _record_point(action: str, x: float, y: float, snapshot=None, pre_scre
     if root is not None:
         el = hit_test(x, y, root)
         step["target"] = _build_target(x, y, el, root) if el is not None else {"type": "coordinate", "x": x, "y": y}
-        container_el = find_scroll_container(x, y, root)
+        container_el = find_scroll_container(x, y, root, target=el)
         if should_attach_scroll_container(el, container_el, root):
             sc_type, sc_val = build_scroll_container_selector(container_el, root)
             r = _el_rect(container_el)
@@ -1194,7 +1218,7 @@ async def _record_long_press(x: float, y: float, duration: int, snapshot=None, p
     if root is not None:
         el = hit_test(x, y, root)
         step["target"] = _build_target(x, y, el, root) if el is not None else {"type": "coordinate", "x": x, "y": y}
-        container_el = find_scroll_container(x, y, root)
+        container_el = find_scroll_container(x, y, root, target=el)
         if should_attach_scroll_container(el, container_el, root):
             sc_type, sc_val = build_scroll_container_selector(container_el, root)
             r = _el_rect(container_el)
@@ -1509,6 +1533,52 @@ async def _record_verify_visible(tx: float, ty: float, not_visible: bool, snapsh
     _steps.append(step)
     _unit_test_capture({"action": action, "target_x": tx, "target_y": ty, "not_visible": not_visible}, step, snapshot if snapshot is not None else _cache.get("root"))
     logger.info(f"Recorded {action}")
+
+
+async def _record_wait_until_not_show(tx: float, ty: float, appear_timeout: float, disappear_timeout: float,
+                                      snapshot=None, pre_screenshot: Optional[str] = None,
+                                      target_type: Optional[str] = None, target_value: Optional[str] = None,
+                                      target_bounds: Optional[dict] = None, target_selector_quality: Optional[str] = None):
+    """Record a wait-until-gone step for an element that is on screen right now.
+
+    The element is picked while still visible (a progress bar, spinner, toast),
+    so its selector comes from the current hierarchy — unlike verify_not_visible,
+    which has to resolve against a pre-action snapshot.
+    """
+    step: dict = {"action": "wait_until_not_show", "coords": {"x": tx, "y": ty},
+                  "appear_timeout": appear_timeout, "disappear_timeout": disappear_timeout,
+                  "timestamp": time.time()}
+    if target_type and target_value:
+        # Selector resolved by the frontend at pick time — highest priority
+        t: dict = {"type": target_type, "value": target_value}
+        if target_selector_quality:
+            t["selector_quality"] = target_selector_quality
+        if target_bounds:
+            t["bounds"] = target_bounds
+        step["target"] = t
+    else:
+        root = snapshot if snapshot is not None else await _cached_tree()
+        el = hit_test(tx, ty, root) if root is not None else None
+        if el is not None:
+            sel_type, sel_val = _resolve_selector(el, root)
+            t2: dict = {"type": sel_type, "value": sel_val, "selector_quality": get_selector_quality(el)}
+            r = _el_rect(el)
+            if r:
+                t2["bounds"] = {"x": int(r[0]), "y": int(r[1]), "w": int(r[2]), "h": int(r[3])}
+            step["target"] = t2
+        else:
+            step["target"] = {"type": "coordinate", "x": tx, "y": ty}
+    if pre_screenshot:
+        step["pre_screenshot"] = pre_screenshot
+        step["pre_screenshot_size"] = dict(wda._last_screen_size)
+    _steps.append(step)
+    _unit_test_capture(
+        {"action": "wait_until_not_show", "target_x": tx, "target_y": ty,
+         "appear_timeout": appear_timeout, "disappear_timeout": disappear_timeout},
+        step,
+        snapshot if snapshot is not None else _cache.get("root"),
+    )
+    logger.info("Recorded wait_until_not_show")
 
 
 async def _record_verify_get_text(tx: float, ty: float, expected_text: str, pre_screenshot: Optional[str] = None):
@@ -2221,6 +2291,17 @@ async def ws_handler(ws: WebSocket):
                     target_bounds=data.get("target_bounds"), target_selector_quality=data.get("target_selector_quality"),
                 ))
 
+            elif t == "wait_until_not_show":
+                tx, ty = float(data["target_x"]), float(data["target_y"])
+                appear = float(data.get("appear_timeout", 5.0))
+                disappear = float(data.get("disappear_timeout", 1200.0))
+                pre_ss = await _take_pre_gesture_screenshot() if rec else None
+                if rec: asyncio.create_task(_record_wait_until_not_show(
+                    tx, ty, appear, disappear, pre_screenshot=pre_ss,
+                    target_type=data.get("target_type"), target_value=data.get("target_value"),
+                    target_bounds=data.get("target_bounds"), target_selector_quality=data.get("target_selector_quality"),
+                ))
+
             elif t == "verify_get_text":
                 tx, ty = float(data["target_x"]), float(data["target_y"])
                 expected = data.get("expected_text", "")
@@ -2568,4 +2649,21 @@ async def unit_test_clear_entries():
 
 # ── Static frontend ────────────────────────────────────────────────────────────
 
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+class _RevalidateStaticFiles(StaticFiles):
+    """Serve the UI with `Cache-Control: no-cache` so every load revalidates.
+
+    Without an explicit header the browser applies *heuristic* freshness to
+    /app.js: a freshly reloaded index.html can be paired with a minutes-old
+    cached app.js.  A button added in the new HTML then does nothing at all —
+    its handler only exists in the JS the browser refused to re-fetch — and it
+    looks exactly like a broken feature.  ETag/Last-Modified still make the
+    revalidation a cheap 304.
+    """
+
+    async def get_response(self, path: str, scope):
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-cache, must-revalidate"
+        return response
+
+
+app.mount("/", _RevalidateStaticFiles(directory="static", html=True), name="static")

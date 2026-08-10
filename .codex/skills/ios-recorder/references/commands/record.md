@@ -101,6 +101,7 @@ python3 -m app.cli server-vision-snapshot \
 | Verify value = \<N\> | `verify_get_text` | `{"target_x":…, "target_y":…, "expected_text": "<N>"}` |
 | Verify text "\<str\>" | `verify_get_text` | `{"target_x":…, "target_y":…, "expected_text": "<str>"}` |
 | Verify element visible | `verify_visible` | `{"target_x":…, "target_y":…}` |
+| Wait until a progress/loading element disappears | `wait_until_not_show` | `{"target_x":…, "target_y":…, "appear_timeout": 5, "disappear_timeout": 1200}` |
 | Verify effect applied (different) | `verify_screenshot_diff` | `{"target_x":…, "target_y":…, "bounds": {…}, "expected_result": "different", "screenshot_name": "<name>"}` |
 | Verify no effect (same) | `verify_screenshot_diff` | `{"target_x":…, "target_y":…, "bounds": {…}, "expected_result": "same", "screenshot_name": "<name>"}` |
 

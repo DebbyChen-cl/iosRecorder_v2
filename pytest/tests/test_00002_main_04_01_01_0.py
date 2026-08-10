@@ -12,6 +12,9 @@ def test_00002_main_04_01_01_0(actions: DriverActions):
     with step('[Action] close_promo_IAP'):
         if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=2):
             actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnClose')
+    with step('[Action] close_xmas'):
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'Close', timeout=2):
+            actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Close')
     with step('[Action] tap_camera_1st'):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Camera')
     with step('[Verify] snapshot: 03_01_01_camera_permission.png'):

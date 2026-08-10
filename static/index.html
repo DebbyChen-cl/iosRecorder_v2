@@ -123,6 +123,11 @@
           <span class="finger-icon">🚫</span>
           <span class="finger-label">Not Visible</span>
         </button>
+        <div class="finger-divider"></div>
+        <button class="verify-btn" data-verify="wait_until_not_show" title="Wait until a shown element (progress bar, spinner) disappears — appear 5s / disappear 20min by default.">
+          <span class="finger-icon">⏳</span>
+          <span class="finger-label">Wait Not Show</span>
+        </button>
       </div>
       <div class="finger-row" style="margin-top:4px">
         <button class="verify-btn" data-verify="get_text">
@@ -331,6 +336,26 @@
       <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
         <button class="btn-sm" id="verifyTapDiffCancel">Cancel</button>
         <button class="btn-rec" id="verifyTapDiffConfirm">Record ↵</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Verify: Wait Until Not Show timeouts dialog ───────────────────────── -->
+<div id="verifyWaitGoneModal" class="modal-backdrop" style="display:none">
+  <div class="modal-box" style="max-width:360px">
+    <div class="modal-header">
+      <span class="modal-title">⏳ Wait Until Not Show</span>
+      <button class="modal-close" id="verifyWaitGoneClose">✕</button>
+    </div>
+    <div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:11px;color:var(--muted)">Appear timeout — seconds to wait for the element to show up (fails if it never appears):</div>
+      <input id="verifyWaitGoneAppear" class="case-name-input" type="number" min="0" step="0.5" value="5" />
+      <div style="font-size:11px;color:var(--muted)">Disappear timeout — seconds to wait for it to go away again (counted separately):</div>
+      <input id="verifyWaitGoneDisappear" class="case-name-input" type="number" min="0" step="1" value="1200" />
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
+        <button class="btn-sm" id="verifyWaitGoneCancel">Cancel</button>
+        <button class="btn-rec" id="verifyWaitGoneConfirm">Record ↵</button>
       </div>
     </div>
   </div>

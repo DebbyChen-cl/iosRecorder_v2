@@ -5,13 +5,8 @@ from reportportal_client import step
 from driver.driver_actions import DriverActions
 
 
-@pytest.mark.name("test_ai_replace_text_prompt_mode")
-def test_ai_replace_text_prompt_mode(actions: DriverActions):
-    with step("[Action] Launch PhotoDirector"):
-        actions.launch_app('com.cyberlink.photodirector')
-    if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'Would you like to continue editing?', timeout=3):
-        with step("[Action] Discard an unfinished edit from an earlier interrupted run"):
-            actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Cancel', 50.0, 50.0)
+@pytest.mark.name("00206_ai_replace_text_prompt_mode")
+def test_00206_ai_replace_text_prompt_mode(actions: DriverActions):
     with step("[Action] Tap btnSettings at (48.0%, 50.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnSettings', 48.0, 50.0, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="LauncherProViewController"]/XCUIElementTypeScrollView', container_w=320, container_h=623)
     with step("[Action] Tap About"):
@@ -28,7 +23,7 @@ def test_ai_replace_text_prompt_mode(actions: DriverActions):
     with step("[Action] Tap Pro+ at (50.0%, 48.9%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Pro+', 50.0, 48.9, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeAlert[@name="Select an Option"]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeScrollView[2]', container_w=270, container_h=222)
     with step("[Action] Tap chevron.left at (50.0%, 48.4%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'chevron.left', 50.0, 48.4, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeApplication[@name="PhotoDirector"]/XCUIElementTypeWindow[1]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeScrollView', container_w=320, container_h=693)
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'chevron.left', 50.0, 48.4, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeScrollView', container_w=320, container_h=693)
     with step("[Action] Tap btnBack at (47.6%, 48.6%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnBack', 47.6, 48.6)
     with step("[Action] Tap btnBack at (47.6%, 48.6%)"):
@@ -50,17 +45,11 @@ def test_ai_replace_text_prompt_mode(actions: DriverActions):
         )
     with step("[Action] Tap AI Replace"):
         actions.tap(ai_replace_cell)
-    with step("[Verify] AI Replace photo picker displays"):
-        assert actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'btnCamera')
-    intro_copy = (
-        'Experience the evolved technology of AI Replace! '
-        'Brush and describe to simply recreate any part of your image.'
-    )
-    if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, intro_copy, timeout=3):
+    if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'lblDesc', timeout=30):
         with step("[Verify] Intro page displays"):
-            assert actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, intro_copy)
+            assert actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'lblDesc')
         with step("[Action] Tap Don't show again on Intro"):
-            actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'checkbox_uncheck', 50.0, 50.0)
+            actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'notShowAgainCheckBox', 50.0, 50.0)
         with step("[Action] Tap Try now"):
             actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Try now', 50.0, 50.0)
         with step("[Verify] Recommendation dialog displays"):
@@ -69,6 +58,8 @@ def test_ai_replace_text_prompt_mode(actions: DriverActions):
             actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'PhotoPickerRecommendDialog-notShowAgainCheckBox', 50.0, 50.0)
         with step("[Action] Tap Continue"):
             actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Continue', 50.0, 50.0)
+    with step("[Verify] AI Replace photo picker displays"):
+        assert actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'btnCamera')
     with step("[Action] Tap ic info n at (50.0%, 50.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic info n', 50.0, 50.0)
     with step("[Verify] Recommendation is visible"):
@@ -226,7 +217,7 @@ def test_ai_replace_text_prompt_mode(actions: DriverActions):
     with step("[Verify] btnCamera is visible"):
         assert actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'btnCamera')
     with step("[Verify] Intro page does not display again"):
-        assert actions.verify_not_visible(AppiumBy.ACCESSIBILITY_ID, intro_copy, timeout=3)
+        assert actions.verify_not_visible(AppiumBy.ACCESSIBILITY_ID, 'lblDesc', timeout=3)
         assert actions.verify_not_visible(AppiumBy.ACCESSIBILITY_ID, 'Try now', timeout=3)
     with step("[Verify] Screenshot comparisons"):
         assert actions.run_screenshot_comparisons(threshold=0.95) is not False

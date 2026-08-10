@@ -23,9 +23,9 @@ def test_00079_main_05_07_13_2(actions: DriverActions):
     with step('[Action] select_photo'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'photoCell-1')
     with step('[Action] close_interstitial'):
-        actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnIAP')
-        actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnIAP')
-        actions.wait_for_invisible(AppiumBy.ACCESSIBILITY_ID, 'btnIAP')
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnIAP'):
+            actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnIAP')
+            actions.wait_for_invisible(AppiumBy.ACCESSIBILITY_ID, 'btnIAP')
     with step('[Action] scroll_and_tap_feature_tab'):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Edit')
     with step('[Action] scroll_and_tap_feature_tab'):
@@ -38,6 +38,9 @@ def test_00079_main_05_07_13_2(actions: DriverActions):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Retouch')
     with step('[Action] tap_phd_btn'):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Wrinkle')
+    with step('[Action] wait_process'):
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'barImageView', timeout=5):
+            actions.wait_for_invisible(AppiumBy.ACCESSIBILITY_ID, 'barImageView')
     if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'Please choose another photo'):
         pass
     else:

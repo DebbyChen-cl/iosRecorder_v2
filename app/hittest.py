@@ -48,14 +48,60 @@ TAP_CONTAINER_TAGS = SCROLLABLE_TAGS | frozenset(
     }
 )
 
+# Minimum hit-test extent, in device points, for very thin elements. Separator
+# lines, compare bars and slider tracks are routinely 1 pt on one axis
+# (e.g. barImageView at 302x1); a strict rect test can never be satisfied by a
+# pointer coordinate that went through display scaling, so those elements were
+# impossible to record. Only the *hit region* grows — _score() still uses the
+# real rect, and a slop-only hit is ranked below every exact hit of the same
+# calibre, so an inflated sliver never steals a tap from a real element.
+#
+# 14 pt is sized for the recorder panel, not for a fingertip: a 932 pt screen
+# shown ~600 px tall means 8 pt is only ~5 px of mouse travel, which the 60 ms
+# hover debounce swallows unless the pointer stops dead inside it. The wider
+# window is safe because a slop-only hit still loses to anything genuinely under
+# the pointer — it only wins where the alternative is a bare background container.
+HIT_SLOP = 14.0
 
-def find_scroll_container(x: float, y: float, root: ET.Element) -> Optional[ET.Element]:
-    """Return the innermost scrollable element that contains (x, y).
 
-    Checks standard scrollable tags first; falls back to any element with
-    scrollable="true" (WDA exposes this for non-standard scroll views).
+def find_scroll_container(
+    x: float,
+    y: float,
+    root: ET.Element,
+    target: Optional[ET.Element] = None,
+) -> Optional[ET.Element]:
+    """Return the scrollable container an action should be scoped to.
+
+    When *target* is given (element actions such as tap / long press), the
+    container is resolved from the **target's ancestor chain** — the innermost
+    scrollable ancestor that actually owns the element. A scroll view that
+    merely overlaps the tap coordinate but does not contain the target must
+    never be attached: the exported test would scroll the wrong view and could
+    never find the element no matter how far it scrolls (e.g. a category strip
+    whose selector gets paired with the effect list it controls, or a floating
+    overlay button drawn on top of an unrelated collection view).
+
+    Without *target* (scroll gestures, which act on the view under the finger)
+    fall back to the innermost scrollable element at (x, y).
+
+    In both modes standard scrollable tags win over elements that merely carry
+    scrollable="true" (WDA exposes that for non-standard scroll views).
     """
     actual = _unwrap(root)
+    if target is not None:
+        path = _find_path(actual, target)
+        if not path:
+            return None
+        # path[:-1] excludes the target itself — scoping an element to itself
+        # is meaningless when hit_test resolved the scroll view directly.
+        ancestors = list(reversed(path[:-1]))
+        for el in ancestors:
+            if el.tag in SCROLLABLE_TAGS:
+                return el
+        for el in ancestors:
+            if el.attrib.get("scrollable") == "true":
+                return el
+        return None
     candidates: List[ET.Element] = []
     _collect(x, y, actual, candidates)
     scrollable = [el for el in candidates if el.tag in SCROLLABLE_TAGS]
@@ -73,23 +119,16 @@ def should_attach_scroll_container(
 ) -> bool:
     """Return whether an element action should be scoped to *container*.
 
-    Recorder history allows point-based containers for many overlay elements,
-    so keep that for compatibility. The media item action button (for example
-    "Extract Audio") is a sibling overlay that can sit above stale/hidden tool
-    menus; scoping it to those menus makes exported tests wait on the wrong
-    collection view.
+    A container is only valid when it is a real ancestor of the target.
+    ``find_scroll_container(..., target=el)`` already guarantees that, so this
+    is the guard for any caller that still resolves a container by coordinate.
     """
     if target is None or container is None:
         return False
     path = _find_path(_unwrap(root), target)
     if not path:
-        return True
-    if container in path[:-1]:
-        return True
-    return not any(
-        el.attrib.get("name", "").strip().startswith("mediaItemContainer.UIButton.")
-        for el in path
-    )
+        return False
+    return container in path[:-1]
 
 
 def build_scroll_container_selector(el: ET.Element, root: ET.Element) -> Tuple[str, str]:
@@ -116,12 +155,12 @@ def build_scroll_container_selector(el: ET.Element, root: ET.Element) -> Tuple[s
 
 def hit_test(x: float, y: float, root: ET.Element) -> Optional[ET.Element]:
     actual = _unwrap(root)
-    candidates: List[ET.Element] = []
-    _collect(x, y, actual, candidates)
+    candidates, slop = _collect_hits(x, y, actual)
     if not candidates:
         return None
     prefer_interactive = any(_is_interactive_target(el) for el in candidates)
-    return min(candidates, key=lambda el: _score(el, prefer_interactive))
+    exempt = _visibility_exemptions(candidates, actual)
+    return min(candidates, key=lambda el: _score(el, prefer_interactive, exempt, slop))
 
 
 def hit_test_for_swipe(x: float, y: float, root: ET.Element) -> Optional[ET.Element]:
@@ -140,8 +179,7 @@ def hit_test_for_swipe(x: float, y: float, root: ET.Element) -> Optional[ET.Elem
     wrapper rather than the raw canvas child inside it).
     """
     actual = _unwrap(root)
-    candidates: List[ET.Element] = []
-    _collect(x, y, actual, candidates)
+    candidates, slop = _collect_hits(x, y, actual)
     if not candidates:
         return None
 
@@ -151,8 +189,9 @@ def hit_test_for_swipe(x: float, y: float, root: ET.Element) -> Optional[ET.Elem
         is_interactive = el.tag in INTERACTIVE_TAGS
         is_generic = el.tag in GENERIC_CONTAINER_TAGS
         # Priority: interactive first → penalise generic wrappers (Other/Application/Window)
-        # → smallest area (most specific non-generic element wins)
-        return (-int(is_interactive), int(is_generic), area)
+        # → exact rect hit over a HIT_SLOP-only hit → smallest area (most specific
+        # non-generic element wins)
+        return (-int(is_interactive), int(is_generic), int(el in slop), area)
 
     return min(candidates, key=_swipe_score)
 
@@ -166,8 +205,7 @@ def hit_test_long_press_drag_source(x: float, y: float, root: ET.Element) -> Opt
     precise; fall back to the owning track cell when the leaf is missing.
     """
     actual = _unwrap(root)
-    candidates: List[ET.Element] = []
-    _collect(x, y, actual, candidates)
+    candidates, _slop = _collect_hits(x, y, actual)
     if not candidates:
         return None
 
@@ -189,8 +227,7 @@ def hit_test_excluding(x: float, y: float, root: ET.Element, exclude: ET.Element
     dragged so we don't resolve back to the same element at the end position.
     """
     actual = _unwrap(root)
-    candidates: List[ET.Element] = []
-    _collect(x, y, actual, candidates)
+    candidates, slop = _collect_hits(x, y, actual)
     # Build the set of nodes to exclude (the dragged element and its subtree)
     excluded = set()
     _collect_nodes(exclude, excluded)
@@ -198,9 +235,11 @@ def hit_test_excluding(x: float, y: float, root: ET.Element, exclude: ET.Element
     if not filtered:
         # Fallback: if nothing else is found, accept any candidate
         prefer_interactive = any(_is_interactive_target(el) for el in candidates)
-        return min(candidates, key=lambda el: _score(el, prefer_interactive)) if candidates else None
+        exempt = _visibility_exemptions(candidates, actual)
+        return min(candidates, key=lambda el: _score(el, prefer_interactive, exempt, slop)) if candidates else None
     prefer_interactive = any(_is_interactive_target(el) for el in filtered)
-    return min(filtered, key=lambda el: _score(el, prefer_interactive))
+    exempt = _visibility_exemptions(filtered, actual)
+    return min(filtered, key=lambda el: _score(el, prefer_interactive, exempt, slop))
 
 
 def hit_test_drop_target(
@@ -214,8 +253,7 @@ def hit_test_drop_target(
     (e.g. another XCUIElementTypeImage in the same list).
     """
     actual = _unwrap(root)
-    candidates: List[ET.Element] = []
-    _collect(x, y, actual, candidates)
+    candidates, slop = _collect_hits(x, y, actual)
 
     source_is_container_like = _is_drop_container_candidate(source) or len(list(source)) > 0
     excluded = set()
@@ -224,7 +262,8 @@ def hit_test_drop_target(
     filtered = [el for el in candidates if el not in excluded]
     if not filtered:
         prefer_interactive = any(_is_interactive_target(el) for el in candidates)
-        return min(candidates, key=lambda el: _score(el, prefer_interactive)) if candidates else None
+        exempt = _visibility_exemptions(candidates, actual)
+        return min(candidates, key=lambda el: _score(el, prefer_interactive, exempt, slop)) if candidates else None
 
     track_cells = [el for el in filtered if _is_track_drag_cell(el)]
     if track_cells:
@@ -236,9 +275,10 @@ def hit_test_drop_target(
 
     source_tag = source.tag
     prefer_interactive = any(_is_interactive_target(el) for el in filtered)
+    exempt = _visibility_exemptions(filtered, actual)
 
     def _drop_score(el: ET.Element) -> tuple:
-        base = _score(el, prefer_interactive)
+        base = _score(el, prefer_interactive, exempt, slop)
         # Add a penalty tier: same tag as source → sorted after different-tag elements
         same_tag_penalty = int(not source_is_container_like and el.tag == source_tag)
         return (same_tag_penalty,) + base
@@ -329,11 +369,84 @@ def _is_hidden_renderer_layer(el: ET.Element) -> bool:
     return name.startswith(("rendererViewController.", "rOI."))
 
 
+def _covers(outer: ET.Element, inner_rect: Tuple[float, float, float, float]) -> bool:
+    """Return whether *outer*'s rect fully contains *inner_rect*."""
+    o = _rect(outer)
+    if not o:
+        return False
+    ox, oy, ow, oh = o
+    ix, iy, iw, ih = inner_rect
+    return ox <= ix and oy <= iy and ox + ow >= ix + iw and oy + oh >= iy + ih
+
+
+def _is_occluded_not_hidden(el: ET.Element, parents: dict) -> bool:
+    """Return whether *el* is invisible only because an overlay swallows hit-tests.
+
+    WDA derives `visible` from an accessibility hit-test, not from what is
+    actually rendered: an element that is drawn on screen still reports
+    visible="false" when some other accessibility element sits on top of it.
+    A full-size ``XCUIElementTypeImage`` placed above a progress/wait view is
+    the common case — the wait spinner and its labels are what the user sees,
+    yet every one of them is reported invisible.
+
+    Only a *later sibling* (drawn above), that is itself visible, is a **leaf**,
+    and fully covers the element, counts as such an overlay. The leaf
+    requirement is what keeps genuinely hidden subtrees penalised: a view that
+    was dismissed or replaced is covered by a structural container with children
+    (or by nothing at all), never by a bare leaf.
+
+    ``accessible`` is deliberately NOT part of the test: WDA computes `visible`
+    from the rendered hit-point, so any view drawn on top swallows it whether or
+    not it publishes itself as an accessibility element. Requiring
+    accessible="true" missed the common overlay shape of a decorative cover view
+    — e.g. AIArtworkPackSelectionCell's ``selectCheckBoxOverlay``
+    (visible="true" accessible="false"), which hides the ``statusOverlay`` /
+    ``statusLabel`` ("Processing…") the user actually sees and wants to record.
+    """
+    r = _rect(el)
+    if not r:
+        return False
+    node = el
+    while node in parents:
+        parent = parents[node]
+        siblings = list(parent)
+        idx = siblings.index(node)
+        for sib in siblings[idx + 1:]:
+            a = sib.attrib
+            if (
+                a.get("visible") == "true"
+                and len(sib) == 0
+                and _covers(sib, r)
+            ):
+                return True
+        node = parent
+    return False
+
+
+def _visibility_exemptions(candidates: List[ET.Element], root: ET.Element) -> frozenset:
+    """Candidates whose visible="false" is a WDA occlusion misjudgement.
+
+    These are scored as visible by ``_score``. Computed per hit-test call over
+    the candidate list only, so the parent map is built at most once and only
+    when some candidate is actually invisible.
+    """
+    hidden = [el for el in candidates if not _is_visible(el)]
+    if not hidden:
+        return frozenset()
+    parents = {child: parent for parent in root.iter() for child in parent}
+    return frozenset(el for el in hidden if _is_occluded_not_hidden(el, parents))
+
+
 def _is_interactive_target(el: ET.Element) -> bool:
     return el.tag in INTERACTIVE_TAGS and not _is_hidden_renderer_layer(el)
 
 
-def _score(el: ET.Element, prefer_interactive_over_generic: bool = False) -> tuple:
+def _score(
+    el: ET.Element,
+    prefer_interactive_over_generic: bool = False,
+    visibility_exempt: frozenset = frozenset(),
+    slop_hits: frozenset = frozenset(),
+) -> tuple:
     r = _rect(el)
     area = (r[2] * r[3]) if r else float("inf")
     is_hidden_renderer_layer = _is_hidden_renderer_layer(el)
@@ -353,7 +466,10 @@ def _score(el: ET.Element, prefer_interactive_over_generic: bool = False) -> tup
     # WDA can keep inactive renderer layers in the hierarchy with stale frames
     # that overlap visible controls. Do not let those hidden renderer / ROI
     # leaves win purely because they have stable accessibility IDs.
-    is_visible = _is_visible(el)
+    # An element WDA reported invisible only because an overlay swallows the
+    # hit-test is on screen for real — score it as visible.
+    is_really_visible = _is_visible(el)
+    is_visible = is_really_visible or el in visibility_exempt
     has_stable_id = (
         quality in ("id", "id_eq_label")
         and not has_children
@@ -363,30 +479,75 @@ def _score(el: ET.Element, prefer_interactive_over_generic: bool = False) -> tup
     # Priority:
     #   1. Non-container over structural containers (CollectionView, ScrollView …)
     #   2. Visible over invisible (WDA keeps hidden siblings in the tree with
-    #      stale frames that overlap visible content — never let them win)
+    #      stale frames that overlap visible content — never let them win).
+    #      Elements exempted by _visibility_exemptions() count as visible.
     #   3. Interactive controls over generic XCUIElementTypeOther/View wrappers
     #   4. Visible stable ID leaf (non-indexed, no children) over anything without one
     #   5. Visible interactive element (Button, TextField …) as tiebreaker
-    #   6. Smallest area (most specific element)
-    #   7. Has any identifier > pure xpath fallback
+    #   6. Exact rect hit over a HIT_SLOP-only hit — a thin element next to the
+    #      real target never wins while that target is genuinely under the finger
+    #   7. Smallest area (most specific element)
+    #   8. Genuinely visible over occlusion-exempt — when two elements share the
+    #      same rect the exemption cannot tell them apart, so document order
+    #      decided the winner (e.g. a not-yet-loaded thumbnailImageView stacked
+    #      exactly under the "Processing..." processingLabel that covers it).
+    #      Ranked *after* area so the original occlusion cases are untouched:
+    #      there the exempt element is the smaller one and already wins above.
+    #   9. Has any identifier > pure xpath fallback
     return (
         int(is_container),
         int(not is_visible),
         int(is_generic_wrapper),
         -int(has_stable_id),
         -int(is_interactive),
+        int(el in slop_hits),
         area,
+        int(not is_really_visible),
         -int(has_id),
         int(has_children),
     )
 
 
-def _collect(x: float, y: float, el: ET.Element, out: List[ET.Element]):
+def _hit_rect(r: Tuple[float, float, float, float]) -> Tuple[float, float, float, float]:
+    """Return *r* grown to at least HIT_SLOP on each axis, centred on the original."""
+    x, y, w, h = r
+    if w < HIT_SLOP:
+        x -= (HIT_SLOP - w) / 2
+        w = HIT_SLOP
+    if h < HIT_SLOP:
+        y -= (HIT_SLOP - h) / 2
+        h = HIT_SLOP
+    return x, y, w, h
+
+
+def _collect(
+    x: float,
+    y: float,
+    el: ET.Element,
+    out: List[ET.Element],
+    slop_out: Optional[set] = None,
+):
     r = _rect(el)
-    if r and r[0] <= x <= r[0] + r[2] and r[1] <= y <= r[1] + r[3]:
-        out.append(el)
+    if r:
+        hx, hy, hw, hh = _hit_rect(r)
+        if hx <= x <= hx + hw and hy <= y <= hy + hh:
+            out.append(el)
+            if slop_out is not None and not (
+                r[0] <= x <= r[0] + r[2] and r[1] <= y <= r[1] + r[3]
+            ):
+                slop_out.add(el)
     for child in el:
-        _collect(x, y, child, out)
+        _collect(x, y, child, out, slop_out)
+
+
+def _collect_hits(
+    x: float, y: float, root: ET.Element
+) -> Tuple[List[ET.Element], frozenset]:
+    """Collect the candidates at (x, y) plus the subset matched only via HIT_SLOP."""
+    out: List[ET.Element] = []
+    slop: set = set()
+    _collect(x, y, root, out, slop)
+    return out, frozenset(slop)
 
 
 def _collect_nodes(el: ET.Element, out: set):

@@ -90,13 +90,16 @@ When the file is missing or invalid JSON, codegen falls back to defaults.
   "bundle_id":        str,    # launch_app, activate_app, terminate_app
   "app_name":         str,    # launch_app / activate_app / terminate_app display name (optional)
   "expected_text":    str,    # verify_get_text
+  "appear_timeout":    float, # wait_until_not_show: seconds for the element to show up (default 5)
+  "disappear_timeout": float, # wait_until_not_show: seconds for it to go away again (default 1200 = 20 min)
   "screenshot_name":  str,    # verify_screenshot_*
   "phase":            str,    # verify_screenshot_diff: "before" | "after"
   "wait_seconds":     float,  # verify_tap_screenshot_diff: wait after tap before AFTER capture
   "direction":        str,    # swipe: cardinal direction stored at record time by _record_move
   "velocity":         float,  # swipe: px/s stored at record time (max(50, min(5000, dist*1000/dur)))
   "fingers":          int,    # multi_finger_tap
-  "scroll_container": dict,   # tap/long_press/scroll: innermost scrollable container at the tap coordinate
+  "scroll_container": dict,   # tap/long_press: innermost scrollable *ancestor* of the target;
+                              # scroll: innermost scrollable container at the gesture coordinate
                               #   (recorded automatically; used by tap_with_scroll for scroll-fallback)
                               # scroll: also used to identify the container for scroll_until()
   "scroll_offsets":   dict,   # scroll: gesture fractions relative to scroll_container rect
@@ -141,6 +144,7 @@ When the file is missing or invalid JSON, codegen falls back to defaults.
 - **Long-press compare shortcut**: when the sequence is exactly `verify_screenshot_diff(before) -> long_press -> verify_screenshot_diff(after)` and the long-press target element id matches `recording_rules.json` keywords, codegen keeps `before` and replaces the remaining two steps with `long_press_capture_after_during_hold` so the AFTER image is captured during the press hold window
 - **`verify_visible` pattern**: generates `assert actions.verify_visible(...), '<val> is not visible'`.
 - **`verify_not_visible` pattern**: generates `assert actions.verify_not_visible(...), '<val> is still visible'`.
+- **`wait_until_not_show` pattern**: generates `assert actions.wait_until_not_show(<by>, '<val>', appear_timeout=N, disappear_timeout=M), '...'` — both timeouts are always emitted explicitly (recorded values, defaults 5 / 1200). The two budgets are independent: never appeared → `False` immediately; still shown after the long budget → `False`. The helper never raises, so the generated `assert` is the only thing that can fail the step.
 - **Label format**:
   - `[Action] ...` for all gesture actions (tap, swipe, drag, pinch, etc.)
   - `[Verify] ...` for all assertion actions (verify_visible, verify_text, screenshot)

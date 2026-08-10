@@ -11,6 +11,7 @@ def test_00016_main_04_01_06(actions: DriverActions):
     """camera - makeup"""
     uuid = ['af368125-3c99-471b-a7c1-52a91e78b2ec', '98bcdbf5-22ee-4641-ab12-202e3a33c488', 'b04161cd-10e5-4f51-bb47-e0d08cb3d209', '04f6f5f7-0c38-406e-9844-a5aa8bdfb816', 'a0a535da-4bec-4d43-89b7-7a43817a8162', '6309a2f2-ce33-4ee7-9747-cfed0788cc62', '2acfaed8-9e83-4395-8eb3-ace1336b322c', 'b643ae43-89dc-4049-b8a2-41bc40a6b8a4', 'aa73d83d-80b5-4e08-a992-040c09ff41fe', '6322dbc7-3f97-473b-a4bb-c91733db5c66', 'e0c0184a-de8a-4b73-b0aa-ae52d4029c4e', 'ae1f074b-53c7-4590-a246-4aba72e50a27', '19522125-9274-4aee-90aa-f9cd1022dc56', 'b7c08a65-c558-434a-873f-00d04599047e', '25799d98-d4a7-4db8-970c-3578bf3db026']
     with step('[Action] tap_camera'):
+        assert actions.tap_by_locator(AppiumBy.NAME, 'Camera')
         assert actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnMore')
     with step('[Action] tap_makeup_btn2'):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnMakeup')
@@ -81,6 +82,14 @@ def test_00016_main_04_01_06(actions: DriverActions):
     else:
         assert False  # legacy raise
     with step('[Action] scroll_and_tap_feature_tab'):
+        assert actions.swipe_on_element(
+            AppiumBy.ACCESSIBILITY_ID,
+            'makeupCategoryCollectionViewCollectionView',
+            'left',
+            from_pct_x=75.0,
+            from_pct_y=50.0,
+            distance_pts=250.0,
+        )
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Eyeliner')
     if (not actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Daily')):
         assert False  # legacy raise

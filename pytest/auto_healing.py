@@ -14,8 +14,13 @@
 # conftest.py owns the pytest hooks/fixtures and delegates into this module,
 # so every entry point here is safe to call and never raises into the run.
 #
-# Environment switches
+# Primary switches live in config.py:
+#   AUTO_HEALING_ENABLED       run auto-healing at all
+#   AUTO_HEALING_CREATE_BRANCH let Phase 2 commit + push its patches to a branch
+#
+# Environment switches (override config.py; used by CI and by the agent itself)
 #   AUTO_HEALING=0                  disable everything (evidence, state, retry)
+#   AUTO_HEALING_CREATE_BRANCH=0    Phase 2 patches stay uncommitted
 #   AUTO_HEALING_PHASE2=0           keep Phase 1 only; never launch the agent
 #   AUTO_HEALING_PROJECT_PATH=...   location of iOS_auto_healing_agent
 #   AUTO_HEALING_REGISTRY_PATH=...  override the test registry file
@@ -41,11 +46,25 @@ logger = logging.getLogger(__name__)
 
 # ─── Paths & Switches ────────────────────────────────────────────────────────
 
-# pytest is launched from this directory (pytest.ini lives here), so nodeids
-# and evidence paths recorded in state.json are relative to it — that is what
-# the healing agent passes back as TEST_PROJECT when it replays a case.
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-_REPO_ROOT = os.path.dirname(PROJECT_ROOT)
+# Where this suite lives — fixed, independent of how pytest was invoked.
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+_REPO_ROOT = os.path.dirname(MODULE_DIR)
+
+# PROJECT_ROOT is pytest's real rootdir, resolved in configure() from
+# `config.rootpath`. Everything the healing agent consumes — nodeids in
+# state.json, evidence paths, and the TEST_PROJECT it replays from — must be
+# relative to the SAME directory, otherwise replay.py cannot find the test.
+# The module-dir value below is only a fallback before configure() runs.
+PROJECT_ROOT = MODULE_DIR
+EVIDENCE_ROOT = os.path.join(PROJECT_ROOT, 'Self-healing', 'evidence')
+
+
+def _set_project_root(rootdir):
+    global PROJECT_ROOT, EVIDENCE_ROOT
+    PROJECT_ROOT = os.path.abspath(str(rootdir))
+    EVIDENCE_ROOT = os.path.join(PROJECT_ROOT, 'Self-healing', 'evidence')
+    logger.info('[Auto-Healing] project root (pytest rootdir): %s', PROJECT_ROOT)
+
 
 HEALING_PROJECT_PATH = os.environ.get(
     'AUTO_HEALING_PROJECT_PATH',
@@ -61,14 +80,21 @@ REGISTRY_PATH = os.environ.get(
     os.path.join(HEALING_PROJECT_PATH, 'registry', 'test_registry_ios_recorder.json'),
 )
 CASE_ID_PREFIX = os.environ.get('AUTO_HEALING_CASE_ID_PREFIX', 'IOSREC-AUTO')
-EVIDENCE_ROOT = os.path.join(PROJECT_ROOT, 'Self-healing', 'evidence')
 
 
-def _flag(name, default='1'):
-    return os.environ.get(name, default).strip().lower() not in ('0', 'false', 'no', 'off')
+def _flag(env_name, config_name=None, default=True):
+    """config.py holds the intent; an env var of the same name overrides it so
+    CI and the healing agent's own subprocesses can force a value."""
+    raw = os.environ.get(env_name)
+    if raw is not None:
+        return raw.strip().lower() not in ('0', 'false', 'no', 'off')
+    if config_name is not None:
+        return bool(getattr(config, config_name, default))
+    return default
 
 
-ENABLED = _flag('AUTO_HEALING')
+ENABLED = _flag('AUTO_HEALING', 'AUTO_HEALING_ENABLED')
+CREATE_BRANCH = _flag('AUTO_HEALING_CREATE_BRANCH', 'AUTO_HEALING_CREATE_BRANCH')
 PHASE2_ENABLED = _flag('AUTO_HEALING_PHASE2')
 IS_REPLAY = os.environ.get('AUTO_HEALING_REPLAY') == '1'
 PHASE2_TIMEOUT_SEC = int(os.environ.get('AUTO_HEALING_PHASE2_TIMEOUT', '660'))
@@ -359,6 +385,38 @@ def _load_registry():
     return {}
 
 
+def _case_key(item):
+    """Rootdir-independent case identity.
+
+    A nodeid changes with the directory pytest was launched from
+    (`tests/x.py::t` vs `pytest/tests/x.py::t`), which would mint a fresh case
+    id for the same test on every different invocation. Anchoring the path to
+    this module's directory keeps the identity stable either way.
+    """
+    parts = item.nodeid.split('::')
+    if item.fspath:
+        try:
+            parts[0] = os.path.relpath(str(item.fspath), MODULE_DIR)
+        except Exception:
+            pass
+    return '::'.join(parts)
+
+
+def is_own_item(item):
+    """True when the test belongs to this Appium suite.
+
+    Launched from the repo root, pytest also collects unrelated suites such as
+    `test_unittest/`. Those must not receive case ids, evidence folders or
+    device retries — the healing agent only knows how to replay device tests.
+    """
+    if not item.fspath:
+        return False
+    try:
+        return not os.path.relpath(str(item.fspath), MODULE_DIR).startswith(os.pardir)
+    except Exception:
+        return False
+
+
 def _next_registry_counter(registry):
     highest = 0
     for cid in registry:
@@ -372,28 +430,41 @@ def _bootstrap_test_registry(items):
     os.makedirs(os.path.dirname(REGISTRY_PATH), exist_ok=True)
     registry = _load_registry()
 
-    # Key existing auto-generated entries by nodeid so a rerun reuses the same
-    # stable id instead of minting a new one on every session.
-    by_nodeid = {
-        entry.get('test_nodeid'): cid
-        for cid, entry in registry.items()
-        if entry.get('test_nodeid')
-    }
+    # Key existing entries by their rootdir-independent case_key so a rerun
+    # reuses the same stable id instead of minting a new one every session.
+    # Legacy entries written before case_key existed are matched by nodeid and
+    # upgraded in place.
+    by_case_key = {}
+    by_nodeid = {}
+    for cid, entry in registry.items():
+        if entry.get('case_key'):
+            by_case_key[entry['case_key']] = cid
+        if entry.get('test_nodeid'):
+            by_nodeid.setdefault(entry['test_nodeid'], cid)
     counter = _next_registry_counter(registry)
 
     for item in items:
+        if not is_own_item(item):
+            continue
+
+        case_key = _case_key(item)
         case_id_marker = item.get_closest_marker('case_id')
         if case_id_marker and case_id_marker.args:
             stable_id = str(case_id_marker.args[0])
+        elif case_key in by_case_key:
+            stable_id = by_case_key[case_key]
         elif item.nodeid in by_nodeid:
             stable_id = by_nodeid[item.nodeid]
         else:
             stable_id = f'{CASE_ID_PREFIX}-{counter:04d}'
             counter += 1
 
+        by_case_key[case_key] = stable_id
+        by_nodeid[item.nodeid] = stable_id
+
         if stable_id in registry:
             registry[stable_id]['test_nodeid'] = item.nodeid
-            by_nodeid[item.nodeid] = stable_id
+            registry[stable_id]['case_key'] = case_key
             continue
 
         test_name = getattr(item, 'originalname', item.name)
@@ -408,6 +479,7 @@ def _bootstrap_test_registry(items):
             'case_name': test_name,
             'test_file': test_file,
             'test_nodeid': item.nodeid,
+            'case_key': case_key,
             'feature': feature_guess,
             'priority': 'P2',
             'blocking_type': 'non-blocking',
@@ -415,7 +487,6 @@ def _bootstrap_test_registry(items):
             'primary_test_component': None,
             'identity_complete': False,
         }
-        by_nodeid[item.nodeid] = stable_id
 
     with open(REGISTRY_PATH, 'w', encoding='utf-8') as f:
         json.dump(registry, f, indent=2, ensure_ascii=False)
@@ -428,6 +499,10 @@ def _get_case_id_for_item(item):
     if case_id_marker and case_id_marker.args:
         return str(case_id_marker.args[0])
     registry = _load_registry()
+    case_key = _case_key(item)
+    for cid, entry in registry.items():
+        if entry.get('case_key') == case_key:
+            return cid
     for cid, entry in registry.items():
         if entry.get('test_nodeid') == item.nodeid:
             return cid
@@ -642,7 +717,7 @@ def runtest_protocol(item, nextitem):
     """Returns True when this module handled the protocol, None to fall through."""
     from _pytest.runner import runtestprotocol
 
-    if not ENABLED or IS_REPLAY:
+    if not ENABLED or IS_REPLAY or not is_own_item(item):
         return None
 
     reports = runtestprotocol(item, nextitem=nextitem, log=False)
@@ -795,6 +870,14 @@ def collection_modifyitems(pytest_config, items):
 
 def configure(pytest_config):
     pytest_config._start_time = time.time()
+
+    # Anchor every recorded path to pytest's own rootdir — nodeids are relative
+    # to it, and Phase 2 replays from it. Guessing this wrong makes replay.py
+    # fail to find the test and every case ends as `infra_issue`.
+    rootdir = getattr(pytest_config, 'rootpath', None) or getattr(pytest_config, 'rootdir', None)
+    if rootdir is not None:
+        _set_project_root(rootdir)
+
     if not ENABLED or IS_REPLAY:
         return
     try:
@@ -848,7 +931,8 @@ def _trigger_phase2(session):
         logger.warning('[Auto-Healing] Phase 2 orchestrator not found at %s', orchestrator_py)
         return
 
-    logger.info('[Auto-Healing] %d deferred cases — opening Phase 2 window', deferred_count)
+    logger.info('[Auto-Healing] %d deferred cases — opening Phase 2 window (create_branch=%s)',
+                deferred_count, CREATE_BRANCH)
 
     rp_launch_id = _rp_launch_uuid(session.config)
 
@@ -860,6 +944,10 @@ def _trigger_phase2(session):
         # pytest.ini/conftest.py live in PROJECT_ROOT, so that is the directory
         # replay.py has to run pytest from.
         f.write(f'export TEST_PROJECT="{PROJECT_ROOT}"\n')
+        # Read by orchestrator.py's _commit_and_push_healing_changes(). Note it
+        # stages the WHOLE working tree, so leaving this on commits unrelated
+        # work-in-progress alongside the patches.
+        f.write(f'export AUTO_HEALING_CREATE_BRANCH="{"1" if CREATE_BRANCH else "0"}"\n')
         if rp_launch_id:
             f.write(f'export AUTO_HEALING_RP_LAUNCH_ID="{rp_launch_id}"\n')
         f.write(f'python3 "{orchestrator_py}" "{run_id}" 2>&1 | tee "{log_path}"\n')

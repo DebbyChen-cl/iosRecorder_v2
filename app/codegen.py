@@ -109,6 +109,17 @@ def _locator(target: dict) -> tuple[str, str]:
     return _by(target["type"]), _q(target["value"])
 
 
+def _fmt_seconds(value, default) -> str:
+    """Render a recorded seconds value for generated code (5.0 → '5')."""
+    try:
+        secs = float(value)
+    except (TypeError, ValueError):
+        secs = float(default)
+    if secs < 0:
+        secs = float(default)
+    return str(int(secs)) if secs.is_integer() else str(round(secs, 3))
+
+
 def _sc_kwargs(sc: Optional[dict]) -> str:
     """Build container keyword argument string from a scroll_container dict.
 
@@ -439,6 +450,19 @@ def _action_call(step: dict) -> tuple[str, list[str]]:
                     [f"actions.verify_not_visible({by}, '{val}')"])
         return (f"[Verify] element not visible at ({c.get('x')},{c.get('y')})",
                 [f"# verify_not_visible at ({c.get('x')},{c.get('y')}) — no element matched"])
+
+    # ── wait until element is no longer shown ─────────────────────────────────
+    if action == "wait_until_not_show":
+        appear = _fmt_seconds(step.get("appear_timeout"), 5)
+        disappear = _fmt_seconds(step.get("disappear_timeout"), 1200)
+        if has_el:
+            by, val = _locator(t)
+            return (f"[Verify] {val} disappears within {disappear}s",
+                    [f"assert actions.wait_until_not_show({by}, '{val}', "
+                     f"appear_timeout={appear}, disappear_timeout={disappear}), "
+                     f"'{val} did not appear within {appear}s or is still shown after {disappear}s'"])
+        return (f"[Verify] element at ({c.get('x')},{c.get('y')}) disappears within {disappear}s",
+                [f"# wait_until_not_show at ({c.get('x')},{c.get('y')}) — no element matched"])
 
     # ── verify get text ───────────────────────────────────────────────────────
     if action == "verify_get_text":

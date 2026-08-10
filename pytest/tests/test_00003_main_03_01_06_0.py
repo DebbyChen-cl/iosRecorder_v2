@@ -15,6 +15,13 @@ def test_00003_main_03_01_06_0(actions: DriverActions):
             if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=2):
                 actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnClose')
     with step('Enter setting page'):
+        with step('[Action] allow_microphone_permission'):
+            if actions.is_element_present(
+                AppiumBy.NAME,
+                '“PhotoDirector” would like to access the Microphone.',
+                timeout=2,
+            ):
+                assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Allow')
         with step('[Action] tap_phd_btn'):
             assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnSettings')
         with step('[Action] verify_settings_page'):

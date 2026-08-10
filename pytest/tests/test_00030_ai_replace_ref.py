@@ -9,154 +9,99 @@ from tests import testdata as TD
 @pytest.mark.name('00030_ai_replace_ref')
 def test_00030_ai_replace_ref(actions: DriverActions):
     """AI replace reference"""
-    mode = 1
-    with step('Tap settings'):
-        with step('[Action] tap_phd_btn'):
-            assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnSettings')
-    with step('Tap "about"'):
-        enter_about_page_success = False
-        for attempt in range(3):
-            with step('[Action] enter_about_page'):
-                assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'About')
-                assert actions.find_element(AppiumBy.ACCESSIBILITY_ID, 'developerButton')
-            enter_about_page_success = True
-            break
-            if attempt < 2:
-                pass
-    if not enter_about_page_success:
-        assert False, 'Enter about page fail after 3 retries'
-    with step('5 taps on screen to enter debug mode and set subscription = pro+'):
-        with step('[Action] enable_plan_from_settings'):
-            assert actions.is_element_present(AppiumBy.NAME, 'Develop Info')
-            assert actions.find_element(AppiumBy.XPATH, '(//XCUIElementTypeSwitch[@value="1"])[2]')
-            actions.tap_by_locator(AppiumBy.XPATH, '(//XCUIElementTypeSwitch[@value="0"])[6]')
-            assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'chevron.left')
-            assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnBack')
-            assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnBack')
-    with step('Tap "<" "<" back to main page'):
-        with step('[Action] tap_home'):
-            assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnHome')
-    with step('Tap "Edit"'):
-        with step('[Action] tap_editphoto'):
-            assert actions.tap_by_locator(AppiumBy.NAME, 'Edit')
-            assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
-    with step('Select "Sample photos" album'):
-        with step('[Action] select_category'):
-            assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Sample Photos')
-    with step('Select "woman holds books" photo'):
-        with step('[Action] select_photo'):
-            actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'photoCell-0')
-    with step('Enter AI Replace feature'):
-        with step('[Action] scroll_and_tap_feature_tab'):
-            assert actions.tap_by_locator(AppiumBy.NAME, 'AI Replace')
-    with step('Brush to select "books"'):
-        from_pos = (160, 302)
-        destination = (350, 200)
-        with step('[Action] brush_removal'):
-            actions.drag_coordinates(160, 302, 350, 200)
-    with step('Tap "Replace"'):
-        with step('[Action] tap_phd_btn'):
-            assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Replace')
-    with step('Verify "Upload a reference image" option displays'):
-        with step('[Action] verify_phd_str'):
-            assert actions.is_element_present(AppiumBy.NAME, 'Upload a reference image')
-    with step('Tap "Upload a reference image" option'):
-        with step('[Action] tap_phd_element'):
-            assert actions.tap_by_locator(AppiumBy.NAME, 'Upload a reference image')
-    with step('Verify recommendation dialog pops up (optional)'):
-        dialog_shown = actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'descriptionLabel')
-        if not dialog_shown:
-            pass
-    if dialog_shown:
-        with step('Enable "Don\'t show again" (optional)'):
-            with step('[Action] tap_phd_element'):
-                assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'PhotoPickerRecommendDialog-notShowAgainCheckBox')
-        with step('Tap "Continue" (optional)'):
-            with step('[Action] tap_phd_btn'):
-                assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Continue')
-    with step('Tap "i" button'):
-        with step('[Action] tap_info_btn_n'):
-            assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'ic info n')
-    with step('Tap "Continue" (close recommendation dialog)'):
-        with step('[Action] tap_phd_btn'):
-            assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Continue')
-    with step('Expand album list (reference image picker)'):
-        with step('[Action] expand_album_list'):
-            assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
-    with step('Swipe up to scroll album list'):
-        with step('[Action] swipe_up'):
-            actions.execute_script('mobile: swipe', {'direction': 'up'})
-    with step('Select "Replace" album'):
-        with step('[Action] select_category'):
-            assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Replace')
-    with step('Select "Guitar" photo'):
-        with step('[Action] select_photo'):
-            actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'photoCell-1')
-    with step('Verify reference image is imported and displayed as thumbnail'):
-        with step('[Verify] snapshot: ai_replace_ref_thumb_guitar.png'):
-            actions.capture_for_gt('ai_replace_ref_thumb_guitar.png', crop_rect=(0, 100, 367, 800))
-    with step('Verify prompt column shows default description'):
-        with step('[Action] verify_prompt_replace_default_prompt'):
-            assert actions.find_element(AppiumBy.ACCESSIBILITY_ID, 'promptDisplayLabel')
-    with step('Tap prompt column'):
-        with step('[Action] tap_phd_element'):
-            assert actions.tap_by_locator(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="AIReplaceViewController"]/XCUIElementTypeOther[3]/XCUIElementTypeOther[2]')
-    with step('Verify prompt shows default description'):
-        with step('[Action] verify_replace_default_prompt'):
-            assert actions.find_element(AppiumBy.ACCESSIBILITY_ID, 'lblPlaceHolder')
-    with step('Input prompt "Replace to the guitar"'):
-        with step('[Action] send_keys'):
-            actions.type_text_by_locator(AppiumBy.ACCESSIBILITY_ID, 'lblPlaceHolder', 'Replace to the guitar')
-    with step('Tap "Next"'):
-        with step('[Action] tap_phd_btn'):
-            assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Next:')
-    with step('Verify prompt is displayed beside reference image thumbnail'):
-        with step('[Verify] snapshot: ai_replace_ref_prompt_guitar.png'):
-            actions.capture_for_gt('ai_replace_ref_prompt_guitar.png', crop_rect=(0, 100, 367, 800))
-    with step('Tap "replace"'):
-        with step('[Action] tap_phd_btn'):
-            assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnGenerate')
-    with step('Verify UI goes to artwork and thumbnail is processing'):
-        with step('[Action] verify_artwork_processing'):
-            assert actions.find_element(AppiumBy.ACCESSIBILITY_ID, 'In progress')
-    with step('Wait for generation finish and verify thumbnail updated to result'):
-        with step('[Verify] snapshot: ai_replace_ref_result_guitar.png'):
-            actions.capture_for_gt('ai_replace_ref_result_guitar.png', crop_rect=(0, 100, 367, 800))
-    with step('Tap "<" back to feature page'):
-        with step('[Action] tap_phd_btn'):
-            assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnBack')
-    with step('Tap the reference image thumbnail'):
-        with step('[Action] tap_phd_btn'):
-            assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'refresh')
-    with step('Verify no recommendation dialog pops up'):
-        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'descriptionLabel'):
-            assert False, "Recommendation dialog should NOT pop up after Don't show again"
-    with step('Select "tuba" photo'):
-        with step('[Action] select_photo'):
-            actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'photoCell-0')
-    with step('Verify the reference image thumbnail is updated'):
-        with step('[Verify] snapshot: ai_replace_ref_thumb_tuba.png'):
-            actions.capture_for_gt('ai_replace_ref_thumb_tuba.png', crop_rect=(0, 100, 367, 800))
-    with step('Tap the prompt column, prompt dialog pops up'):
-        with step('[Action] tap_phd_element'):
-            assert actions.tap_by_locator(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="AIReplaceViewController"]/XCUIElementTypeOther[3]/XCUIElementTypeOther[2]')
-    with step('Tap "x" to clear all prompts'):
-        with step('[Action] tap_phd_btn'):
-            assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnClear')
-    with step('Tap preview image to close prompt dialog and keyboard'):
-        with step('[Action] tap_phd_element'):
-            assert actions.tap_by_locator(AppiumBy.XPATH, '//XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage')
-    with step('Verify all prompts are cleared (show default description)'):
-        with step('[Action] verify_prompt_replace_default_prompt'):
-            assert actions.find_element(AppiumBy.ACCESSIBILITY_ID, 'promptDisplayLabel')
-    with step('Tap "replace" (second run)'):
-        with step('[Action] tap_phd_btn'):
-            assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Replace')
-    with step('Verify UI goes to artwork and thumbnail shows "busy" (second run)'):
-        with step('[Action] verify_artwork_processing'):
-            assert actions.find_element(AppiumBy.ACCESSIBILITY_ID, 'In progress')
-    with step('Wait for generation finish and verify thumbnail updated to result (second run)'):
-        with step('[Action] wait_for_image_generated'):
-            assert actions.wait_for_invisible(AppiumBy.ACCESSIBILITY_ID, 'In progress', timeout=90)
+    with step("[Action] Tap btnSettings at (57.6%, 61.8%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnSettings', 57.6, 61.8, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="LauncherProViewController"]/XCUIElementTypeScrollView', container_w=430, container_h=843)
+    with step("[Action] Tap About at (64.7%, 82.6%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'About', 64.7, 82.6, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="photodirector.SettingPageViewController"]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeCollectionView', container_w=430, container_h=592)
+    with step("[Action] Five tap developerButton at (63.3%, 44.0%)"):
+        actions.five_tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'developerButton', 63.3, 44.0)
+    with step("[Action] Tap Free at (61.8%, 76.2%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Free', 61.8, 76.2, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeApplication[@name="PhotoDirector"]/XCUIElementTypeWindow[1]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeScrollView', container_w=430, container_h=932)
+    with step("[Action] Tap Pro+ at (62.5%, 77.6%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Pro+', 62.5, 77.6, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeAlert[@name="Select an Option"]/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeScrollView[2]', container_w=320, container_h=305)
+    with step("[Action] Tap chevron.left at (65.0%, 55.6%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'chevron.left', 65.0, 55.6, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeApplication[@name="PhotoDirector"]/XCUIElementTypeWindow[1]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeScrollView', container_w=430, container_h=932)
+    with step("[Action] Tap btnBack at (60.7%, 51.1%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnBack', 60.7, 51.1)
+    with step("[Action] Tap btnBack at (60.7%, 57.4%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnBack', 60.7, 57.4)
+    with step("[Action] Tap Edit at (45.7%, 76.0%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Edit', 45.7, 76.0, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="LauncherProViewController"]/XCUIElementTypeScrollView', container_w=430, container_h=843)
+    with step("[Action] Tap btnAlbum at (80.7%, 54.8%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum', 80.7, 54.8)
+    with step("[Action] Tap Sample Photos at (14.3%, 59.1%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Sample Photos', 14.3, 59.1, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='albumCollectionView', container_w=394, container_h=746)
+    with step("[Action] Tap PhDM_example_2 at (31.5%, 40.8%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'PhDM_example_2', 31.5, 40.8, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=746)
+    with step("[Action] Tap Edit at (55.6%, 42.2%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Edit', 55.6, 42.2, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='ScrollableMenuView', container_w=430, container_h=45)
+    with step("[Action] Scroll until ic_ai_replace"):
+        actions.scroll_until(AppiumBy.ACCESSIBILITY_ID, 'EditViewControllerBottomBarCollectionView', AppiumBy.ACCESSIBILITY_ID, 'ic_ai_replace', direction='left', offset_start=(0.784, 0.454), offset_end=(0.172, 0.454), velocity=346)
+    with step("[Action] Tap ic_ai_replace at (39.4%, 60.6%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic_ai_replace', 39.4, 60.6, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='EditViewControllerBottomBarCollectionView', container_w=430, container_h=97)
+    with step("[Action] Drag instanceSegmentationGestureReceiverView (33.4%,46.1%) → instanceSegmentationGestureReceiverView (89.5%,83.8%)"):
+        actions.drag_within_elements(AppiumBy.ACCESSIBILITY_ID, 'instanceSegmentationGestureReceiverView', 33.4, 46.1, AppiumBy.ACCESSIBILITY_ID, 'instanceSegmentationGestureReceiverView', 89.5, 83.8, duration=1.0)
+    with step("[Action] Tap Replace at (98.6%, 17.4%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Replace', 98.6, 17.4)
+    with step("[Action] Tap Upload a reference image at (62.1%, 45.5%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Upload a reference image', 62.1, 45.5, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="zoomView"]/XCUIElementTypeScrollView', container_w=430, container_h=640)
+    with step("[Action] Tap PhotoPickerRecommendDialog-continueButton at (88.4%, 20.4%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'PhotoPickerRecommendDialog-continueButton', 88.4, 20.4, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=746)
+    with step("[Action] Tap ic info n at (67.5%, 53.7%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic info n', 67.5, 53.7)
+    with step("[Action] Tap PhotoPickerRecommendDialog-continueButton at (90.2%, 38.8%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'PhotoPickerRecommendDialog-continueButton', 90.2, 38.8, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=746)
+    with step("[Action] Tap btnAlbum at (95.4%, 47.6%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum', 95.4, 47.6)
+    with step("[Action] Scroll until Replace"):
+        actions.scroll_until(AppiumBy.ACCESSIBILITY_ID, 'albumCollectionView', AppiumBy.ACCESSIBILITY_ID, 'Replace', direction='down', offset_start=(0.449, 0.894), offset_end=(0.449, 0.141), velocity=900)
+    with step("[Action] Tap Replace at (6.5%, 43.5%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Replace', 6.5, 43.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='albumCollectionView', container_w=394, container_h=746)
+    with step("[Action] Tap photoCell-1 at (60.0%, 45.4%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'photoCell-1', 60.0, 45.4, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=746)
+    with step("[Verify] Capture 'AI_Replace_Pro_ref_Step26' for GT comparison"):
+        actions.capture_for_gt('AI_Replace_Pro_ref_Step26', AppiumBy.ACCESSIBILITY_ID, 'refImageView', threshold=0.95)
+    with step("[Action] Tap promptDisplayLabel at (36.9%, 22.2%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'promptDisplayLabel', 36.9, 22.2)
+    with step("[Action] Type 'Replace to the guitar' into promptDisplayLabel"):
+        actions.type_text_by_locator(AppiumBy.ACCESSIBILITY_ID, 'promptDisplayLabel', 'Replace to the guitar')
+    with step("[Action] Tap Next: at (53.3%, 51.8%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Next:', 53.3, 51.8)
+    with step("[Verify] Capture 'AI_Replace_Pro_ref_Step30' for GT comparison"):
+        actions.capture_for_gt('AI_Replace_Pro_ref_Step30', AppiumBy.ACCESSIBILITY_ID, 'refImageView', threshold=0.95)
+    with step("[Action] Tap btnGenerate at (17.8%, 46.8%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnGenerate', 17.8, 46.8)
+    with step("[Action] Tap btnBack at (58.1%, 38.7%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnBack', 58.1, 38.7)
+    with step("[Action] Tap reSelectButton at (65.4%, 50.0%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'reSelectButton', 65.4, 50.0)
+    with step("[Action] Tap PhotoPickerRecommendDialog-notShowAgainCheckBox at (51.9%, 48.1%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'PhotoPickerRecommendDialog-notShowAgainCheckBox', 51.9, 48.1, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=746)
+    with step("[Action] Tap Continue at (83.8%, 65.2%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Continue', 83.8, 65.2, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=746)
+    with step("[Action] Tap btnBack at (65.0%, 36.6%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnBack', 65.0, 36.6)
+    with step("[Action] Tap reSelectButton at (65.4%, 73.1%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'reSelectButton', 65.4, 73.1, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="zoomView"]/XCUIElementTypeScrollView', container_w=430, container_h=640)
+    with step("[Action] Tap photoCell-0 at (32.3%, 83.1%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'photoCell-0', 32.3, 83.1, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=746)
+    with step("[Verify] Capture 'AI_Replace_Pro_ref_Step39' for GT comparison"):
+        actions.capture_for_gt('AI_Replace_Pro_ref_Step39', AppiumBy.ACCESSIBILITY_ID, 'refImageView', threshold=0.95)
+    with step("[Action] Tap promptDisplayLabel at (84.3%, 77.8%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'promptDisplayLabel', 84.3, 77.8)
+    with step("[Action] Tap btnClear at (50.0%, 90.9%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnClear', 50.0, 90.9, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='textView', container_w=394, container_h=71)
+    with step("[Action] Tap Next: at (53.3%, 51.8%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Next:', 53.3, 51.8)
+    with step("[Action] Tap promptTextTapCoverView at (0.7%, 45.8%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'promptTextTapCoverView', 0.7, 45.8, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="zoomView"]/XCUIElementTypeScrollView', container_w=430, container_h=552)
+    with step("[Verify] promptDisplayLabel is visible"):
+        actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'promptDisplayLabel')
+    with step("[Action] Tap Replace at (54.3%, 29.2%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Replace', 54.3, 29.2)
+    with step("[Verify] selectCheckBoxOverlay is not visible"):
+        actions.verify_not_visible(AppiumBy.ACCESSIBILITY_ID, 'In progress', timeout=90)
+    with step("[Verify] Screenshot comparisons"):
+        actions.run_screenshot_comparisons(threshold=0.95)
     with step("[Verify] test_00030 completion"):
         assert True

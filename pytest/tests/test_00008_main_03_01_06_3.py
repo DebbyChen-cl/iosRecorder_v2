@@ -48,14 +48,14 @@ def test_00008_main_03_01_06_3(actions: DriverActions):
             ):
                 with step('[Action] tap_IAP_back_btn_quality'):
                     actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnClose')
-                    assert actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'Image Quality Setting')
+                    assert actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'lblTitle')
                 continue
             else:
                 assert False
         if result != config['expected_text']:
             assert False
     with step('[Action] tap_back_btn'):
-        actions.tap_by_locator(AppiumBy.NAME, 'img tryout back n')
-        assert actions.is_element_present(AppiumBy.NAME, 'Setting')
+        actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnBack')
+        assert actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'lblTitle')
     with step("[Verify] test_00008 completion"):
         assert True

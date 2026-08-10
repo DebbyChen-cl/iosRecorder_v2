@@ -54,6 +54,10 @@ def _call_record_fn(inp: dict):
     elif action in ("verify_visible", "verify_not_visible"):
         asyncio.run(m._record_verify_visible(inp["target_x"], inp["target_y"],
                                               action == "verify_not_visible", root))
+    elif action == "wait_until_not_show":
+        asyncio.run(m._record_wait_until_not_show(inp["target_x"], inp["target_y"],
+                                                 inp.get("appear_timeout", 5.0),
+                                                 inp.get("disappear_timeout", 1200.0), root))
     elif action == "verify_get_text":
         asyncio.run(m._record_verify_get_text(inp["target_x"], inp["target_y"], inp["expected_text"]))
     elif action == "verify_screenshot_gt":

@@ -43,7 +43,7 @@ def test_00022_main_05_01_10(actions: DriverActions):
         assert False  # legacy raise
     with step('[Verify] snapshot: base_05_01_10_aienhance_off.png'):
         actions.capture_for_gt('base_05_01_10_aienhance_off.png', crop_rect=(0, 60, 276, 429))
-    if (not actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnCancel')):
+    if (not actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btn_cancel_n')):
         assert False  # legacy raise
     x_path = actions.capture_for_gt('05_01_10_aienhance_x.png', crop_rect=(0, 60, 276, 429))
     assert actions.compare_with_gt('05_01_10_before_aienhance.png', compare_path=x_path, gt_folder=TD.GT_FOLDER)[0]
@@ -57,13 +57,13 @@ def test_00022_main_05_01_10(actions: DriverActions):
         actions.wait_for_invisible(AppiumBy.NAME, 'Enhancing')
     if (not actions.try_tap_any([(AppiumBy.ACCESSIBILITY_ID, 'btn_ok_n'), (AppiumBy.NAME, 'btnDone'), (AppiumBy.NAME, 'btn ok n'), (AppiumBy.ACCESSIBILITY_ID, 'doneButton')])):
         assert False  # legacy raise
-    if actions.is_element_present(AppiumBy.NAME, 'Start 7-Day Free Trial', timeout=1):
+    if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'Continue', timeout=1):
         pass
     else:
         assert False  # legacy raise
     if (not actions.try_tap(AppiumBy.ACCESSIBILITY_ID, 'btnClose')):
         assert False  # legacy raise
-    if (not actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnCancel')):
+    if (not actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btn_cancel_n')):
         assert False  # legacy raise
     with step("[Verify] test_00022 completion"):
         assert True

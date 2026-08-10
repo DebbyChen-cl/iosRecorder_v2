@@ -33,6 +33,7 @@ style.css    → BEM-like class naming
 
 New verify endpoint used by the UI:
 - `POST /api/record/verify_tap_screenshot_diff` — one-shot verify flow that captures a target region before and after a tap action with a user-defined wait.
+- `POST /api/record/wait_until_not_show` — records a wait-until-gone step for the picked element, with `appear_timeout` and `disappear_timeout` seconds.
 
 ## Gesture Sidebar
 
@@ -84,6 +85,34 @@ The `<canvas>` element overlays the device screen image.
 	- wait seconds after tap (default `2.0`)
 	- expected result (`same` or `different`)
 - On confirm, UI sends one payload to `POST /api/record/verify_tap_screenshot_diff` with both selectors and coordinates.
+
+## Verify Wait-Until-Not-Show Flow
+
+- Verify mode `wait_until_not_show` picks the element **while it is still on screen** (progress bar, spinner, toast) — no PROCESS phase, unlike `not_visible`.
+- After the pick, `#verifyWaitGoneModal` collects the two independently-counted timeouts:
+	- appear timeout in seconds (default `5`) — fails the step if the element never shows up
+	- disappear timeout in seconds (default `1200`, i.e. 20 min) — fails the step if it is still shown
+- On confirm, the UI **awaits** `POST /api/record/wait_until_not_show` with the pre-resolved selector plus both timeouts, then refreshes the step list. This one verify deliberately bypasses the WebSocket: it drives no gesture, and a `ws.send()` is fire-and-forget — a stale socket would drop the step with no feedback. (The backend still accepts a `wait_until_not_show` WebSocket message for CLI/other clients.)
+- The Verify sidebar stays at **3 rows**: `Visible | Not Visible | Wait Not Show`, then `Text Value | Compare with GT | Preview Compare`, then `Play Preview Compare`.
+
+## Client-Side Hit-Test (hover highlight)
+
+`_clientHitTest(dx, dy)` resolves the hovered element synchronously from the cached
+`_treeElements` list (post-order, children before parents) so the yellow highlight box
+does not need a round-trip. Smallest real-rect area wins.
+
+`HIT_SLOP = 14.0` (device points) and `_hitRect(r)` mirror the same names in
+`app/hittest.py`: an element shorter than 14 pt on one axis (1 pt separators, compare
+bars, slider tracks) gets its **hit region** grown to 14 pt around its centre, otherwise
+it can never be hovered or recorded. A hit that only lands inside the grown region loses
+to an exact hit of the same area. The highlight box is always drawn from the **real**
+rect, never the grown one. **Keep `HIT_SLOP` in sync with `app/hittest.py`** — if the two
+disagree, the box highlights one element while the backend records another.
+
+`setBboxRectAttrs()` grows the drawn outline to `MIN_BBOX_PX = 4` display px on any axis
+thinner than that, centred on the real rect. A 1 pt bar scales to well under one pixel,
+so without this the element is picked but the user sees no outline at all and assumes the
+hit-test failed. The grown outline is purely visual — reported bounds stay untouched.
 
 ## CSS Rules
 

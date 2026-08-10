@@ -53,32 +53,60 @@ When `RECORDER_XPATH_ONLY=1` (enabled by `bash start.sh --xpath`):
 
 `hit_test_for_swipe(x, y, root)` returns the best **swipe container** at `(x, y)`. Uses a different scorer than `hit_test`: interactive elements first → penalise `GENERIC_CONTAINER_TAGS` (`XCUIElementTypeOther`, `XCUIElementTypeApplication`, `XCUIElementTypeWindow`, `XCUIElementTypeView`) → smallest area. This avoids selecting a nameless canvas leaf or a root application wrapper when the real target is a specific element like `XCUIElementTypeImage`. Used in `main.py::_record_move` when `action == "swipe"`.
 
-`find_scroll_container(x, y, root)` returns the **innermost scrollable element** that contains `(x, y)` — used during scroll recording to identify which view to scroll within. Detection order: (1) standard scrollable tags — `XCUIElementTypeScrollView`, `XCUIElementTypeCollectionView`, `XCUIElementTypeTable`, `XCUIElementTypeWebView`, `XCUIElementTypeTextView`; (2) fallback: any element with `scrollable="true"` attribute (WDA exposes this for non-standard scroll views such as `XCUIElementTypeOther` wrappers). Returns `None` if no scrollable container found at the coordinate.
+`find_scroll_container(x, y, root, target=None)` returns the scrollable container an action should be scoped to. Two modes:
+
+- **Ancestor mode** (`target` given — element actions such as tap / long press): walks the **target's ancestor chain** and returns the innermost scrollable ancestor. Detection order within the chain: (1) standard scrollable tags — `XCUIElementTypeScrollView`, `XCUIElementTypeCollectionView`, `XCUIElementTypeTable`, `XCUIElementTypeWebView`, `XCUIElementTypeTextView`; (2) fallback: any ancestor with `scrollable="true"` (WDA exposes this for non-standard scroll views such as `XCUIElementTypeOther` wrappers). The target itself is excluded (`path[:-1]`). Returns `None` when no scrollable ancestor exists.
+- **Coordinate mode** (`target` omitted — scroll gestures, which act on the view under the finger): same two-step detection over every element at `(x, y)`, picking the smallest-area (innermost) match. Returns `None` if none found.
+
+**Never resolve an element action's container by coordinate.** Overlapping a scroll view's rect does not mean the element lives inside it — a button floating above a ScrollView, or a category strip driving a separate list, both overlap containers they are not part of. Attaching such a container makes the exported test scroll the wrong view, and `_find_with_scroll()` can never find the element (`NoSuchElementException: not found after 20 scrolls`).
+
+`should_attach_scroll_container(target, container, root)` is the final guard: the container must be a true ancestor of the target. Ancestor mode already guarantees this; the check exists for any caller still resolving a container by coordinate.
 
 `build_scroll_container_selector(el, root)` builds the most specific selector for a scroll container. In default mode, returns `accessibility id` or `name` when available; otherwise generates a **structural xpath** anchored on the deepest named ancestor — e.g. `//XCUIElementTypeOther[@name="photodirector.AddImageViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/...`. In xpath-only mode, it always returns xpath. Used in `main.py::_record_scroll` instead of the plain `build_selector` to handle containers that lack accessibility IDs.
 
 ### How Scoring Works
 
-**`_score()`** — used by `hit_test` (taps). Lower score = better. Tuple `(is_container, not_visible, is_generic_wrapper, -has_stable_id, -is_interactive, area, -has_id, has_children)`. Prefers:
+**`_score()`** — used by `hit_test` (taps). Lower score = better. Tuple `(is_container, not_visible, is_generic_wrapper, -has_stable_id, -is_interactive, is_slop_hit, area, not_really_visible, -has_id, has_children)`. Prefers:
 1. **Non-container** — `TAP_CONTAINER_TAGS` (`XCUIElementTypeCollectionView`, `ScrollView`, `Table`, `WebView`, `TextView`, `Application`, `Window`) are sorted last
-2. **Visible** — elements with `visible="false"` are penalized; prevents invisible overlays (e.g. hidden subscription dialogs) from winning over visible content due to smaller area
+2. **Visible** — elements with `visible="false"` are penalized; prevents invisible overlays (e.g. hidden subscription dialogs) from winning over visible content due to smaller area. Exception: candidates returned by `_visibility_exemptions()` are scored as visible — see **Occlusion exemption** below
 3. **Non-generic wrapper** — interactive elements preferred over `XCUIElementTypeOther` / `XCUIElementTypeView`
 4. **Stable-ID leaf** — `get_selector_quality()` returns `"id"` or `"id_eq_label"` **and** element has no children; containers with stable names (e.g. ViewController root views) do NOT get this bonus
 5. **Interactive** (buttons, links, text fields) — tiebreaker within same ID quality
-6. **Smallest bounding area** (most specific element)
-7. **Has any identifier** — over pure xpath fallback
-8. **Leaf node** preferred over elements with children
+6. **Exact rect hit** over a `HIT_SLOP`-only hit — see **Thin-element hit slop** below
+7. **Smallest bounding area** (most specific element)
+8. **Genuinely visible** over occlusion-exempt — breaks the tie when an exempted element and the overlay covering it share the *same rect* (e.g. a not-yet-loaded `thumbnailImageView` stacked exactly under the "Processing..." `processingLabel`); ranked after `area` so the ordinary occlusion cases, where the exempt element is the smaller one, are unaffected
+9. **Has any identifier** — over pure xpath fallback
+10. **Leaf node** preferred over elements with children
 
 Note: `XCUIElementTypeCell` is NOT in `INTERACTIVE_TAGS` — cells are containers, not leaf interactive elements.
+
+### Occlusion exemption (`_visibility_exemptions` / `_is_occluded_not_hidden`)
+
+WDA derives `visible` from an accessibility hit-test, not from what is rendered: an element drawn on screen still reports `visible="false"` whenever another accessibility element sits on top of it. `hit_test`, `hit_test_excluding` and `hit_test_drop_target` therefore call `_visibility_exemptions(candidates, root)` before scoring and pass the result into `_score`, which treats those elements as visible (including for the `has_stable_id` bonus).
+
+A hidden candidate is exempted only when some **later sibling** on its ancestor chain (later = drawn above) is simultaneously `visible="true"`, `accessible="true"`, a **leaf**, and fully covers the candidate's rect. The leaf requirement is the discriminator: a subtree that was genuinely dismissed or replaced is covered by a structural container *with children* (or by nothing at all), never by a bare accessible leaf. This is what keeps a replaced nav bar and Canva's dismissed subscription dialog penalized while letting a wait/progress view underneath a full-size `XCUIElementTypeImage` win. The parent map is built at most once per hit-test, and only when a candidate is actually invisible.
 
 **`_swipe_score()`** — used by `hit_test_for_swipe`. Prefers:
 1. **Interactive** elements
 2. **Non-generic tag** — penalises `GENERIC_CONTAINER_TAGS` (`XCUIElementTypeOther` etc.)
-3. **Smallest area** among remaining candidates
+3. **Exact rect hit** over a `HIT_SLOP`-only hit
+4. **Smallest area** among remaining candidates
 
-### `_collect(x, y, el)`
+### Thin-element hit slop (`HIT_SLOP` / `_hit_rect` / `_collect_hits`)
 
-Recursively finds ALL elements whose bounding rect contains `(x, y)`. Returns a flat list. `hit_test` then picks the highest-scored element from this list. `find_scroll_container` filters this list for scrollable types and picks the one with the smallest area (innermost).
+Separator lines, compare bars and slider tracks are routinely 1 pt on one axis — e.g. `barImageView` at `302x1`. A strict rect test only accepts `454 <= y <= 455`, which a pointer coordinate that went through display scaling essentially never satisfies, so such elements could not be recorded at all.
+
+`HIT_SLOP = 14.0` (device points) fixes that: `_hit_rect(r)` grows any axis shorter than `HIT_SLOP` to `HIT_SLOP`, centred on the original rect; axes already at or above the threshold — i.e. every normal element — are returned untouched. `_collect()` tests the grown rect and records elements matched *only* via the growth into its `slop_out` set; `_collect_hits(x, y, root)` returns `(candidates, slop_hits)`.
+
+**Only the hit region grows — `_score()` still computes `area` from the real rect**, and `slop_hits` is deprioritised at tuple position 6, so a slop-only hit never outranks an equally-qualified exact hit (a 1 pt divider hugging a button does not steal a tap on the button's edge) while still winning when nothing better is under the coordinate.
+
+Every hit-test entry point shares `_collect_hits()`: `hit_test`, `hit_test_for_swipe` (`_swipe_score` carries the same `is_slop_hit` term before `area`), `hit_test_excluding`, `hit_test_drop_target`, `hit_test_long_press_drag_source`. `find_scroll_container`'s coordinate mode keeps plain `_collect()` — scrollable containers exceed 14 pt on both axes, so `_hit_rect()` is the identity there.
+
+`static/app.js` mirrors the constant and the rule in `_hitRect()` / `_clientHitTest()` so the hover highlight matches what actually gets recorded. **Change `HIT_SLOP` in both files or the two will disagree.**
+
+### `_collect(x, y, el, out, slop_out=None)`
+
+Recursively finds ALL elements whose (slop-adjusted) bounding rect contains `(x, y)`. Returns a flat list; when `slop_out` is given, elements matched only via `HIT_SLOP` are added to it. `hit_test` then picks the highest-scored element from this list. `find_scroll_container` uses this list only in coordinate mode (scroll gestures), filtering it for scrollable types and picking the smallest area (innermost); in ancestor mode it walks `_find_path()` instead.
 
 ### `serialize(root)`
 

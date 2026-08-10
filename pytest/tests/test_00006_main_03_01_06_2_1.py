@@ -93,15 +93,21 @@ def test_00006_main_03_01_06_2_1(actions: DriverActions):
         with step('[Action] tap_add_screen_shot'):
             assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'imageIconView')
     with step('Select an image'):
-        with step('[Action] tap_phd_btn'):
+        with step('[Action] Tap Collections'):
             assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Collections')
-        with step('[Action] tap_phd_btn'):
+        with step('[Action] Tap Albums'):
             assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Albums')
         with step('[Action] tap_system_albums_kobe'):
             assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'kobe')
         with step('[Action] tap_photo_kobe'):
-            assert actions.tap_by_locator(AppiumBy.IOS_CLASS_CHAIN, '**/XCUIElementTypeImage[`name == "PXGGridLayout-Info"`][1]')
-        with step('[Action] tap_phd_btn'):
+            # PXG grid images are visible="false" (Photos framework draw layer, no Cell
+            # wrapper) — element.click() has no hit point there, so tap by coordinate.
+            assert actions.tap_within_element(
+                AppiumBy.IOS_CLASS_CHAIN,
+                '**/XCUIElementTypeImage[`name == "PXGGridLayout-Info"`][1]',
+                50, 50,
+            )
+        with step('[Action] tap add'):
             assert actions.tap_by_locator(AppiumBy.NAME, 'Add')
     with step('Verify attached image thumbnail is listed'):
         with step('[Action] verify_feedback_attached_image'):

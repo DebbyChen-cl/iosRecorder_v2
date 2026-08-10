@@ -13,11 +13,13 @@ PROMPT = "The train drive through"
 SOUND_INFO = "Generate audio from video and prompt"
 
 
-@pytest.mark.name("ai_image_to_video_kling_o3")
-def test_ai_image_to_video_kling_o3(actions: DriverActions):
+@pytest.mark.name("00202_ai_image_to_video_kling_o3")
+def test_00202_ai_image_to_video_kling_o3(actions: DriverActions):
     with step("[Action] Launch PhotoDirector"):
         actions.launch_app("com.cyberlink.photodirector")
     with step("[Action] Recover the launcher after an interrupted earlier run"):
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, "btnClose", timeout=2):
+            actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, "btnClose", 50.0, 50.0)
         if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, "btnAlbum", timeout=2):
             actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, "btnBack", 50.0, 50.0)
         if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, "Kling 2.6", timeout=2):
@@ -73,7 +75,12 @@ def test_ai_image_to_video_kling_o3(actions: DriverActions):
         actions.wait_for_visible(AppiumBy.ACCESSIBILITY_ID, "CMS-local_custom", timeout=30)
     with step(f"[Action] Open Custom and select {MODEL}"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, "CMS-local_custom", 50.0, 50.0)
-        actions.tap_by_coordinates(160, 230)
+        actions.tap_by_locator(
+            AppiumBy.XPATH,
+            '//XCUIElementTypeOther[@name="ImageToVideoCustomModelDetailViewController"]/'
+            'XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther[1]/'
+            'XCUIElementTypeOther/XCUIElementTypeButton',
+        )
         model_text = actions.scroll_to_element(
             AppiumBy.ACCESSIBILITY_ID, MODEL, direction="up"
         )
@@ -109,16 +116,18 @@ def test_ai_image_to_video_kling_o3(actions: DriverActions):
             AppiumBy.ACCESSIBILITY_ID, f"button_{SELECTED_DURATION}"
         ).get_attribute("value") == "1"
     with step("[Verify] Standard and Pro quality are listed and selectable"):
-        actions.tap_by_coordinates(47, 533)
+        actions.tap_within_element(
+            AppiumBy.ACCESSIBILITY_ID, "button_Standard", 50.0, 50.0
+        )
         assert actions.find_element(
             AppiumBy.ACCESSIBILITY_ID, "button_Standard"
         ).get_attribute("value") == "1"
-        actions.tap_by_coordinates(110, 533)
         pro_id = (
             "button_Pro"
             if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, "button_Pro", timeout=2)
             else "button_Professional"
         )
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, pro_id, 50.0, 50.0)
         assert actions.find_element(
             AppiumBy.ACCESSIBILITY_ID, pro_id
         ).get_attribute("value") == "1"
@@ -142,7 +151,12 @@ def test_ai_image_to_video_kling_o3(actions: DriverActions):
             assert sound.is_enabled()
             assert sound.get_attribute("value") == "1"
     with step("[Action] Show and dismiss the AI sound information bubble"):
-        actions.tap_by_coordinates(168, 574)
+        actions.tap_by_locator(
+            AppiumBy.XPATH,
+            '//XCUIElementTypeOther[@name="ImageToVideoCustomModelDetailViewController"]/'
+            'XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther[5]/'
+            'XCUIElementTypeButton[1]',
+        )
         info = f"//*[contains(@name, '{SOUND_INFO}') or contains(@label, '{SOUND_INFO}')]"
         actions.verify_visible(AppiumBy.XPATH, info)
         actions.tap_by_coordinates(30, 190)

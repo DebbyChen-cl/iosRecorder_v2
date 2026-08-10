@@ -24,9 +24,9 @@ def test_00075_main_05_07_10_2(actions: DriverActions):
     with step('[Action] select_photo'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'photoCell-1')
     with step('[Action] close_interstitial'):
-        actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnIAP')
-        actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnIAP')
-        actions.wait_for_invisible(AppiumBy.ACCESSIBILITY_ID, 'btnIAP')
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnIAP'):
+            actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnIAP')
+            actions.wait_for_invisible(AppiumBy.ACCESSIBILITY_ID, 'btnIAP')
     with step('[Action] scroll_and_tap_feature_tab'):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Edit')
     with step('[Action] scroll_and_tap_feature_tab'):

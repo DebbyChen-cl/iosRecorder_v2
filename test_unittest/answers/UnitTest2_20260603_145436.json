@@ -53,17 +53,6 @@
         "w": 28,
         "h": 19
       }
-    },
-    "scroll_container": {
-      "type": "xpath",
-      "value": "//XCUIElementTypeOther[@name=\"LauncherProViewController\"]/XCUIElementTypeScrollView",
-      "selector_quality": "xpath_only",
-      "bounds": {
-        "x": 0,
-        "y": 84,
-        "w": 320,
-        "h": 539
-      }
     }
   },
   "step_001_t3": {
@@ -143,17 +132,6 @@
         "y": 286,
         "w": 28,
         "h": 19
-      }
-    },
-    "scroll_container": {
-      "type": "xpath",
-      "value": "//XCUIElementTypeOther[@name=\"LauncherProViewController\"]/XCUIElementTypeScrollView",
-      "selector_quality": "xpath_only",
-      "bounds": {
-        "x": 0,
-        "y": 84,
-        "w": 320,
-        "h": 539
       }
     }
   },
