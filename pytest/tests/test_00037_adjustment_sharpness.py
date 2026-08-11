@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00037_adjustment_sharpness')
@@ -61,7 +61,7 @@ def test_00037_adjustment_sharpness(actions: DriverActions):
     actions.capture_for_gt('base05_03_04_sharpness_scr_min.png', crop_rect=(0, 60, 276, 526))
     with step('[Action] adjust_hdr_slider'):
         actions.set_slider(AppiumBy.CLASS_NAME, 'XCUIElementTypeSlider', 1)
-    if (not actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnCancel')):
+    if (not actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btn_cancel_n')):
         assert False  # legacy raise
     with step('[Verify] snapshot: 05_03_04_tap_x.png'):
         actions.capture_for_gt('05_03_04_tap_x.png', crop_rect=(0, 60, 276, 429))
@@ -69,6 +69,7 @@ def test_00037_adjustment_sharpness(actions: DriverActions):
         pass
     with step('[Action] tap_phd_btn'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Adjustments')
+        actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Details')
     with step('[Action] tap_phd_btn'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Sharpness')
     with step('[Action] adjust_hdr_slider'):

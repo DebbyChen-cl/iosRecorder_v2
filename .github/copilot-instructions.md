@@ -21,7 +21,8 @@ static/       Vanilla JS frontend
   style.css     Styling
 
 pytest/       Appium + pytest test framework
-  conftest.py   Fixtures: driver (session), actions (function), screenshot_on_failure (autouse)
+  conftest.py   Fixtures: driver (function), actions (function), screenshot_on_failure (autouse) + auto-healing hooks
+  auto_healing.py  Failure evidence, state.json, retry lane, Phase 2 agent trigger
   config.py     Device capabilities
   driver/driver_actions.py  All gesture/assertion helpers
   tests/        Generated test files (test_*.py)

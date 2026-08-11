@@ -5,8 +5,8 @@ from reportportal_client import step
 from driver.driver_actions import DriverActions
 
 
-@pytest.mark.name("ai_hairstyle_custom_text_prompt")
-def test_ai_hairstyle_custom_text_prompt(actions: DriverActions):
+@pytest.mark.name("00199_ai_hairstyle_custom_text_prompt")
+def test_00199_ai_hairstyle_custom_text_prompt(actions: DriverActions):
     with step("[Action] Launch PhotoDirector"):
         actions.launch_app("com.cyberlink.photodirector")
     with step("[Action] Recover launcher after an interrupted earlier run"):
@@ -22,6 +22,8 @@ def test_ai_hairstyle_custom_text_prompt(actions: DriverActions):
             )
         if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, "btnHome", timeout=2):
             actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, "btnHome", 50.0, 50.0)
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, "btnClose", timeout=2):
+            actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, "btnClose", 50.0, 50.0)
     with step("[Action] Tap 'AI Photos'"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, "btnStudio", 50.0, 50.0)
     with step("[Action] Tap 'AI Hairstyle'"):
@@ -53,7 +55,7 @@ def test_ai_hairstyle_custom_text_prompt(actions: DriverActions):
     with step("[Action] Select AT album"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, "_AT", 50.0, 50.0)
     with step("[Action] Select a single female photo"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, "photoCell-1", 50.0, 50.0)
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, "photoCell-2", 50.0, 50.0)
         actions.wait_for_visible(AppiumBy.ACCESSIBILITY_ID, "navDescriptionLabel", timeout=30)
     with step("[Action] Select 'Custom' style"):
         actions.tap_within_element(
@@ -65,14 +67,14 @@ def test_ai_hairstyle_custom_text_prompt(actions: DriverActions):
         )
     with step("[Action] Replace the style name with 'Custom style'"):
         actions.type_text_by_locator(
-            AppiumBy.CLASS_NAME,
-            "XCUIElementTypeTextField",
+            AppiumBy.ACCESSIBILITY_ID,
+            "textView",
             "Custom style",
             clear_first=True,
         )
     with step("[Verify] The style name can be modified"):
         assert actions.verify_text(
-            AppiumBy.CLASS_NAME, "XCUIElementTypeTextField", "Custom style"
+            AppiumBy.ACCESSIBILITY_ID, "textView", "Custom style"
         ) is not False
     with step("[Action] Input prompt 'aaaaaa'"):
         actions.type_text_by_locator(

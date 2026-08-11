@@ -7,13 +7,15 @@
 
 import logging
 import os
+import shutil
 import time
 from datetime import datetime
 
 import pytest
 from appium.webdriver.common.appiumby import AppiumBy
-from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
+from selenium.common.exceptions import WebDriverException
 
+import auto_healing
 import config
 from driver.driver_actions import DriverActions
 from driver.driver_setup import create_driver, quit_driver
@@ -26,12 +28,46 @@ _ALLOW_TIMEOUT_SEC = 10
 _POPUP_LOOP_MAX = 3
 
 
-def _tap_if_present(actions: DriverActions, by: str, value: str, timeout: int) -> bool:
-    """Tap an element when present within timeout; return True on tap."""
+_TAP_AFTER_DETECT_TIMEOUT_SEC = 3.0
+
+# Folder every screenshot capture (capture_for_gt / capture_for_preview) writes to.
+# Kept as the same relative path DriverActions uses, so both resolve against the
+# same working directory.
+_COMPARE_FOLDER = "pytest/screenshots/compare"
+
+
+def _clean_compare_folder(folder: str = _COMPARE_FOLDER) -> None:
+    """Delete everything inside the screenshot compare folder, keeping the folder."""
+    if not os.path.isdir(folder):
+        logger.info("Compare folder not found, nothing to clean: %s", folder)
+        return
+
+    removed = 0
+    for entry in os.listdir(folder):
+        path = os.path.join(folder, entry)
+        try:
+            if os.path.isdir(path) and not os.path.islink(path):
+                shutil.rmtree(path)
+            else:
+                os.remove(path)
+            removed += 1
+        except OSError as exc:
+            logger.warning("Failed to remove %s: %s", path, exc)
+
+    logger.info("Cleaned %d item(s) from %s", removed, folder)
+
+
+def _tap_if_present(actions: DriverActions, by: str, value: str, timeout: float) -> bool:
+    """Tap an element when present within timeout; return True on tap.
+
+    The detection timeout is deliberately short for popup sweeps, but the tap
+    that follows must not reuse it: a popup caught mid fade-in can move or be
+    re-created between the two lookups, and a 0.5 s re-find would silently fail.
+    """
     try:
         if not actions.is_element_present(by, value, timeout=timeout):
             return False
-        actions.tap_by_locator(by, value, timeout=timeout)
+        actions.tap_by_locator(by, value, timeout=max(timeout, _TAP_AFTER_DETECT_TIMEOUT_SEC))
         logger.info("Tapped element (%s, %r)", by, value)
         return True
     except Exception as exc:
@@ -98,8 +134,12 @@ def _close_crash_dialog(driver) -> bool:
         return False
 
 
-_POST_LAUNCH_POPUP_CHECK_TIMEOUT_SEC = 0.5
-_POST_LAUNCH_POPUP_LOOP_MAX = 2
+# 0.5 s is below WebDriverWait's poll interval, so it degrades into a single
+# one-shot query — a popup still fading in is missed outright. Keep it long
+# enough for a few polls, and sweep more rounds instead.
+_POST_LAUNCH_POPUP_CHECK_TIMEOUT_SEC = 2.0
+_POST_LAUNCH_POPUP_LOOP_MAX = 1
+_POST_LAUNCH_POPUP_LOOP_GAP_SEC = 1.0
 
 
 def _case_continue_edit(actions: DriverActions) -> bool:
@@ -199,15 +239,36 @@ _POST_LAUNCH_POPUP_CASES = [
 
 
 def _close_all_pop_dialog_when_launch(actions: DriverActions) -> bool:
-    """Close whichever post-launch popup (continue-edit / IAP / banner / interstitial) appears."""
+    """Close whichever post-launch popup (continue-edit / IAP / banner / interstitial) appears.
+
+    Popups can chain (IAP closes, an interstitial takes its place), so every
+    round runs all cases instead of stopping at the first hit, and the rounds
+    are spaced out to give the next dialog time to animate in.
+    """
+    closed_any = False
     for i in range(_POST_LAUNCH_POPUP_LOOP_MAX):
-        logger.info("Doing for %d times checking", i + 1)
-        _case_continue_edit(actions)
+        logger.info("Popup sweep %d/%d", i + 1, _POST_LAUNCH_POPUP_LOOP_MAX)
+        if _case_continue_edit(actions):
+            closed_any = True
         for case in _POST_LAUNCH_POPUP_CASES:
             if case(actions):
-                return True
+                logger.info("When Launch Executed for case %s", case.__name__)
+                closed_any = True
+        time.sleep(_POST_LAUNCH_POPUP_LOOP_GAP_SEC)
 
-    return False
+    return closed_any
+
+def _allow_screenshot(actions: DriverActions) -> bool:
+    actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnSettings', 66.7, 47.1)
+    actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'About', 64.7, 69.6, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="photodirector.SettingPageViewController"]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeCollectionView', container_w=430, container_h=592)
+    actions.five_tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'developerButton', 59.2, 46.0)
+    actions.tap_within_element(AppiumBy.XPATH, '(//XCUIElementTypeSwitch[@value="0"])[6]', 47.6, 48.3, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeApplication[@name="PhotoDirector"]/XCUIElementTypeWindow[1]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeScrollView', container_w=430, container_h=932)
+    actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'chevron.left', 65.0, 58.3)
+    actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnBack', 64.3, 46.8)
+    actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnBack', 53.6, 51.1)
+
+    return True
+
 
 
 def _handle_ios_permission_alerts(actions: DriverActions) -> None:
@@ -239,6 +300,12 @@ def _session_setup_flow(actions: DriverActions, bundle_id: str) -> None:
     logger.info("=== SESSION PREP: iOS permission alerts ===")
     _handle_ios_permission_alerts(actions)
 
+    logger.info("=== SESSION PREP: close post-launch popup ===")
+    _close_all_pop_dialog_when_launch(actions)
+
+    logger.info('=== SESSION PREP: Allow screenshot')
+    _allow_screenshot(actions)
+
 
 # ──────────────────────────────────────────────────────────────
 # Function-scoped driver (fresh Appium/WDA session per test)
@@ -258,8 +325,13 @@ def driver():
     """
     global _session_first_run
 
+    logger.info("=== Test Reset: Clean up compare folder ===")
+    _clean_compare_folder()
+
     logger.info("=== TEST SETUP: creating fresh Appium driver ===")
     _driver = create_driver()
+    # Publish the live session so auto-healing can grab failure evidence.
+    auto_healing.set_active_driver(_driver)
 
     bundle_id = getattr(config, "TARGET_BUNDLE_ID", "") or config.IOS_CAPABILITIES.get("appium:bundleId", "")
 
@@ -275,6 +347,7 @@ def driver():
             _driver.activate_app(bundle_id)
             time.sleep(1)
             _close_all_pop_dialog_when_launch(DriverActions(_driver))
+            
     else:
         logger.warning("Bundle ID is empty; skip app setup flow")
 
@@ -287,6 +360,7 @@ def driver():
         except Exception as exc:
             logger.warning("terminate_app failed: %s", exc)
     quit_driver(_driver)
+    auto_healing.set_active_driver(None)
 
 
 # ──────────────────────────────────────────────────────────────
@@ -344,20 +418,78 @@ def screenshot_on_failure(request, driver):
 def pytest_runtest_makereport(item, call):
     """
     Expose the test outcome on ``request.node.rep_call`` so that the
-    ``screenshot_on_failure`` fixture can read it.
+    ``screenshot_on_failure`` fixture can read it, and collect auto-healing
+    failure evidence while the Appium session is still alive.
     """
     outcome = yield
     rep = outcome.get_result()
     setattr(item, f"rep_{rep.when}", rep)
-    if (
-        rep.when == "call"
-        and rep.failed
-        and call.excinfo is not None
-        and isinstance(call.excinfo.value, (TimeoutException, NoSuchElementException))
-    ):
-        item.session.shouldstop = (
-            f"Element not found during {item.nodeid}; stopping pytest"
-        )
+
+    if not auto_healing.ENABLED or not auto_healing.is_own_item(item):
+        return
+
+    if rep.failed and rep.when in ("setup", "call", "teardown"):
+        try:
+            auto_healing.collect_failure_evidence(item, rep, call)
+        except Exception as exc:
+            logger.warning("Failure evidence collection failed: %s", exc)
+    if rep.when == "teardown":
+        auto_healing.cleanup_passed_evidence(item)
+
+
+# ──────────────────────────────────────────────────────────────
+# Auto-Healing hooks  (implementation lives in auto_healing.py)
+# ──────────────────────────────────────────────────────────────
+
+# NOTE: the parameter must stay named `config` — pluggy matches hook arguments
+# by name. It shadows the imported `config` module inside these two functions
+# only; module-level users of `config` (the driver fixture) are unaffected.
+
+def pytest_configure(config):
+    """Record session start time and initialise the run's state.json."""
+    auto_healing.configure(config)
+
+
+def pytest_collection_modifyitems(config, items):
+    """Bootstrap stable case ids; mark/skip items for agent-driven replay runs."""
+    auto_healing.collection_modifyitems(config, items)
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_protocol(item, nextitem):
+    """Immediate-retry protocol for crash/network failures (Lane A)."""
+    return auto_healing.runtest_protocol(item, nextitem)
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """Finalise state.json and hand deferred cases to the Phase 2 agent."""
+    auto_healing.sessionfinish(session, exitstatus)
+
+
+@pytest.fixture(autouse=True)
+def _log_auto_healing_context():
+    """Log the healing agent's current root_cause/patch summary onto this
+    replay attempt's RP test item — the item closes when the test finishes,
+    so this has to happen live, not after result.json is written."""
+    if auto_healing.IS_REPLAY:
+        context = os.environ.get("AUTO_HEALING_CONTEXT")
+        if context:
+            logger.info("[Auto-Healing] Context for this replay attempt:\n%s", context)
+    yield
+
+
+@pytest.fixture(autouse=True)
+def _failure_evidence_workspace(request):
+    """Provide one evidence folder path per test; keep it only when the test fails."""
+    if not auto_healing.ENABLED or not auto_healing.is_own_item(request.node):
+        yield
+        return
+
+    test_name = getattr(request.node, "originalname", request.node.name)
+    evidence_dir = auto_healing.new_evidence_dir(test_name)
+    request.node._failure_evidence_dir = evidence_dir
+    request.node._failure_evidence_rel_dir = os.path.relpath(evidence_dir, auto_healing.PROJECT_ROOT)
+    yield
 
 
 # ──────────────────────────────────────────────────────────────

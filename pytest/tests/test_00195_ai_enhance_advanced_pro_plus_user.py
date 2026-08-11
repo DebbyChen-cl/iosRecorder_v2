@@ -5,8 +5,8 @@ from reportportal_client import step
 from driver.driver_actions import DriverActions
 
 
-@pytest.mark.name("ai_enhance_advanced_pro_plus_user")
-def test_ai_enhance_advanced_pro_plus_user(actions: DriverActions):
+@pytest.mark.name("00195_ai_enhance_advanced_pro_plus_user")
+def test_00195_ai_enhance_advanced_pro_plus_user(actions: DriverActions):
     with step("[Action] Launch PhotoDirector"):
         actions.launch_app("com.cyberlink.photodirector")
     if not actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, "btnSettings", timeout=3):
@@ -47,7 +47,7 @@ def test_ai_enhance_advanced_pro_plus_user(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, "btnBack", 47.6, 51.4)
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, "btnBack", 47.6, 51.4)
     with step("[Action] Tap 'Edit'"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, "Launcher_main_edit", 51.9, 52.0)
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, "Edit", 51.9, 52.0)
     with step("[Action] Expand album list"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, "btnAlbum", 50.0, 50.0)
     with step("[Action] Select 'Sample Photos'"):
@@ -112,7 +112,7 @@ def test_ai_enhance_advanced_pro_plus_user(actions: DriverActions):
             "infoLabel",
             "Maximize detail and clarity with advanced AI.",
         ) is not False
-        assert actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, "-5")
+        assert actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, "5")
     with step("[Action] Tap 'Enhance'"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, "Enhance", 50.0, 50.0)
     with step("[Verify] Show processing UI"):

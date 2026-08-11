@@ -11,12 +11,64 @@ APPIUM_SERVER_URL = "http://localhost:4723"
 # (system alerts overlaying the AUT are accessible through it in XCUITest).
 TARGET_BUNDLE_ID = "com.cyberlink.photodirector"
 
+# ─── Auto-Healing ────────────────────────────────────────────
+# Master switch for pytest/auto_healing.py: failure evidence, state.json,
+# the immediate-retry lane, and handing deferred cases to the Phase 2 agent.
+# Set False to run pytest with no auto-healing side effects at all.
+AUTO_HEALING_ENABLED = False
+
+# After Phase 2, let the healing agent commit its patches to a new
+# '<branch>_YYMMDD_hhmmss' branch and push it.
+# WARNING: the agent stages the ENTIRE working tree (git add -A), so any
+# unrelated work-in-progress is committed and pushed along with the patches,
+# and the repo is left checked out on the new branch. Set False to review the
+# patches yourself before committing.
+AUTO_HEALING_CREATE_BRANCH = False
+
+# Both settings are overridable per run by the environment variables
+# AUTO_HEALING=0 / AUTO_HEALING_CREATE_BRANCH=0.
+
+# ─── Numeric text tolerance (verify_text) ────────────────────────────
+# Element id → how far the number in its text may differ from the recorded one.
+#
+# 'valueLabel' is the readout of the app's sliders. A recorded slider drag stores
+# a finger coordinate, and on these controls one unit of slider travel is well
+# under a logical point — replaying the same coordinate lands within a unit or two
+# of the value that was recorded (measured on device: the same end coordinate gave
+# 50, 51 and 52 depending on where the press landed on the thumb). An exact string
+# compare therefore fails at random even when the drag worked perfectly.
+#
+# Only the ids listed here are compared numerically; every other verify_text stays
+# an exact string match. A test can override per instance with
+# `actions.text_numeric_tolerance = {...}`, or per call with
+# `actions.verify_text(..., tolerance=N)`.
+#
+# 3 is measured, not guessed: the 14 slider verifies of
+# test_00015_main_04_01_05 came in at 0 (×9), 1 (×3) and 2 (×2) off the recorded
+# value, so the ceiling is the observed maximum plus one unit of margin. It still
+# catches every failure mode that matters — a slider that never moved reads 0
+# against an expected 50, and a wrong-direction or half-way drag is far outside 3.
+TEXT_NUMERIC_TOLERANCE = {
+    "valueLabel": 3,
+}
+
+# ─── Slider thumb size (points) ──────────────────────────────────────
+# Used to place the press point on a slider's thumb, since XCUITest does not
+# publish the thumb as its own element. The app's sliders track the finger
+# *relative to where it grabbed*, so a press that is off-centre biases the
+# result — 4 pt of offset was measured as ~1.5 units of value error.
+#
+# Measured on this app: value = value_at_press + (end_x - press_x) / 2.70 on a
+# 310 pt control, i.e. 270 pt of travel, i.e. a 40 pt thumb (iOS's own default is
+# 31.5 pt). Raise or lower only with the same kind of measurement behind it.
+SLIDER_THUMB_SIZE = 40.0
+
 IOS_CAPABILITIES = {
     "platformName": "iOS",
     "appium:automationName": "XCUITest",
     # ------ Physical device identifiers ------
-    "appium:udid": "00008020-001E49603CE9002E",          # e.g. "00008101-001234AB3456001E"
-    "appium:deviceName": "Amber 的 iPhone",    # e.g. "John's iPhone 15"
+    "appium:udid": "00008130-000A750C36F0001C",          # e.g. "00008101-001234AB3456001E"
+    "appium:deviceName": "QADM_DST2311025_iPhine15ProMax",    # e.g. "John's iPhone 15"
     # ------ App ------
     "appium:bundleId": "com.cyberlink.photodirector",
     # "appium:app": "/path/to/your.ipa",        # or install from .ipa

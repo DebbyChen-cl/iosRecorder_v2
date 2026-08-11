@@ -5,12 +5,15 @@ from reportportal_client import step
 from driver.driver_actions import DriverActions
 
 
-@pytest.mark.name("ai_enhance_standard")
-def test_ai_enhance_standard(actions: DriverActions):
+@pytest.mark.name("00197_ai_enhance_standard")
+def test_00197_ai_enhance_standard(actions: DriverActions):
     with step("[Action] Launch PhotoDirector"):
         actions.launch_app('com.cyberlink.photodirector')
+    with step("[Action] Close subscription offer"):
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=2):
+            actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnClose')
     with step("[Action] Tap 'Edit'"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Launcher_main_edit', 51.9, 52.0, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="LauncherProViewController"]/XCUIElementTypeScrollView', container_w=320, container_h=623)
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Edit', 51.9, 52.0, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="LauncherProViewController"]/XCUIElementTypeScrollView', container_w=320, container_h=623)
     with step("[Action] Expand album list"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum', 50.0, 50.0)
     with step("[Action] Select 'Sample Photos'"):

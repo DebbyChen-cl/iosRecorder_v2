@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00032_move')

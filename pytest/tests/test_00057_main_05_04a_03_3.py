@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00057_main_05_04a_03_3')
@@ -11,13 +11,13 @@ def test_00057_main_05_04a_03_3(actions: DriverActions):
     """mosaic - style"""
     uuid = ['3eaea7ec-3eb9-4116-bca0-471a98bb4254', '76078378-1c50-41b8-a538-7fc84b785181', 'ffe0ffc7-4afe-49a5-ab8a-aeffe4b46e94', 'be5054fb-bb84-4601-bfeb-37af92aa7b17', '2dbc1a78-51bd-46bc-a1af-37fae3061aa6', '5763f4bf-56a9-4ff5-a7a8-30cc030578dd', 'e458a2ed-16bd-4eb8-b8b7-3469ddd7a64b', 'f0a388b7-72c5-4c58-b628-38d0d0cc3815', '288e850b-9ba2-42bf-b0ed-d8c8e0f8c2e5']
     with step('[Action] close_continue_edit'):
-        actions.is_element_present(AppiumBy.NAME, 'Would you like to continue editing?')
-        actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Cancel')
-        actions.wait_for_invisible(AppiumBy.NAME, 'Would you like to continue editing?')
+        if actions.is_element_present(AppiumBy.NAME, 'Would you like to continue editing?'):
+            actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Cancel')
+            actions.wait_for_invisible(AppiumBy.NAME, 'Would you like to continue editing?')
         actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'closeButton')
         actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'navCloseButton')
     with step('[Action] tap_editphoto'):
-        actions.tap_by_locator(AppiumBy.NAME, 'Edit Photo')
+        actions.tap_by_locator(AppiumBy.NAME, 'Edit')
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
     with step('[Action] select_category'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '_AT')
@@ -30,6 +30,11 @@ def test_00057_main_05_04a_03_3(actions: DriverActions):
     with step('[Action] scroll_and_tap_feature_tab'):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Edit')
     with step('[Action] scroll_and_tap_feature_tab'):
+        assert actions.swipe_on_element(
+            AppiumBy.ACCESSIBILITY_ID,
+            'EditViewControllerBottomBarCollectionView',
+            'left',
+        )
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Mosaic')
     with step('[Action] tap_phd_element'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Person')

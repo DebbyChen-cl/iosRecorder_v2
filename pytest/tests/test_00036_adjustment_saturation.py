@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00036_adjustment_saturation')
@@ -70,7 +70,7 @@ def test_00036_adjustment_saturation(actions: DriverActions):
     with step('[Action] brush_surrealart'):
         actions.drag_coordinates(207, 670, 207, 100)
     actions.capture_for_gt('base05_03_03_saturation_up.png', crop_rect=(0, 60, 276, 526))
-    if (not actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnCancel')):
+    if (not actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btn_cancel_n')):
         assert False  # legacy raise
     with step('[Verify] snapshot: 05_03_03_tap_x.png'):
         actions.capture_for_gt('05_03_03_tap_x.png', crop_rect=(0, 60, 276, 429))
@@ -79,6 +79,7 @@ def test_00036_adjustment_saturation(actions: DriverActions):
     with step('[Action] tap_phd_btn'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Adjustments')
     with step('[Action] tap_phd_btn'):
+        actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Color')
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Saturation')
     with step('[Action] adjust_hdr_slider'):
         actions.set_slider(AppiumBy.CLASS_NAME, 'XCUIElementTypeSlider', 1)

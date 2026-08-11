@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00003_main_03_01_06_0')
@@ -15,6 +15,13 @@ def test_00003_main_03_01_06_0(actions: DriverActions):
             if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=2):
                 actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnClose')
     with step('Enter setting page'):
+        with step('[Action] allow_microphone_permission'):
+            if actions.is_element_present(
+                AppiumBy.NAME,
+                '“PhotoDirector” would like to access the Microphone.',
+                timeout=2,
+            ):
+                assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Allow')
         with step('[Action] tap_phd_btn'):
             assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnSettings')
         with step('[Action] verify_settings_page'):
@@ -36,8 +43,9 @@ def test_00003_main_03_01_06_0(actions: DriverActions):
     with step('Open debug setting and enable snapshot'):
         with step('Open debug setting'):
             with step('[Action] open_debug_setting'):
-                for _ in range(5):
-                    actions.tap_by_coordinates(60, 165)
+                actions.five_tap_within_element(
+                    AppiumBy.ACCESSIBILITY_ID, 'developerButton', 85.7, 72.0
+                )
                 assert actions.is_element_present(AppiumBy.NAME, 'Develop Info')
         with step('Enable snapshot'):
             with step('[Action] force_allow_screenshot_on'):

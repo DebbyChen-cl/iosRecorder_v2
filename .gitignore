@@ -4,6 +4,8 @@ export/
 log/
 pytest/screenshot/
 pytest/screenshots/
+pytest/Self-healing/
+Self-healing/
 pytest/tests/notuse
 test_unittest/answer/20260609_Ver/
 test_unittest/answers/20260609_Ver/

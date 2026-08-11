@@ -5,8 +5,8 @@ from reportportal_client import step
 from driver.driver_actions import DriverActions
 
 
-@pytest.mark.name("ai_hairstyle_custom_refer_photo")
-def test_ai_hairstyle_custom_refer_photo(actions: DriverActions):
+@pytest.mark.name("00198_ai_hairstyle_custom_refer_photo")
+def test_00198_ai_hairstyle_custom_refer_photo(actions: DriverActions):
     with step("[Action] Launch PhotoDirector"):
         actions.launch_app("com.cyberlink.photodirector")
     with step("[Action] Recover launcher after an interrupted earlier run"):

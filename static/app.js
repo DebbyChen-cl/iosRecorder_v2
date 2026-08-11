@@ -92,6 +92,12 @@ const verifyTapDiffClose    = document.getElementById("verifyTapDiffClose");
 const verifyTapDiffCancel   = document.getElementById("verifyTapDiffCancel");
 const verifyTapDiffConfirm  = document.getElementById("verifyTapDiffConfirm");
 const verifyTapDiffWait     = document.getElementById("verifyTapDiffWait");
+const verifyWaitGoneModal      = document.getElementById("verifyWaitGoneModal");
+const verifyWaitGoneClose      = document.getElementById("verifyWaitGoneClose");
+const verifyWaitGoneCancel     = document.getElementById("verifyWaitGoneCancel");
+const verifyWaitGoneConfirm    = document.getElementById("verifyWaitGoneConfirm");
+const verifyWaitGoneAppear     = document.getElementById("verifyWaitGoneAppear");
+const verifyWaitGoneDisappear  = document.getElementById("verifyWaitGoneDisappear");
 const hoverBboxRect         = document.getElementById("hoverBboxRect");
 const hoverLoadingMark      = document.getElementById("hoverLoadingMark");
 const hoverLoadingH         = document.getElementById("hoverLoadingH");
@@ -1161,6 +1167,7 @@ function exitVerifyMode() {
   verifyTarget = null;
   _tapScreenshotDiffCtx = null;
   if (verifyTapDiffModal) verifyTapDiffModal.style.display = "none";
+  if (verifyWaitGoneModal) verifyWaitGoneModal.style.display = "none";
   verifyBtns.forEach(b => b.classList.remove("active"));
   if (_screenshotDiffCtx !== null) {
     // Restore PROCESS state for ongoing screenshot_diff
@@ -1184,6 +1191,7 @@ const MODE_LABELS = {
   screenshot_gt:    "📸 COMPARE WITH GT",
   screenshot_diff:  "🔀 PREVIEW COMPARE",
   tap_screenshot_diff: "▶️ PLAY PREVIEW COMPARE",
+  wait_until_not_show: "⏳ WAIT UNTIL NOT SHOW",
 };
 
 function showVerifyPhaseLabel(phase, mode) {
@@ -1412,14 +1420,24 @@ function applyVisibleBbox(bounds) {
   });
 }
 
+// A 1 pt separator / compare bar scales down to well under one display pixel,
+// so its outline would be invisible and the user cannot tell the element was
+// picked at all. Grow the *outline* to this many display px, centred on the
+// real rect — the reported bounds are untouched.
+const MIN_BBOX_PX = 4;
+
 function setBboxRectAttrs(rectEl, bounds) {
   const r  = clickLayer.getBoundingClientRect();
   const sx = r.width  / deviceW;
   const sy = r.height / deviceH;
-  rectEl.setAttribute("x",          bounds.x * sx);
-  rectEl.setAttribute("y",          bounds.y * sy);
-  rectEl.setAttribute("width",      bounds.w * sx);
-  rectEl.setAttribute("height",     bounds.h * sy);
+  let bx = bounds.x * sx, by = bounds.y * sy;
+  let bw = bounds.w * sx, bh = bounds.h * sy;
+  if (bw < MIN_BBOX_PX) { bx -= (MIN_BBOX_PX - bw) / 2; bw = MIN_BBOX_PX; }
+  if (bh < MIN_BBOX_PX) { by -= (MIN_BBOX_PX - bh) / 2; bh = MIN_BBOX_PX; }
+  rectEl.setAttribute("x",          bx);
+  rectEl.setAttribute("y",          by);
+  rectEl.setAttribute("width",      bw);
+  rectEl.setAttribute("height",     bh);
   rectEl.setAttribute("visibility", "visible");
 }
 
@@ -1481,18 +1499,37 @@ clickLayer.addEventListener("pointerleave", clearHoverHighlight);
 let _hoverBboxTimer = null;
 let _hoverBboxLast  = null; // "x,y" to skip identical positions
 
-// Client-side hit-test: smallest bounding area wins.
+// Minimum hit-test extent in device points — mirrors HIT_SLOP in app/hittest.py.
+// A 1 pt separator / compare bar (e.g. barImageView) can never be hit by an
+// exact rect test once display scaling is applied, so the hit region is grown
+// while the highlight box still uses the real rect.
+const HIT_SLOP = 14.0;
+
+function _hitRect(r) {
+  let { x, y, w, h } = r;
+  if (w < HIT_SLOP) { x -= (HIT_SLOP - w) / 2; w = HIT_SLOP; }
+  if (h < HIT_SLOP) { y -= (HIT_SLOP - h) / 2; h = HIT_SLOP; }
+  return { x, y, w, h };
+}
+
+// Client-side hit-test: smallest bounding area wins; a HIT_SLOP-only hit loses
+// to an exact hit of the same area.
 // _treeElements is in post-order (children before parents), so on equal area
 // the child is already `best` and the strict < never replaces it with the parent.
 function _clientHitTest(dx, dy) {
-  const candidates = _treeElements.filter(el => {
+  let best = null, bestArea = Infinity, bestSlop = true;
+  for (const el of _treeElements) {
     const r = el.rect;
-    return r && dx >= r.x && dx <= r.x + r.w && dy >= r.y && dy <= r.y + r.h;
-  });
-  if (!candidates.length) return null;
-  return candidates.reduce((best, el) =>
-    el.rect.w * el.rect.h < best.rect.w * best.rect.h ? el : best
-  );
+    if (!r) continue;
+    const h = _hitRect(r);
+    if (dx < h.x || dx > h.x + h.w || dy < h.y || dy > h.y + h.h) continue;
+    const slop = !(dx >= r.x && dx <= r.x + r.w && dy >= r.y && dy <= r.y + r.h);
+    const area = r.w * r.h;
+    if (area < bestArea || (area === bestArea && bestSlop && !slop)) {
+      best = el; bestArea = area; bestSlop = slop;
+    }
+  }
+  return best;
 }
 
 function hoverVerifyBbox(fx, fy) {
@@ -1567,6 +1604,11 @@ async function handleVerifyTargetPick(fx, fy) {
       verifyPhase = 1;
       showVerifyPhaseLabel("PROCESS");
       showVerifyDoneBtn("not_visible");
+      break;
+
+    case "wait_until_not_show":
+      // Element is on screen now — collect the two timeouts, then record
+      openVerifyWaitGoneDialog();
       break;
 
     case "get_text":
@@ -1664,6 +1706,7 @@ function sendVerify(type, data) {
       verify_screenshot_gt:  "/api/record/verify_screenshot_gt",
       verify_screenshot_diff:"/api/record/verify_screenshot_diff",
       verify_tap_screenshot_diff:"/api/record/verify_tap_screenshot_diff",
+      wait_until_not_show:   "/api/record/wait_until_not_show",
     };
     if (epMap[type]) api("POST", epMap[type], data);
   }
@@ -1731,6 +1774,62 @@ verifyTapDiffConfirm.addEventListener("click", () => {
   });
   verifyTapDiffModal.style.display = "none";
   exitVerifyMode();
+});
+
+// ── Verify: Wait Until Not Show dialog ─────────────────────────────────────
+function openVerifyWaitGoneDialog() {
+  if (!verifyTarget) { exitVerifyMode(); return; }
+  verifyWaitGoneAppear.value    = "5";
+  verifyWaitGoneDisappear.value = "1200";
+  verifyWaitGoneModal.style.display = "flex";
+  verifyWaitGoneAppear.focus();
+  verifyWaitGoneAppear.select();
+}
+
+function closeVerifyWaitGoneDialog(cancelled = true) {
+  verifyWaitGoneModal.style.display = "none";
+  if (cancelled) exitVerifyMode();
+}
+
+function _waitGoneSeconds(input, fallback) {
+  const raw = Number.parseFloat(String(input.value || ""));
+  return Number.isFinite(raw) && raw >= 0 ? raw : fallback;
+}
+
+verifyWaitGoneClose.addEventListener("click", () => closeVerifyWaitGoneDialog(true));
+verifyWaitGoneCancel.addEventListener("click", () => closeVerifyWaitGoneDialog(true));
+verifyWaitGoneModal.addEventListener("click", e => { if (e.target === verifyWaitGoneModal) closeVerifyWaitGoneDialog(true); });
+[verifyWaitGoneAppear, verifyWaitGoneDisappear].forEach(inp => {
+  inp.addEventListener("keydown", e => {
+    if (e.key === "Enter")  { e.preventDefault(); verifyWaitGoneConfirm.click(); }
+    if (e.key === "Escape") closeVerifyWaitGoneDialog(true);
+  });
+});
+verifyWaitGoneConfirm.addEventListener("click", async () => {
+  if (!verifyTarget) { closeVerifyWaitGoneDialog(true); return; }
+  const payload = {
+    target_x: verifyTarget.x,
+    target_y: verifyTarget.y,
+    appear_timeout:    _waitGoneSeconds(verifyWaitGoneAppear, 5),
+    disappear_timeout: _waitGoneSeconds(verifyWaitGoneDisappear, 1200),
+    target_type:             verifyTarget.type,
+    target_value:            verifyTarget.value,
+    target_bounds:           verifyTarget.bounds,
+    target_selector_quality: verifyTarget.selector_quality,
+  };
+  const record = isRecording;
+  closeVerifyWaitGoneDialog(false);
+  exitVerifyMode();
+  if (!record) return;
+  // Sent over REST, not the WebSocket: this step drives no gesture, and a socket
+  // send is fire-and-forget — a stale connection would drop the step with no
+  // feedback at all.  Awaiting the POST means a failure is visible immediately.
+  try {
+    await api("POST", "/api/record/wait_until_not_show", payload);
+    await pollSteps();
+  } catch (err) {
+    alert(`Failed to record Wait Not Show: ${err.message ?? err}`);
+  }
 });
 
 // ── Verify: Get Text dialog ────────────────────────────────────────────────────
@@ -2300,6 +2399,13 @@ function renderSteps() {
       const t = s.target;
       cls = (t && t.type !== "coordinate") ? qualityClass(t) : "t-coord";
       typeStr = "assert not visible";
+      valStr = t && t.type !== "coordinate" ? `${t.type}: ${t.value}` : `(${s.coords?.x},${s.coords?.y})`;
+    } else if (s.action === "wait_until_not_show") {
+      const t = s.target;
+      cls = (t && t.type !== "coordinate") ? qualityClass(t) : "t-coord";
+      const appear    = Number.isFinite(Number(s.appear_timeout)) ? Number(s.appear_timeout) : 5;
+      const disappear = Number.isFinite(Number(s.disappear_timeout)) ? Number(s.disappear_timeout) : 1200;
+      typeStr = `wait until gone (${appear}s / ${disappear}s)`;
       valStr = t && t.type !== "coordinate" ? `${t.type}: ${t.value}` : `(${s.coords?.x},${s.coords?.y})`;
     } else if (s.action === "verify_get_text") {
       const t = s.target;

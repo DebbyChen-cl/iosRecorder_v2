@@ -19,10 +19,14 @@ import base64
 import urllib.request
 import urllib.parse
 from datetime import datetime
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 from appium.webdriver.common.appiumby import AppiumBy
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.common.exceptions import (
+    NoSuchElementException,
+    StaleElementReferenceException,
+    TimeoutException,
+)
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -46,6 +50,61 @@ logger = logging.getLogger(__name__)
 # Default timeouts (seconds)
 DEFAULT_WAIT   = 30
 DEFAULT_SCROLL_DURATION = 800  # ms
+
+# ── wait_until_not_show budgets ────────────────────────────────────────────
+# The two waits are counted separately: a short one to confirm the element
+# showed up at all, then a long one for the work behind it to finish.  A
+# progress/rendering indicator can legitimately stay on screen for minutes,
+# but if it never appears within seconds there is nothing to wait for.
+DEFAULT_NOT_SHOW_APPEAR_TIMEOUT    = 5      # element must show up within this
+DEFAULT_NOT_SHOW_DISAPPEAR_TIMEOUT = 1200   # 20 min for it to go away again
+DEFAULT_NOT_SHOW_POLL_INTERVAL     = 1.0    # gap between presence probes
+
+# ── Pre-action element readiness ───────────────────────────────────────────
+# A tap coordinate is only as good as the instant its rect was read.  The
+# hierarchy-stability check compares structural identity only (tree position +
+# tag + child count), so a panel that is still sliding or fading in looks
+# "stable" from its very first frame while its frame keeps moving — and iOS
+# swallows touches on views that are mid-animation anyway.  Before turning an
+# element into a coordinate we therefore wait until its rect stops moving and
+# it reports itself visible.
+DEFAULT_ELEMENT_SETTLE_INTERVAL = 0.15  # gap between two rect samples
+DEFAULT_ELEMENT_SETTLE_TIMEOUT  = 3.0   # give up and act anyway after this long
+# How many *consecutive* identical rect samples count as "stopped moving".
+# One matching pair is not enough: element.rect is rounded to whole points and
+# iOS animations ease in and out, so at the head or tail of a slide-in the frame
+# can move less than a point between two samples.  The element then looks parked
+# while it is about to accelerate — which is exactly how a drag ends up starting
+# from a coordinate the control has already left.
+DEFAULT_ELEMENT_SETTLE_SAMPLES  = 2
+
+# ── Slider grab geometry ───────────────────────────────────────────────────
+# A UISlider only reacts to a touch that lands on its **thumb**; a press on the
+# bare track is ignored outright.  A recorded drag therefore carries the thumb
+# position *at record time*, which is only valid while the slider still holds
+# the value it had then — otherwise playback presses empty track, the value does
+# not move at all, and the following verify reads the old value.  The thumb is
+# not published as its own element, so its size comes from
+# ``config.SLIDER_THUMB_SIZE``, capped at the control's own thickness.  Accuracy
+# matters: these sliders track the finger *relative to where it grabbed*, so a
+# press a few points off the thumb centre biases the resulting value — 4 pt was
+# measured as ~1.5 units on a 0–100 slider.
+SLIDER_TAG = "XCUIElementTypeSlider"
+DEFAULT_SLIDER_THUMB_SIZE = 32.0
+
+# ── Values read from config.py ─────────────────────────────────────────────
+# One edit there covers the whole suite instead of every generated call site.
+# Imported defensively: the AST/contract unit tests import this module without the
+# pytest/ config on the path, and a missing config must not break them.
+try:  # pragma: no cover - exercised on device, not in unit tests
+    import config as _device_config
+    _CONFIG_TEXT_TOLERANCE = dict(getattr(_device_config, "TEXT_NUMERIC_TOLERANCE", {}) or {})
+    _CONFIG_SLIDER_THUMB = float(
+        getattr(_device_config, "SLIDER_THUMB_SIZE", DEFAULT_SLIDER_THUMB_SIZE)
+    )
+except Exception:  # noqa: BLE001
+    _CONFIG_TEXT_TOLERANCE = {}
+    _CONFIG_SLIDER_THUMB = DEFAULT_SLIDER_THUMB_SIZE
 DEFAULT_STABILITY_IGNORED_ATTRIBUTES = frozenset({"value", "x", "y", "width", "height", "frame"})
 DEFAULT_STABILITY_DYNAMIC_TEXT_PATTERNS = (
     re.compile(r"^\s*(?:\d{1,2}:)?\d{1,2}:\d{2}(?:[.:]\d+)?(?:\s*/\s*(?:\d{1,2}:)?\d{1,2}:\d{2}(?:[.:]\d+)?)?\s*$"),
@@ -61,6 +120,7 @@ _STABILITY_SKIP_METHODS = frozenset({
     "take_screenshot",
     "verify_visible",
     "verify_not_visible",
+    "wait_until_not_show",
     "verify_text",
     "capture_for_gt",
     "capture_for_preview",
@@ -84,6 +144,7 @@ _MISSING_ELEMENT_PROPAGATION_METHODS = frozenset({
     "is_element_present",
     "verify_visible",
     "verify_not_visible",
+    "wait_until_not_show",
     "verify_text",
 })
 
@@ -96,6 +157,24 @@ def _compile_stability_patterns(patterns):
         else:
             compiled.append(re.compile(pattern))
     return tuple(compiled)
+
+
+_NUMBER_RE = re.compile(r"^[+-]?\d+(?:[.,]\d+)?$")
+
+
+def _as_number(text: str) -> Optional[float]:
+    """Parse a UI readout as a number, or None when it is not purely numeric.
+
+    Tolerates a trailing unit sign ('50%', '50 %') and a decimal comma, so a
+    slider readout is comparable whichever way the app formats it.
+    """
+    cleaned = str(text or "").strip().rstrip("%").strip()
+    if not _NUMBER_RE.match(cleaned):
+        return None
+    try:
+        return float(cleaned.replace(",", "."))
+    except ValueError:
+        return None
 
 
 def _is_dynamic_stability_text(value: str, patterns) -> bool:
@@ -297,7 +376,7 @@ class DriverActions:
         # transition. Playback/progress churn is ignored by the signature, so
         # require a short settle window and several matching samples.
         self.stability_min_wait: float = 0.8
-        self.stability_required_samples: int = 1
+        self.stability_required_samples: int = 2
         # Fallback for continuously changing screens (e.g. playing videos):
         # if full structural identity keeps changing, allow release when
         # element count remains stable for a short period.
@@ -312,6 +391,26 @@ class DriverActions:
         self.stability_dynamic_text_patterns = DEFAULT_STABILITY_DYNAMIC_TEXT_PATTERNS
         # ──────────────────────────────────────────────────────────────────
 
+        # ── Pre-action element readiness (rect settle + visible gate) ──────
+        # Runs on the element itself, not on page_source, so it costs a couple
+        # of cheap round-trips rather than a full hierarchy dump.  Set
+        # element_settle_check = False to restore the old fire-immediately
+        # behaviour for a test that cannot afford the extra time.
+        self.element_settle_check: bool = True
+        self.element_settle_interval: float = DEFAULT_ELEMENT_SETTLE_INTERVAL
+        self.element_settle_timeout: float = DEFAULT_ELEMENT_SETTLE_TIMEOUT
+        self.element_settle_required_samples: int = DEFAULT_ELEMENT_SETTLE_SAMPLES
+        # ──────────────────────────────────────────────────────────────────
+
+        # ── verify_text numeric tolerance per element id ───────────────────
+        # Readouts driven by a replayed coordinate gesture (slider values) are not
+        # reproducible to the digit; see config.TEXT_NUMERIC_TOLERANCE.  Every id
+        # not listed keeps an exact string compare.
+        self.text_numeric_tolerance: dict = dict(_CONFIG_TEXT_TOLERANCE)
+        # Thumb size used to place a press on a slider — see config.SLIDER_THUMB_SIZE.
+        self.slider_thumb_size: float = _CONFIG_SLIDER_THUMB
+        # ──────────────────────────────────────────────────────────────────
+
         # ── Screenshot comparison queues ───────────────────────────────────
         # Populated by capture_for_gt / capture_for_preview during the test.
         # GT queue entries     : (name, compare_path, threshold_or_None)
@@ -321,10 +420,12 @@ class DriverActions:
         # None threshold means use the global value from run_screenshot_comparisons().
         self._gt_compare_queue: list[tuple[str, str, Optional[float]]] = []
         self._preview_compare_queue: list[tuple[str, str, str, Optional[float], str]] = []
-        # Pending before-captures: name → (ts, before_path), waiting for the matching "after".
-        self._preview_pending: dict[str, tuple[str, str]] = {}
+        # Pending before-captures: (name, pair_suffix) → (ts, before_path), waiting
+        # for the matching "after".  The suffix lets one *name* keep several pairs
+        # alive at once (e.g. phase="before_min_ic_jaw" pairs with "after_min_ic_jaw").
+        self._preview_pending: dict[tuple[str, str], tuple[str, str]] = {}
         # Optional metadata captured at "before" to keep before/after crop geometry identical.
-        self._preview_pending_meta: dict[str, tuple[Optional[dict], Optional[dict]]] = {}
+        self._preview_pending_meta: dict[tuple[str, str], tuple[Optional[dict], Optional[dict]]] = {}
         # ──────────────────────────────────────────────────────────────────
 
     def _hierarchy_stability_signature(self, page_source: str) -> str:
@@ -358,35 +459,62 @@ class DriverActions:
     ) -> WebElement:
         """Wait until an element is present; auto-scroll within container when not immediately visible.
 
-        When container_by / container_value are provided and the element is absent or
-        less than 50 % on-screen after a quick wait, _find_with_scroll() is called to
-        probe the container axis, rewind to start, and scroll forward until the element
-        is fully in view.  All other methods that take (by, value) forward these params
-        here, so scroll fallback applies uniformly to every action.
+        When container_by / container_value are provided the lookup runs in three stages:
+
+          1. Global search — return the element straight away when it is already
+             ≥ 50 % visible.  A stale container selector cannot break this stage,
+             which is the common failure mode for recorded structural xpaths.
+          2. Container-scoped search — resolve the container, then search inside it.
+          3. _find_with_scroll() — probe the container axis, rewind to start, and
+             scroll forward until the element is ≥ 50 % visible.
+
+        "Visible" is measured against the container's rect as well as the screen
+        (see ``_visible_fraction``), so a cell clipped by its own collection view no
+        longer counts as on-screen.  When the container cannot be resolved the
+        measurement falls back to screen-only rather than failing the lookup.
+
+        All other methods that take (by, value) forward these params here, so the
+        same lookup order applies uniformly to every action.
         """
         if container_by and container_value:
+            # 1. Global first — cheapest path, and immune to a stale container selector
+            try:
+                global_el = WebDriverWait(self.driver, min(5, timeout)).until(
+                    EC.presence_of_element_located((by, value))
+                )
+                rect = global_el.rect
+                # Clipping can only lower the fraction, so the container probe is
+                # only worth paying for when the cheap screen-only measurement
+                # would have accepted — an xpath container is not a free lookup.
+                if self._visible_fraction(global_el, rect) >= 0.5:
+                    clip = self._container_clip(container_by, container_value)
+                    if self._visible_fraction(global_el, rect, clip=clip) >= 0.5:
+                        return global_el
+                    logger.info(
+                        "find_element: global hit for (%s, %r) is clipped by container "
+                        "(%s, %r) — falling through to container search",
+                        by, value, container_by, container_value,
+                    )
+            except TimeoutException:
+                pass
+            # 2. Not found globally (or off-screen) — search inside the container
             try:
                 container_el = WebDriverWait(self.driver, min(5, timeout)).until(
                     EC.presence_of_element_located((container_by, container_value))
                 )
-                # Scoped search first to avoid picking a duplicate element outside container
-                scoped_el = None
+                try:
+                    clip = container_el.rect
+                except Exception:
+                    clip = None
                 try:
                     scoped_el = container_el.find_element(by, value)
                 except NoSuchElementException:
-                    pass
-                if scoped_el is not None and self._visible_fraction(scoped_el) >= 0.5:
+                    scoped_el = None
+                if scoped_el is not None and self._visible_fraction(scoped_el, clip=clip) >= 0.5:
                     return scoped_el
-                # Scoped didn't find a visible element; fall back to global search
-                if scoped_el is None:
-                    try:
-                        global_el = self.driver.find_element(by, value)
-                        if self._visible_fraction(global_el) >= 0.5:
-                            return global_el
-                    except NoSuchElementException:
-                        pass
             except TimeoutException:
                 pass
+            # 3. Still nothing visible — scroll the container until it comes into view
             return self._find_with_scroll(
                 by, value, container_by, container_value, container_w, container_h
             )
@@ -416,12 +544,228 @@ class DriverActions:
             raise NoSuchElementException(f"Elements not found: ({by}, {value!r})")
         return elements
 
+    # ── Pre-action element readiness ───────────────────────────────────────
+
     @staticmethod
-    def _point_in_element(element: WebElement, pct_x: float = 50.0, pct_y: float = 50.0) -> Tuple[int, int]:
-        loc, sz = element.location, element.size
-        x = round(float(loc["x"]) + float(sz["width"]) * float(pct_x) / 100)
-        y = round(float(loc["y"]) + float(sz["height"]) * float(pct_y) / 100)
+    def _reports_visible(element: WebElement) -> bool:
+        """XCUITest ``visible`` attribute as a bool.
+
+        Returns True when the attribute is missing or unreadable, so an element
+        type that does not publish it is never blocked from being acted on.
+        """
+        try:
+            raw = element.get_attribute("visible")
+        except StaleElementReferenceException:
+            raise
+        except Exception:
+            return True
+        if raw is None:
+            return True
+        return str(raw).strip().lower() in ("true", "1")
+
+    @staticmethod
+    def _describe_element(element: WebElement) -> str:
+        """Best-effort identifier for log messages (only used on the slow path)."""
+        try:
+            return element.get_attribute("name") or element.tag_name or "element"
+        except Exception:
+            return "element"
+
+    def _settle_rects(self, elements: List[WebElement]) -> List[dict]:
+        """Wait until *every* element's rect stops moving in the **same** round.
+
+        Returns one rect per element (``{x, y, width, height}``), all read in the
+        final polling round, so a caller deriving several coordinates gets them
+        from a single quiet moment.
+
+        Settling elements one after another is not equivalent: the first
+        element's rect is frozen while the second is still being polled, so a
+        drag whose source and target both live on a panel that is animating in
+        starts from a coordinate measured hundreds of ms — and possibly a
+        different frame — before the end coordinate.  Both elements "settled",
+        the drag still misses.
+
+        Release requires ``element_settle_required_samples`` consecutive rounds
+        in which no rect changed, every rect is non-degenerate, and every element
+        reports ``visible``.  Never raises on timeout — it logs a warning and
+        hands back the last rects it saw, so this can only make a flaky step less
+        flaky, never turn a currently-passing step into a failure.
+        ``StaleElementReferenceException`` still propagates: callers that know how
+        to re-resolve already retry on it.
+        """
+        rects = [el.rect for el in elements]
+        if not getattr(self, "element_settle_check", True):
+            return rects
+        interval = float(getattr(self, "element_settle_interval", DEFAULT_ELEMENT_SETTLE_INTERVAL))
+        timeout = float(getattr(self, "element_settle_timeout", DEFAULT_ELEMENT_SETTLE_TIMEOUT))
+        required = max(1, int(getattr(
+            self, "element_settle_required_samples", DEFAULT_ELEMENT_SETTLE_SAMPLES
+        )))
+        deadline = time.monotonic() + timeout
+        prev: Optional[List[dict]] = None
+        matching_rounds = 0
+        while True:
+            still = (
+                prev is not None
+                and rects == prev
+                and all(r.get("width", 0) > 0 and r.get("height", 0) > 0 for r in rects)
+            )
+            # The visible probe is another round-trip per element, so only pay for
+            # it once the rects have stopped moving — a frame that is still gliding
+            # is not actionable regardless of what `visible` says.
+            visible = all(self._reports_visible(el) for el in elements) if still else None
+            matching_rounds = matching_rounds + 1 if (still and visible) else 0
+            if matching_rounds >= required:
+                return rects
+            if time.monotonic() >= deadline:
+                logger.warning(
+                    "[settle] %s not settled within %.1fs (rects=%s prev=%s visible=%s "
+                    "matching_rounds=%d/%d); acting anyway",
+                    ", ".join(repr(self._describe_element(el)) for el in elements),
+                    timeout, rects, prev, visible, matching_rounds, required,
+                )
+                return rects
+            prev = rects
+            time.sleep(interval)
+            rects = [el.rect for el in elements]
+
+    def _element_settle(self, element: WebElement) -> dict:
+        """Wait until *element*'s rect stops moving and it reports visible.
+
+        Single-element form of :meth:`_settle_rects` — see there for the details
+        and the failure mode it protects against.
+        """
+        return self._settle_rects([element])[0]
+
+    @staticmethod
+    def _pct_point(rect: dict, pct_x: float, pct_y: float) -> Tuple[int, int]:
+        """Absolute point at (pct_x%, pct_y%) of an already-read rect."""
+        x = round(float(rect["x"]) + float(rect["width"]) * float(pct_x) / 100)
+        y = round(float(rect["y"]) + float(rect["height"]) * float(pct_y) / 100)
         return int(x), int(y)
+
+    def _point_in_element(self, element: WebElement, pct_x: float = 50.0, pct_y: float = 50.0) -> Tuple[int, int]:
+        return self._pct_point(self._element_settle(element), pct_x, pct_y)
+
+    def _points_in_elements(
+        self, specs: List[Tuple[WebElement, float, float]]
+    ) -> List[Tuple[int, int]]:
+        """Points for several elements, all derived from one quiet moment.
+
+        *specs* is ``[(element, pct_x, pct_y), ...]``; use this instead of
+        calling :meth:`_point_in_element` per element whenever one gesture needs
+        more than one element-derived coordinate (every drag variant).
+        """
+        rects = self._settle_rects([el for el, _, _ in specs])
+        return [
+            self._pct_point(rect, pct_x, pct_y)
+            for rect, (_, pct_x, pct_y) in zip(rects, specs)
+        ]
+
+    # ── Slider awareness ───────────────────────────────────────────────────
+
+    def _slider_fraction(self, element: WebElement) -> Optional[float]:
+        """Normalised position (0.0–1.0) of a slider, or None if not a slider.
+
+        XCUITest publishes it as the ``value`` attribute, usually ``"51%"`` but
+        occasionally a bare number or a 0–1 float depending on the control.
+        """
+        try:
+            if element.tag_name != SLIDER_TAG:
+                return None
+            raw = element.get_attribute("value")
+        except StaleElementReferenceException:
+            raise
+        except Exception:
+            return None
+        text = str(raw or "").strip()
+        if not text:
+            return None
+        try:
+            number = float(text.rstrip("%").strip())
+        except ValueError:
+            return None
+        if text.endswith("%") or number > 1.0:
+            number /= 100.0
+        return max(0.0, min(1.0, number))
+
+    def _slider_grab_point(
+        self, element: WebElement, rect: dict, point: Tuple[int, int]
+    ) -> Tuple[int, int]:
+        """Move a press point onto a slider's thumb; other elements pass through.
+
+        The recorded coordinate is where the thumb sat when the gesture was
+        recorded.  Replaying it against a slider holding a different value presses
+        bare track, which UISlider ignores — the gesture silently does nothing and
+        the failure only surfaces at the next verify.  The thumb's current
+        position is derived from the control's own ``value`` instead.
+        """
+        frac = self._slider_fraction(element)
+        if frac is None:
+            return point
+        vertical = rect["height"] > rect["width"]
+        span = rect["height"] if vertical else rect["width"]
+        thickness = rect["width"] if vertical else rect["height"]
+        thumb = min(float(thickness), float(getattr(
+            self, "slider_thumb_size", DEFAULT_SLIDER_THUMB_SIZE
+        )))
+        travel = max(0.0, float(span) - thumb)
+        # A vertical slider's 0 % end is at the bottom.
+        offset = (thumb / 2) + (1.0 - frac if vertical else frac) * travel
+        if vertical:
+            grabbed = (point[0], int(round(rect["y"] + offset)))
+        else:
+            grabbed = (int(round(rect["x"] + offset)), point[1])
+        if grabbed != point:
+            logger.info(
+                "[slider] %r sits at %.0f%%; pressing its thumb at %s instead of the "
+                "recorded %s (a press on the bare track is ignored)",
+                self._describe_element(element), frac * 100, grabbed, point,
+            )
+        return grabbed
+
+    def _drag_points(
+        self,
+        from_by: str,
+        from_value: str,
+        from_pct_x: float,
+        from_pct_y: float,
+        to_by: str,
+        to_value: str,
+        to_pct_x: float,
+        to_pct_y: float,
+        timeout: int = DEFAULT_WAIT,
+    ) -> Tuple[Tuple[int, int], Tuple[int, int]]:
+        """Both ends of a drag, resolved and measured from one quiet moment.
+
+        Re-resolves once on ``StaleElementReferenceException``: the panel a drag
+        acts on is frequently rebuilt by the step before it, which invalidates the
+        handle between the lookup and the rect read.
+        """
+        for attempt in range(2):
+            src = self.find_element(from_by, from_value, timeout)
+            tgt = self.find_element(to_by, to_value, timeout)
+            try:
+                src_rect, tgt_rect = self._settle_rects([src, tgt])
+                start = self._slider_grab_point(
+                    src, src_rect, self._pct_point(src_rect, from_pct_x, from_pct_y)
+                )
+                end = self._pct_point(tgt_rect, to_pct_x, to_pct_y)
+                logger.info(
+                    "_drag_points: %r rect=%s @(%.1f%%,%.1f%%) → %s | %r rect=%s "
+                    "@(%.1f%%,%.1f%%) → %s",
+                    from_value, src_rect, from_pct_x, from_pct_y, start,
+                    to_value, tgt_rect, to_pct_x, to_pct_y, end,
+                )
+                return start, end
+            except StaleElementReferenceException:
+                if attempt == 1:
+                    raise
+                logger.debug(
+                    "_drag_points: stale element for (%s, %r) → (%s, %r); re-resolving",
+                    from_by, from_value, to_by, to_value,
+                )
+        raise RuntimeError("unreachable")  # pragma: no cover
 
     def wait_for_visible(
         self,
@@ -488,7 +832,7 @@ class DriverActions:
                 return True
         return False
 
-    def get_element(self, by: str, value: str, timeout: int = 3):
+    def get_element(self, by: str, value: str, timeout: int = 3) -> Optional[WebElement]:
         """Non-throwing element fetch: returns the WebElement or None (legacy parity).
 
         Mirrors the legacy page-object ``get_element`` so preserved expressions like
@@ -527,18 +871,31 @@ class DriverActions:
         r = el.rect
         return int(r["x"]), int(r["y"]), int(r["width"]), int(r["height"])
 
-    def set_slider(self, by: str, value: str, percent: float, timeout: int = DEFAULT_WAIT) -> None:
+    def set_slider(self, by: str, value: str, percent: float, timeout: int = DEFAULT_WAIT) -> bool:
         """Drag a horizontal slider thumb to *percent* (0–100) of the track width.
 
         Implemented via the drag primitive (no dedicated slider gesture in XCUITest):
         reads the slider element's on-device bounds, then drags along its horizontal
         mid-line from the current left edge to the target percentage position.
         """
-        x, y, w, h = self.get_element_bounds(by, value, timeout=timeout)
+        el = self.find_element(by, value, timeout=timeout)
+        rect = el.rect
+        x, y, w, h = (
+            int(rect["x"]),
+            int(rect["y"]),
+            int(rect["width"]),
+            int(rect["height"]),
+        )
         cy = y + h // 2
-        target_x = x + int(w * max(0.0, min(100.0, float(percent))) / 100.0)
-        self.drag_coordinates(x, cy, target_x, cy)
-        logger.info("set_slider (%s,%r) -> %.1f%% (x=%d)", by, value, percent, target_x)
+        target_percent = max(0.0, min(100.0, float(percent)))
+        current_value = el.get_attribute("value") or ""
+        current_match = re.search(r"-?\d+(?:\.\d+)?", str(current_value))
+        current_percent = float(current_match.group()) if current_match else 50.0
+        current_percent = max(0.0, min(100.0, current_percent))
+        start_x = x + int(w * current_percent / 100.0)
+        target_x = x + int(w * target_percent / 100.0)
+        self.drag_coordinates(start_x, cy, target_x, cy)
+        logger.info("set_slider (%s,%r) -> %.1f%% (x=%d)", by, value, target_percent, target_x)
         return True
 
     def try_tap(self, by: str, value: str, timeout: int = 3) -> bool:
@@ -566,18 +923,20 @@ class DriverActions:
             return self.driver.execute_script(script)
         return self.driver.execute_script(script, args)
 
-    def open_url(self, url: str) -> None:
+    def open_url(self, url: str) -> bool:
         """Open a URL / deep link in the current context (webview or Safari handoff)."""
         self.driver.get(url)
+        return True
 
     # ──────────────────────────────────────────
     # Tap / click
     # ──────────────────────────────────────────
 
     @step("Tap element")
-    def tap(self, element: WebElement) -> None:
+    def tap(self, element: WebElement) -> bool:
         """Tap a WebElement."""
         element.click()
+        return True
 
     @step("Tap by locator")
     def tap_by_locator(
@@ -589,41 +948,97 @@ class DriverActions:
         element = self.wait_for_visible(
             by, value, timeout, container_by, container_value, container_w, container_h
         )
+        self._element_settle(element)
         self.tap(element)
         return True
 
     @step("Tap at coordinates")
-    def tap_by_coordinates(self, x: int, y: int) -> None:
+    def tap_by_coordinates(self, x: int, y: int) -> bool:
         """
         Tap at absolute screen coordinates using the iOS mobile:tap command.
         Coordinates are in points (not pixels).
         """
         self.driver.execute_script("mobile: tap", {"x": x, "y": y})
         logger.info("Tapped at (%d, %d)", x, y)
+        return True
 
-    def _visible_fraction(self, element: WebElement) -> float:
-        """Return the fraction (0.0–1.0) of element that lies within the device screen."""
-        r = element.rect
+    def _visible_fraction(
+        self,
+        element: WebElement,
+        rect: Optional[dict] = None,
+        clip: Optional[dict] = None,
+    ) -> float:
+        """Return the fraction (0.0–1.0) of element that is actually reachable.
+
+        Pass *rect* to reuse a rect that was already read (e.g. the one
+        ``_element_settle()`` just returned) instead of paying another round-trip.
+
+        Pass *clip* (the container's rect) whenever the element lives inside a
+        scrollable container.  The screen alone is not the right boundary: a
+        collection-view cell scrolled to the edge of a 430×84 strip is clipped by
+        the strip long before it leaves the screen, yet a screen-only measurement
+        still calls it 100 % visible — so the caller stops scrolling and taps a
+        cell that is half cut off, or the neighbouring one.
+
+        When the element is larger than the clip window (a wrapper that overflows
+        its container) the denominator is capped at the window area, so filling the
+        window counts as fully visible instead of being penalised for its size.
+        A degenerate clip (zero/negative size) is ignored.
+        """
+        r = rect if rect is not None else element.rect
         el_x, el_y, el_w, el_h = r["x"], r["y"], r["width"], r["height"]
         el_area = el_w * el_h
         if el_area <= 0:
             return 0.0
+
         win = self.driver.get_window_size()
-        ix1 = max(el_x, 0)
-        iy1 = max(el_y, 0)
-        ix2 = min(el_x + el_w, win["width"])
-        iy2 = min(el_y + el_h, win["height"])
+        bx1, by1 = 0, 0
+        bx2, by2 = win["width"], win["height"]
+        clipped = bool(clip) and clip.get("width", 0) > 0 and clip.get("height", 0) > 0
+        if clipped:
+            bx1 = max(bx1, clip["x"])
+            by1 = max(by1, clip["y"])
+            bx2 = min(bx2, clip["x"] + clip["width"])
+            by2 = min(by2, clip["y"] + clip["height"])
+        if bx2 <= bx1 or by2 <= by1:
+            return 0.0
+
+        ix1 = max(el_x, bx1)
+        iy1 = max(el_y, by1)
+        ix2 = min(el_x + el_w, bx2)
+        iy2 = min(el_y + el_h, by2)
         if ix2 <= ix1 or iy2 <= iy1:
             return 0.0
-        return (ix2 - ix1) * (iy2 - iy1) / el_area
+
+        # Only the clipped path caps the denominator — the screen-only measurement
+        # keeps its original semantics so existing call sites are unaffected.
+        denom = min(el_area, (bx2 - bx1) * (by2 - by1)) if clipped else el_area
+        return (ix2 - ix1) * (iy2 - iy1) / denom
+
+    def _container_clip(self, container_by: str, container_value: str) -> Optional[dict]:
+        """Container rect for visibility clipping, or None when it cannot be read.
+
+        Uses a no-wait ``find_elements`` lookup: the global fast path in
+        ``find_element()`` must never pay a locator timeout for a container that is
+        stale or gone — it just falls back to screen-only clipping.
+        """
+        try:
+            found = self.driver.find_elements(container_by, container_value)
+            return found[0].rect if found else None
+        except Exception:
+            return None
 
     def _coord_at_pct(self, element: WebElement, pct_x: float, pct_y: float) -> Tuple[int, int]:
-        """Compute absolute screen coordinates at (pct_x%, pct_y%) within element bounds."""
-        loc  = element.location
-        size = element.size
+        """Compute absolute screen coordinates at (pct_x%, pct_y%) within element bounds.
+
+        Waits for the element to stop moving and report visible first — see
+        ``_element_settle()``.  Without it a percent offset read mid-animation
+        lands next to the target and ``mobile: tap`` reports success anyway.
+        """
+        rect = self._element_settle(element)
         return (
-            int(loc["x"] + size["width"]  * pct_x / 100),
-            int(loc["y"] + size["height"] * pct_y / 100),
+            int(rect["x"] + rect["width"]  * pct_x / 100),
+            int(rect["y"] + rect["height"] * pct_y / 100),
         )
 
     @step("Tap within element")
@@ -631,11 +1046,25 @@ class DriverActions:
         self, by: str, value: str, pct_x: float, pct_y: float, timeout: int = DEFAULT_WAIT,
         container_by: Optional[str] = None, container_value: Optional[str] = None,
         container_w: int = 0, container_h: int = 0,
-    ) -> None:
+    ) -> bool:
         """Find element and tap at (pct_x%, pct_y%) within its bounds."""
-        el = self.wait_for_visible(by, value, timeout, container_by, container_value, container_w, container_h)
-        tx, ty = self._coord_at_pct(el, pct_x, pct_y)
+        for attempt in range(2):
+            el = self.wait_for_visible(
+                by, value, timeout, container_by, container_value, container_w, container_h
+            )
+            try:
+                tx, ty = self._coord_at_pct(el, pct_x, pct_y)
+                break
+            except StaleElementReferenceException:
+                if attempt == 1:
+                    raise
+                logger.debug(
+                    "tap_within_element: stale element for (%s, %r); re-resolving",
+                    by,
+                    value,
+                )
         self.driver.execute_script("mobile: tap", {"x": tx, "y": ty})
+        return True
 
     # ── private scroll helpers (not wrapped by stability decorator) ─────────
 
@@ -751,7 +1180,9 @@ class DriverActions:
             try:
                 container_el = self.driver.find_element(container_by, container_value)
                 el = container_el.find_element(by, value)
-                if self._visible_fraction(el) >= 0.5:
+                # Clip by the container: a cell parked at the edge of its own
+                # collection view is not reachable even though it is on screen.
+                if self._visible_fraction(el, clip=container_el.rect) >= 0.5:
                     logger.info(
                         "_find_with_scroll: found (%s, %r) after %d scrolls",
                         by, value, attempt,
@@ -771,18 +1202,19 @@ class DriverActions:
         self, by: str, value: str, pct_x: float, pct_y: float, timeout: int = DEFAULT_WAIT,
         container_by: Optional[str] = None, container_value: Optional[str] = None,
         container_w: int = 0, container_h: int = 0,
-    ) -> None:
+    ) -> bool:
         """Find element and double-tap at (pct_x%, pct_y%) within its bounds."""
         el = self.wait_for_visible(by, value, timeout, container_by, container_value, container_w, container_h)
         tx, ty = self._coord_at_pct(el, pct_x, pct_y)
         self.driver.execute_script("mobile: doubleTap", {"x": tx, "y": ty})
+        return True
 
     @step("Triple tap within element")
     def triple_tap_within_element(
         self, by: str, value: str, pct_x: float, pct_y: float, timeout: int = DEFAULT_WAIT,
         container_by: Optional[str] = None, container_value: Optional[str] = None,
         container_w: int = 0, container_h: int = 0,
-    ) -> None:
+    ) -> bool:
         """Find element and triple-tap at (pct_x%, pct_y%) within its bounds."""
         from selenium.webdriver.common.action_chains import ActionChains
         from selenium.webdriver.common.actions.action_builder import ActionBuilder
@@ -801,13 +1233,14 @@ class DriverActions:
             if i < 2:
                 pa.pause(0.08)
         ac.perform()
+        return True
 
     @step("Five tap within element")
     def five_tap_within_element(
         self, by: str, value: str, pct_x: float, pct_y: float, timeout: int = DEFAULT_WAIT,
         container_by: Optional[str] = None, container_value: Optional[str] = None,
         container_w: int = 0, container_h: int = 0,
-    ) -> None:
+    ) -> bool:
         """Find element and tap 5 times at (pct_x%, pct_y%) within its bounds."""
         from selenium.webdriver.common.action_chains import ActionChains
         from selenium.webdriver.common.actions.action_builder import ActionBuilder
@@ -826,6 +1259,7 @@ class DriverActions:
             if i < 4:
                 pa.pause(0.08)
         ac.perform()
+        return True
 
     @step("Long press within element")
     def long_press_within_element(
@@ -833,24 +1267,27 @@ class DriverActions:
         timeout: int = DEFAULT_WAIT,
         container_by: Optional[str] = None, container_value: Optional[str] = None,
         container_w: int = 0, container_h: int = 0,
-    ) -> None:
+    ) -> bool:
         """Find element and long-press at (pct_x%, pct_y%) within its bounds."""
         el = self.wait_for_visible(by, value, timeout, container_by, container_value, container_w, container_h)
         tx, ty = self._coord_at_pct(el, pct_x, pct_y)
         self.driver.execute_script("mobile: touchAndHold", {"x": tx, "y": ty, "duration": duration})
+        return True
 
     @step("Double tap")
-    def double_tap(self, element: WebElement) -> None:
+    def double_tap(self, element: WebElement) -> bool:
         """Double-tap a WebElement."""
         self.driver.execute_script("mobile: doubleTap", {"element": element.id})
+        return True
 
     @step("Long press")
-    def long_press(self, element: WebElement, duration: float = 1.0) -> None:
+    def long_press(self, element: WebElement, duration: float = 1.0) -> bool:
         """Long-press a WebElement for *duration* seconds (default 500 ms+)."""
         self.driver.execute_script(
             "mobile: touchAndHold",
             {"element": element.id, "duration": duration},
         )
+        return True
 
     @step("Long press and capture preview during hold")
     def long_press_capture_for_preview(
@@ -1121,23 +1558,25 @@ class DriverActions:
         )
 
     @step("Triple tap")
-    def triple_tap(self, element: WebElement) -> None:
+    def triple_tap(self, element: WebElement) -> bool:
         """Triple-tap a WebElement using native XCUITest gesture."""
         self.driver.execute_script(
             "mobile: tapWithNumberOfTaps",
             {"element": element.id, "numberOfTaps": 3, "numberOfTouches": 1},
         )
+        return True
 
     @step("Five tap")
-    def five_tap(self, element: WebElement) -> None:
+    def five_tap(self, element: WebElement) -> bool:
         """Tap a WebElement five times using native XCUITest gesture."""
         self.driver.execute_script(
             "mobile: tapWithNumberOfTaps",
             {"element": element.id, "numberOfTaps": 5, "numberOfTouches": 1},
         )
+        return True
 
     @step("Two finger tap")
-    def two_finger_tap(self, element: WebElement) -> None:
+    def two_finger_tap(self, element: WebElement) -> bool:
         """
         Two-finger tap on *element* using XCUITest mobile: twoFingerTap.
         This is the native iOS "two-finger tap" recognised by many apps.
@@ -1147,6 +1586,7 @@ class DriverActions:
             {"element": element.id},
         )
         logger.info("two_finger_tap on element")
+        return True
 
     @step("Multi finger tap")
     def multi_finger_tap(
@@ -1154,7 +1594,7 @@ class DriverActions:
         element: WebElement,
         fingers: int = 3,
         pause_ms: int = 50,
-    ) -> None:
+    ) -> bool:
         """
         Tap *element* with *fingers* touch points.
         Uses twoFingerTap for 2 fingers; repeated mobile:tap for 3+.
@@ -1170,6 +1610,7 @@ class DriverActions:
             for _ in range(fingers):
                 self.driver.execute_script("mobile: tap", {"x": cx, "y": cy})
                 time.sleep(pause_ms / 1000)
+        return True
 
     # ──────────────────────────────────────────
     # Swipe / Scroll
@@ -1189,7 +1630,7 @@ class DriverActions:
         container_value: Optional[str] = None,
         container_w: int = 0,
         container_h: int = 0,
-    ) -> None:
+    ) -> bool:
         """
         Swipe in *direction* starting from a percentage offset within an element.
 
@@ -1243,9 +1684,10 @@ class DriverActions:
             f"{distance_pts:.1f}pts" if distance_pts is not None else "40%",
             from_pct_x, from_pct_y, duration_ms,
         )
+        return True
 
     @step("Scroll")
-    def scroll(self, direction: str = "down", distance: float = 0.5) -> None:
+    def scroll(self, direction: str = "down", distance: float = 0.5) -> bool:
         """
         Scroll the whole screen in *direction* ('up', 'down', 'left', 'right').
         *distance* is a fraction of the screen (0.0–1.0).
@@ -1271,6 +1713,7 @@ class DriverActions:
             {"direction": direction},
         )
         logger.info("Scrolled %s", direction)
+        return True
 
     @step("Scroll to element")
     def scroll_to_element(
@@ -1298,11 +1741,12 @@ class DriverActions:
     # ──────────────────────────────────────────
 
     @step("Type text")
-    def type_text(self, element: WebElement, text: str, clear_first: bool = True) -> None:
+    def type_text(self, element: WebElement, text: str, clear_first: bool = True) -> bool:
         """Type text into an input element, optionally clearing it first."""
         if clear_first:
             element.clear()
         element.send_keys(text)
+        return True
 
     @step("Type text by locator")
     def type_text_by_locator(
@@ -1312,26 +1756,29 @@ class DriverActions:
         text: str,
         clear_first: bool = True,
         timeout: int = DEFAULT_WAIT,
-    ) -> None:
+    ) -> bool:
         element = self.wait_for_visible(by, value, timeout)
         self.type_text(element, text, clear_first)
+        return True
 
     # ──────────────────────────────────────────
     # App / keyboard utilities
     # ──────────────────────────────────────────
 
     @step("Hide keyboard")
-    def hide_keyboard(self) -> None:
+    def hide_keyboard(self) -> bool:
         """Dismiss the on-screen keyboard if visible."""
         try:
             self.driver.hide_keyboard()
         except Exception:
             pass  # keyboard may already be hidden
+        return True
 
     @step("Background app")
-    def background_app(self, seconds: int = 3) -> None:
+    def background_app(self, seconds: int = 3) -> bool:
         """Send the app to the background for *seconds* then restore it."""
         self.driver.background_app(seconds)
+        return True
 
     def get_screen_size(self) -> Tuple[int, int]:
         """Return (width, height) in points."""
@@ -1339,10 +1786,13 @@ class DriverActions:
         return size["width"], size["height"]
 
     @step("Take screenshot")
-    def take_screenshot(self, path: str) -> None:
-        """Save a screenshot to *path* (PNG)."""
-        self.driver.save_screenshot(path)
+    def take_screenshot(self, path: str) -> bool:
+        """Save a screenshot to *path* (PNG). Returns False when nothing was written."""
+        if not self._save_full_screenshot(path):
+            logger.error("take_screenshot FAILED — no image written to %s", path)
+            return False
         logger.info("Screenshot saved: %s", path)
+        return True
 
     # ──────────────────────────────────────────
     # scroll_until
@@ -1356,29 +1806,50 @@ class DriverActions:
         target_by: str,
         target_value: str,
         direction: str = "down",
-        max_attempts: int = 8,
+        max_attempts: int = 30,
         offset_start: Optional[Tuple[float, float]] = None,
         offset_end: Optional[Tuple[float, float]] = None,
         velocity: int = 100,
     ) -> WebElement:
         """
         Scroll within the element (scroll_by, scroll_value) in *direction*
-        until (target_by, target_value) is visible, and return it.
+        until (target_by, target_value) is visible, and **return** it.
+
+        It does not tap: codegen emits ``scroll_until(...)`` followed by a separate
+        tap step, so tapping here would fire the gesture twice.  When the target is
+        already visible enough it returns on attempt 0 without sending any gesture —
+        "no scroll happened" is a normal outcome.
+
+        "Visible enough" means ≥ 50 % of the target inside both the screen *and* the
+        scroll container's own rect, measured after the target's rect has settled, so
+        a cell still gliding or still clipped by the container edge keeps scrolling.
 
         offset_start / offset_end: (x_pct, y_pct) fractions of the container
         rect that define the drag gesture.  Generated by the recorder from the
         original gesture; defaults to a 40 % horizontal/vertical swipe.
         """
+        last_vis: Optional[float] = None
         for attempt in range(max_attempts):
             if self.is_element_present(target_by, target_value, timeout=2):
                 element = self.find_element(target_by, target_value)
-                vis = self._visible_fraction(element)
+                # Settle first: a scroll view keeps gliding after the drag ends, so a
+                # rect read right now measures a moving target.  Deciding "visible
+                # enough" on it hands the caller an element that has already slid
+                # somewhere else by the time it is tapped.
+                rect = self._element_settle(element)
+                # Clip by the scroll container, not just the screen — the target is
+                # only reachable once it has cleared the container's own edge.
+                vis = self._visible_fraction(
+                    element, rect, clip=self._container_clip(scroll_by, scroll_value)
+                )
                 if vis >= 0.5:
                     logger.info(
-                        "scroll_until: tapping (%s, %r) after %d scrolls (%.0f%% visible)",
+                        "scroll_until: (%s, %r) ready after %d scrolls (%.0f%% visible) — "
+                        "returning it, the caller does the tap",
                         target_by, target_value, attempt, vis * 100,
                     )
                     return element
+                last_vis = vis
                 logger.info(
                     "scroll_until: (%s, %r) found but only %.0f%% visible — scrolling more",
                     target_by, target_value, vis * 100,
@@ -1419,8 +1890,15 @@ class DriverActions:
                     "holdDuration": 0.1,
                 },
             )
+        reached = (
+            "never found in the hierarchy"
+            if last_vis is None
+            else f"best visibility reached was {last_vis * 100:.0f}% (need 50% inside "
+                 f"container ({scroll_by}, {scroll_value!r}) and the screen)"
+        )
         raise NoSuchElementException(
-            f"Element ({target_by}, {target_value!r}) not found after {max_attempts} scrolls."
+            f"Element ({target_by}, {target_value!r}) not usable after {max_attempts} "
+            f"scrolls — {reached}."
         )
 
     # ──────────────────────────────────────────
@@ -1434,15 +1912,17 @@ class DriverActions:
         target: WebElement,
         duration: float = 1.0,
         press_duration: float = 0.1,
-    ) -> None:
+    ) -> bool:
         """
         Briefly press *source*, then drag it onto *target*.
         duration controls the move time; press_duration controls the initial hold.
         """
-        from_x, from_y = self._point_in_element(source)
-        to_x, to_y = self._point_in_element(target)
+        (from_x, from_y), (to_x, to_y) = self._points_in_elements(
+            [(source, 50.0, 50.0), (target, 50.0, 50.0)]
+        )
         self._perform_w3c_drag(from_x, from_y, to_x, to_y, duration, press_duration)
         logger.info("drag_element: source → target")
+        return True
 
     @step("Drag by coordinates")
     def drag_coordinates(
@@ -1453,10 +1933,11 @@ class DriverActions:
         to_y: int,
         duration: float = 1.0,
         press_duration: float = 0.1,
-    ) -> None:
+    ) -> bool:
         """Briefly press at (from_x, from_y), then drag to (to_x, to_y)."""
         self._perform_w3c_drag(from_x, from_y, to_x, to_y, duration, press_duration)
         logger.info("drag_coordinates: (%d,%d) → (%d,%d)", from_x, from_y, to_x, to_y)
+        return True
 
     @step("Long press and drag element to target")
     def long_press_drag_element(
@@ -1465,13 +1946,14 @@ class DriverActions:
         target: WebElement,
         duration: float = 1.0,
         press_duration: float = 1.0,
-    ) -> None:
+    ) -> bool:
         """
         Long-press *source* for press_duration seconds, then drag it onto *target*.
         duration controls the move time after the hold.
         """
-        from_x, from_y = self._point_in_element(source)
-        to_x, to_y = self._point_in_element(target)
+        (from_x, from_y), (to_x, to_y) = self._points_in_elements(
+            [(source, 50.0, 50.0), (target, 50.0, 50.0)]
+        )
         self._perform_w3c_drag_with_activation_nudge(
             from_x,
             from_y,
@@ -1481,6 +1963,7 @@ class DriverActions:
             max(1.0, press_duration),
         )
         logger.info("long_press_drag_element: source → target hold=%.2fs", press_duration)
+        return True
 
     @step("Long press and drag by coordinates")
     def long_press_drag_coordinates(
@@ -1492,7 +1975,7 @@ class DriverActions:
         duration: float = 1.0,
         press_duration: float = 1.0,
         activation_nudge_y: int = 0,
-    ) -> None:
+    ) -> bool:
         """Long-press at (from_x, from_y), then drag to (to_x, to_y).
 
         activation_nudge_y inserts a tiny vertical move before the main drag,
@@ -1512,6 +1995,7 @@ class DriverActions:
             "long_press_drag_coordinates: (%d,%d) → (%d,%d) hold=%.2fs nudge_y=%d",
             from_x, from_y, to_x, to_y, press_duration, activation_nudge_y,
         )
+        return True
 
     @step("Drag within elements by offset percent")
     def drag_within_elements(
@@ -1526,16 +2010,67 @@ class DriverActions:
         to_pct_y: float,
         duration: float = 1.0,
         press_duration: float = 0.1,
-    ) -> None:
+    ) -> bool:
         """Drag from a % offset within the source element to a % offset within the target element."""
-        src = self.find_element(from_by, from_value)
-        tgt = self.find_element(to_by, to_value)
-        from_x, from_y = self._point_in_element(src, from_pct_x, from_pct_y)
-        to_x, to_y = self._point_in_element(tgt, to_pct_x, to_pct_y)
+        (from_x, from_y), (to_x, to_y) = self._drag_points(
+            from_by, from_value, from_pct_x, from_pct_y,
+            to_by, to_value, to_pct_x, to_pct_y,
+        )
         self._perform_w3c_drag(from_x, from_y, to_x, to_y, duration, press_duration)
         logger.info(
             "drag_within_elements: %s@(%.1f%%,%.1f%%) → %s@(%.1f%%,%.1f%%)",
             from_value, from_pct_x, from_pct_y, to_value, to_pct_x, to_pct_y,
+        )
+        return True
+
+    @step("Set slider value")
+    def set_slider_value(
+        self,
+        by: str,
+        value: str,
+        percent: float,
+        timeout: int = DEFAULT_WAIT,
+        tolerance: float = 1.0,
+        container_by: Optional[str] = None,
+        container_value: Optional[str] = None,
+        container_w: int = 0,
+        container_h: int = 0,
+    ) -> bool:
+        """Set an ``XCUIElementTypeSlider`` to *percent* (0–100) through XCUITest.
+
+        Exact where a coordinate drag cannot be.  One unit of slider travel is
+        often less than a logical point, so a replayed drag lands within ±1 of the
+        recorded value at best — and does nothing at all when the press point
+        misses the thumb.  ``adjust(toNormalizedSliderPosition:)`` (reached through
+        ``send_keys``) sets the position itself, so the outcome does not depend on
+        the value the slider happened to hold beforehand.
+
+        *tolerance* absorbs the rounding between the position XCUITest reports and
+        the value the app derives from it (a slider reading ``21%`` while its own
+        label shows ``20`` is normal).  Raises when the slider will not take the
+        value; returns True once it reads back within tolerance.
+        """
+        el = self.find_element(
+            by, value, timeout, container_by, container_value, container_w, container_h
+        )
+        target = max(0.0, min(100.0, float(percent)))
+        reached: Optional[float] = None
+        for _ in range(3):
+            el.send_keys(f"{target / 100:.4f}")
+            frac = self._slider_fraction(el)
+            if frac is None:
+                logger.warning(
+                    "set_slider_value: (%s, %r) publishes no slider value to read back; "
+                    "assuming %g%% took", by, value, target,
+                )
+                return True
+            reached = frac * 100
+            if abs(reached - target) <= max(0.0, float(tolerance)):
+                logger.info("set_slider_value: (%s, %r) → %.0f%%", by, value, reached)
+                return True
+        raise AssertionError(
+            f"set_slider_value failed for ({by}, {value!r}): wanted {target:g}%, "
+            f"slider stayed at {reached:g}%"
         )
 
     @step("Long press and drag within elements by offset percent")
@@ -1552,16 +2087,16 @@ class DriverActions:
         duration: float = 1.0,
         press_duration: float = 1.0,
         activation_nudge_y: int = 0,
-    ) -> None:
+    ) -> bool:
         """Long-press at a source % offset, then drag to a target % offset.
 
         activation_nudge_y inserts a tiny vertical move before the main drag,
         then returns to the final Y. Use a negative value to lift upward.
         """
-        src = self.find_element(from_by, from_value)
-        tgt = self.find_element(to_by, to_value)
-        from_x, from_y = self._point_in_element(src, from_pct_x, from_pct_y)
-        to_x, to_y = self._point_in_element(tgt, to_pct_x, to_pct_y)
+        (from_x, from_y), (to_x, to_y) = self._drag_points(
+            from_by, from_value, from_pct_x, from_pct_y,
+            to_by, to_value, to_pct_x, to_pct_y,
+        )
         logger.info(
             "long_press_drag_within_elements resolved coords: (%d,%d) → (%d,%d) hold=%.2fs nudge_y=%d",
             from_x, from_y, to_x, to_y, press_duration, activation_nudge_y,
@@ -1579,6 +2114,7 @@ class DriverActions:
             "long_press_drag_within_elements: %s@(%.1f%%,%.1f%%) → %s@(%.1f%%,%.1f%%) hold=%.2fs nudge_y=%d",
             from_value, from_pct_x, from_pct_y, to_value, to_pct_x, to_pct_y, press_duration, activation_nudge_y,
         )
+        return True
 
     @step("Long press and drag from element to coordinates")
     def long_press_drag_from_element_to_coordinates(
@@ -1592,7 +2128,7 @@ class DriverActions:
         duration: float = 1.0,
         press_duration: float = 1.0,
         activation_nudge_y: int = 0,
-    ) -> None:
+    ) -> bool:
         """Resolve the source element point before starting the long-press drag."""
         src = self.find_element(from_by, from_value)
         from_x, from_y = self._point_in_element(src, from_pct_x, from_pct_y)
@@ -1613,6 +2149,7 @@ class DriverActions:
             "long_press_drag_from_element_to_coordinates: %s@(%.1f%%,%.1f%%) → (%d,%d) hold=%.2fs nudge_y=%d",
             from_value, from_pct_x, from_pct_y, to_x, to_y, press_duration, activation_nudge_y,
         )
+        return True
 
     @step("Long press and drag from coordinates to element")
     def long_press_drag_from_coordinates_to_element(
@@ -1626,7 +2163,7 @@ class DriverActions:
         duration: float = 1.0,
         press_duration: float = 1.0,
         activation_nudge_y: int = 0,
-    ) -> None:
+    ) -> bool:
         """Resolve the target element point before starting the long-press drag."""
         tgt = self.find_element(to_by, to_value)
         to_x, to_y = self._point_in_element(tgt, to_pct_x, to_pct_y)
@@ -1647,6 +2184,7 @@ class DriverActions:
             "long_press_drag_from_coordinates_to_element: (%d,%d) → %s@(%.1f%%,%.1f%%) hold=%.2fs nudge_y=%d",
             from_x, from_y, to_value, to_pct_x, to_pct_y, press_duration, activation_nudge_y,
         )
+        return True
 
     @step("Paint in element")
     def paint_in_element(
@@ -1660,16 +2198,20 @@ class DriverActions:
         container_value: Optional[str] = None,
         container_w: int = 0,
         container_h: int = 0,
-    ) -> None:
+    ) -> bool:
         """Replay a recorded paint path inside one element.
 
         points_pct entries are (x_pct, y_pct, t_ms) captured during recording.
         Replays as one continuous touch sequence (down once, move through all points, up once).
+
+        Returns True once the stroke is replayed; returns False when the recorded
+        path is unusable (no points, or fewer than two distinct points), since no
+        paint gesture reached the device in that case.
         """
         import time
         if not points_pct:
             logger.warning("paint_in_element: no points provided")
-            return
+            return False
         # Fast path: try immediate lookup first to reduce pre-stroke latency.
         # Fallback keeps previous behavior when the element is not instantly available.
         try:
@@ -1692,7 +2234,7 @@ class DriverActions:
                 abs_points.append((ax, ay, tt))
         if len(abs_points) < 2:
             logger.warning("paint_in_element: insufficient points (%d)", len(abs_points))
-            return
+            return False
 
         # Replay optimization: keep recorded points intact, but execute with fewer
         # geometric control points to reduce driver/WDA action overhead.
@@ -1805,6 +2347,8 @@ class DriverActions:
             except Exception:
                 pass
         logger.info(f'execute action done: time.time()={time.time()}')
+        return True
+
     # ──────────────────────────────────────────
     # Pinch & Rotate
     # ──────────────────────────────────────────
@@ -1815,7 +2359,7 @@ class DriverActions:
         element: WebElement,
         scale: float = 0.5,
         velocity: float = -1.0,
-    ) -> None:
+    ) -> bool:
         """
         Pinch gesture on *element* via XCUITest mobile: pinch.
         scale   < 1.0  →  pinch in  (zoom out).
@@ -1866,7 +2410,7 @@ class DriverActions:
                     center_x,
                     center_y,
                 )
-                return
+                return True
 
         logger.info(
             "pinch(mobile): scale=%.2f vel=%.2f center=(%d,%d) size=%dx%d",
@@ -1877,6 +2421,7 @@ class DriverActions:
             width,
             height,
         )
+        return True
 
     @step("Rotate")
     def rotate(
@@ -1884,7 +2429,7 @@ class DriverActions:
         element: WebElement,
         rotation: float = 90.0,
         velocity: float = 1.5,
-    ) -> None:
+    ) -> bool:
         """
         Rotate gesture on *element* via XCUITest mobile: rotateElement.
         rotation : angle in **degrees** (positive = clockwise).
@@ -1899,19 +2444,21 @@ class DriverActions:
             },
         )
         logger.info("rotate: %.1f deg at %.1f rad/s", rotation, velocity)
+        return True
 
     # ──────────────────────────────────────────
     # System operations
     # ──────────────────────────────────────────
 
     @step("Press Home button")
-    def press_home(self) -> None:
+    def press_home(self) -> bool:
         """Press the physical Home button (sends the app to the background)."""
         self.driver.execute_script("mobile: pressButton", {"name": "home"})
         logger.info("press_home")
+        return True
 
     @step("Launch app")
-    def launch_app(self, bundle_id: str) -> None:
+    def launch_app(self, bundle_id: str) -> bool:
         """
         Launch *bundle_id*.
         - Already running → brought to foreground.
@@ -1919,18 +2466,21 @@ class DriverActions:
         """
         self.driver.execute_script("mobile: launchApp", {"bundleId": bundle_id})
         logger.info("launch_app: %s", bundle_id)
+        return True
 
     @step("Activate app")
-    def activate_app(self, bundle_id: str) -> None:
+    def activate_app(self, bundle_id: str) -> bool:
         """Bring *bundle_id* to the foreground without cold-launching it."""
         self.driver.execute_script("mobile: activateApp", {"bundleId": bundle_id})
         logger.info("activate_app: %s", bundle_id)
+        return True
 
     @step("Terminate app")
-    def terminate_app(self, bundle_id: str) -> None:
+    def terminate_app(self, bundle_id: str) -> bool:
         """Force-quit *bundle_id*. No-op if the app is not running."""
         self.driver.execute_script("mobile: terminateApp", {"bundleId": bundle_id})
         logger.info("terminate_app: %s", bundle_id)
+        return True
 
     # ──────────────────────────────────────────
     # Verify (assertions)
@@ -1955,7 +2505,6 @@ class DriverActions:
         """
         try:
             element = self.wait_for_visible(by, value, timeout, container_by, container_value, container_w, container_h)
-            return True
         except (TimeoutException, NoSuchElementException):
             label = msg or f"({by}, {value!r})"
             raise AssertionError(f"verify_visible FAILED – element not visible: {label}")
@@ -1982,6 +2531,57 @@ class DriverActions:
         label = msg or f"({by}, {value!r})"
         raise AssertionError(f"verify_not_visible FAILED – element is still visible after {timeout}s: {label}")
 
+    @step("Wait until element is no longer shown")
+    def wait_until_not_show(
+        self,
+        by: str,
+        value: str,
+        appear_timeout: float = DEFAULT_NOT_SHOW_APPEAR_TIMEOUT,
+        disappear_timeout: float = DEFAULT_NOT_SHOW_DISAPPEAR_TIMEOUT,
+        poll_interval: float = DEFAULT_NOT_SHOW_POLL_INTERVAL,
+        msg: str = "",
+    ) -> bool:
+        """
+        Wait for a transient element (progress bar, rendering spinner, toast) to
+        appear and then go away again.
+
+        The two budgets are counted **separately**:
+
+        1. *appear_timeout* — the element must show up within this window.  When
+           it never appears there is nothing to wait for, so this returns
+           ``False`` immediately rather than sitting out the long budget.
+        2. *disappear_timeout* — once seen, the element gets this much time to
+           disappear.  ``True`` as soon as it is gone, ``False`` when it is still
+           on screen after the budget runs out.
+
+        Never raises: both outcomes are reported through the return value, so the
+        generated ``assert actions.wait_until_not_show(...)`` is what fails the
+        step — with the label of the element that misbehaved.
+        """
+        label = msg or f"({by}, {value!r})"
+
+        # Phase 1 — did it ever show up?  Own budget, own verdict.
+        if not self.is_element_present(by, value, timeout=appear_timeout):
+            logger.warning(
+                "wait_until_not_show: %s never appeared within %ss — nothing to wait for",
+                label, appear_timeout,
+            )
+            return False
+        logger.info("wait_until_not_show: %s appeared; waiting up to %ss for it to go away",
+                    label, disappear_timeout)
+
+        # Phase 2 — fresh budget for the work behind the element to finish.
+        deadline = time.monotonic() + disappear_timeout
+        while time.monotonic() < deadline:
+            if not self.is_element_present(by, value, timeout=1):
+                logger.info("wait_until_not_show: %s is gone", label)
+                return True
+            time.sleep(poll_interval)
+        logger.error(
+            "wait_until_not_show: %s is still shown after %ss", label, disappear_timeout
+        )
+        return False
+
     _TEXT_INPUT_TAGS = (
         "XCUIElementTypeTextField",
         "XCUIElementTypeTextView",
@@ -1995,10 +2595,18 @@ class DriverActions:
         value: str,
         expected: str,
         timeout: int = 5,
-    ) -> None:
+        tolerance: Optional[float] = None,
+    ) -> bool:
         """
         Assert that the element's text / label equals *expected*.
         Raises AssertionError with a clear diff message on mismatch.
+
+        *tolerance* switches the comparison to a numeric one that accepts a
+        difference of up to that many units — for readouts driven by a replayed
+        coordinate gesture, where the exact digit is not reproducible (see
+        ``config.TEXT_NUMERIC_TOLERANCE``).  ``None`` looks the element id up in
+        ``self.text_numeric_tolerance`` and falls back to an exact string compare.
+        Non-numeric text is always compared exactly, whatever the tolerance.
         """
         element = self.wait_for_visible(by, value, timeout)
         # Mirror recording: try value (typed content) then label.
@@ -2026,12 +2634,35 @@ class DriverActions:
         # name is the last resort — only reached when no text content was found anywhere.
         if not actual:
             actual = element.get_attribute("name") or ""
+        allowed = self._text_tolerance(value) if tolerance is None else float(tolerance)
+        if allowed > 0:
+            actual_n, expected_n = _as_number(actual), _as_number(expected)
+            if actual_n is not None and expected_n is not None:
+                assert abs(actual_n - expected_n) <= allowed, (
+                    f"verify_text FAILED for ({by}, {value!r})\n"
+                    f"  expected : {expected!r} (±{allowed:g})\n"
+                    f"  actual   : {actual!r}"
+                )
+                logger.info(
+                    "verify_text PASSED for (%s, %r): %r vs expected %r (±%g)",
+                    by, value, actual, expected, allowed,
+                )
+                return True
         assert actual == expected, (
             f"verify_text FAILED for ({by}, {value!r})\n"
             f"  expected : {expected!r}\n"
             f"  actual   : {actual!r}"
         )
         logger.info("verify_text PASSED for (%s, %r)", by, value)
+        return True
+
+    def _text_tolerance(self, value: str) -> float:
+        """Configured numeric tolerance for the element id *value* (0 = exact)."""
+        table = getattr(self, "text_numeric_tolerance", None) or {}
+        try:
+            return float(table.get(value, 0) or 0)
+        except (TypeError, ValueError):
+            return 0.0
 
     # ──────────────────────────────────────────
     # Screenshot: capture, compare GT, compare preview
@@ -2178,6 +2809,37 @@ class DriverActions:
         crop = img[y1:y2, x1:x2]
         return bool(cv2.imwrite(out_path, crop))
 
+    @staticmethod
+    def _parse_preview_phase(phase: str) -> tuple[str, str]:
+        """Split a preview *phase* into ``(kind, pair_suffix)``.
+
+        ``"before"`` / ``"after"`` are the plain forms and yield an empty suffix.
+        A phase may carry a free suffix after a separator
+        (``"before_min_ic_jaw"`` → ``("before", "min_ic_jaw")``) so that a single
+        capture *name* can hold several before/after pairs at the same time —
+        the suffix is what pairs the two halves and it also lands in the filename.
+
+        Raises ``ValueError`` for anything that is neither a before nor an after
+        capture; a mislabelled phase used to be silently treated as "after" and
+        surfaced much later as a missing-file comparison failure.
+        """
+        raw = (phase or "").strip()
+        low = raw.lower()
+        for kind in ("before", "after"):
+            if low == kind:
+                return kind, ""
+            if low.startswith(kind) and len(low) > len(kind) and not low[len(kind)].isalnum():
+                return kind, raw[len(kind) + 1:]
+        raise ValueError(
+            "capture_for_preview: phase must be 'before'/'after', optionally with a "
+            f"pair suffix such as 'before_min_ic_jaw' — got {phase!r}"
+        )
+
+    @staticmethod
+    def _preview_label(name: str, pair_suffix: str) -> str:
+        """Reporting label for one before/after pair."""
+        return f"{name}:{pair_suffix}" if pair_suffix else name
+
     def _resolve_capture_rect(
         self,
         by: Optional[str],
@@ -2253,13 +2915,16 @@ class DriverActions:
     ) -> bool:
         """Capture AFTER image during hold and enqueue preview comparison."""
         os.makedirs(compare_folder, exist_ok=True)
-        pending = self._preview_pending.pop(name, None)
-        meta = self._preview_pending_meta.pop(name, (None, None))
-        if pending:
-            ts, before_path = pending
-        else:
-            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-            before_path = os.path.join(compare_folder, f"{name}_before.png")
+        key = (name, "")
+        pending = self._preview_pending.pop(key, None)
+        meta = self._preview_pending_meta.pop(key, (None, None))
+        if not pending:
+            logger.error(
+                "No pending 'before' capture for %r — the hold flow needs a "
+                "capture_for_preview(%r, 'before', ...) first", name, name,
+            )
+            return False
+        ts, before_path = pending
         after_path = os.path.join(compare_folder, f"{name}_{ts}_after.png")
 
         rect_for_after = capture_rect_pts or meta[0]
@@ -2314,6 +2979,22 @@ class DriverActions:
                 stable, last = 1, sig
             time.sleep(interval)
 
+    @staticmethod
+    def _screenshot_written(path: str) -> bool:
+        """True when *path* exists and holds a non-empty image."""
+        try:
+            return os.path.getsize(path) > 0
+        except OSError:
+            return False
+
+    def _save_full_screenshot(self, path: str) -> bool:
+        """Full-screen screenshot to *path*; never raises — callers check the file."""
+        try:
+            self.driver.save_screenshot(path)
+        except Exception as exc:
+            logger.warning("save_screenshot failed for %s: %s", path, exc)
+        return self._screenshot_written(path)
+
     @step("Capture screenshot for GT comparison")
     def capture_for_gt(
         self,
@@ -2323,7 +3004,7 @@ class DriverActions:
         compare_folder: str = "pytest/screenshots/compare",
         threshold: Optional[float] = None,
         crop_rect: Optional[Tuple[int, int, int, int]] = None,
-    ) -> str:
+    ) -> Union[str, bool]:
         """
         Capture the target and save it to *compare_folder* as
         ``{name}_{ts}_compare.png`` (timestamp added to prevent overwrite).
@@ -2340,6 +3021,12 @@ class DriverActions:
 
         *threshold*: per-image SSIM threshold (0–1).  When ``None``, the global
         threshold passed to ``run_screenshot_comparisons()`` is used instead.
+
+        Returns the saved path (truthy) on success, or ``False`` when no image
+        could be written — in which case nothing is queued, because a queued path
+        to a missing file only turns into a confusing failure later.  The path is
+        returned rather than ``True`` because callers feed it straight into
+        ``compare_with_gt(compare_path=...)`` / ``compare_preview(before_path=...)``.
         """
         self._settle_hierarchy()   # wait for a stable screen before capturing
         os.makedirs(compare_folder, exist_ok=True)
@@ -2352,16 +3039,22 @@ class DriverActions:
             png = self._fetch_wda_screenshot_png()
             if not (png and self._save_image_crop_by_rect(png, path, rect_pts, screen_pts)):
                 logger.warning("crop_rect capture failed for %s; falling back to full-screen", name)
-                self.driver.save_screenshot(path)
+                self._save_full_screenshot(path)
         elif by and value:
             try:
                 el = self.find_element(by, value)
                 el.screenshot(path)
             except Exception as exc:
                 logger.warning("Element screenshot failed (%s); falling back to full-screen", exc)
-                self.driver.save_screenshot(path)
+                self._save_full_screenshot(path)
         else:
-            self.driver.save_screenshot(path)
+            self._save_full_screenshot(path)
+        if not self._screenshot_written(path):
+            logger.error(
+                "capture_for_gt FAILED for '%s' — no image written to %s; "
+                "skipping GT comparison for this capture", name, path,
+            )
+            return False
         self._gt_compare_queue.append((name, path, threshold))
         logger.info("Captured for GT comparison: %s (threshold=%s)", path, threshold)
         return path
@@ -2382,8 +3075,14 @@ class DriverActions:
 
         Saves to ``{name}_{ts}_{phase}.png`` in *compare_folder* (timestamp
         shared between the "before" and "after" pair to prevent overwrite).
-        When *phase* == ``"after"``, the name is queued for preview comparison;
+        When the phase is an "after" capture, the pair is queued for comparison;
         call ``run_screenshot_comparisons()`` at the end of the test to evaluate.
+
+        *phase* is ``"before"`` / ``"after"``, optionally followed by a pair
+        suffix (``"before_min_ic_jaw"`` / ``"after_min_ic_jaw"``).  The suffix
+        pairs the two halves, so one *name* can hold several pairs at once —
+        typically inside a loop over elements — and it keeps every filename
+        distinct.  A phase that is neither before nor after raises ``ValueError``.
 
         *threshold*: per-image SSIM threshold (0–1).  When ``None``, the global
         threshold passed to ``run_screenshot_comparisons()`` is used instead.
@@ -2391,33 +3090,42 @@ class DriverActions:
         *expected_result*: ``"same"`` (default) — similarity ≥ threshold to PASS.
                            ``"different"`` — similarity < threshold to PASS
                            (i.e. the action was expected to visually change the screen).
-        Only meaningful when *phase* == ``"after"``.
+        Only meaningful on the "after" capture.
         """
         os.makedirs(compare_folder, exist_ok=True)
-        if phase == "before":
+        kind, pair_suffix = self._parse_preview_phase(phase)
+        key = (name, pair_suffix)
+        label = self._preview_label(name, pair_suffix)
+        file_phase = f"{kind}_{pair_suffix}" if pair_suffix else kind
+        if kind == "before":
             ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-            path = os.path.join(compare_folder, f"{name}_{ts}_before.png")
+            path = os.path.join(compare_folder, f"{name}_{ts}_{file_phase}.png")
             rect_pts, screen_pts = self._resolve_capture_rect(by, value)
             if not self._save_preview_image(path, rect_pts, screen_pts, by, value):
-                raise AssertionError(f"Failed to capture before screenshot: {name}")
-            self._preview_pending[name] = (ts, path)
-            self._preview_pending_meta[name] = (rect_pts, screen_pts)
+                raise AssertionError(f"Failed to capture before screenshot: {label}")
+            self._preview_pending[key] = (ts, path)
+            self._preview_pending_meta[key] = (rect_pts, screen_pts)
             logger.info("Captured before screenshot for preview: %s", path)
         else:
-            pending = self._preview_pending.pop(name, None)
-            meta = self._preview_pending_meta.pop(name, (None, None))
-            if pending:
-                ts, before_path = pending
-            else:
-                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-                before_path = os.path.join(compare_folder, f"{name}_before.png")  # fallback
-            path = os.path.join(compare_folder, f"{name}_{ts}_after.png")
+            self._settle_hierarchy()
+            pending = self._preview_pending.pop(key, None)
+            meta = self._preview_pending_meta.pop(key, (None, None))
+            if not pending:
+                # Queueing a made-up before path here only turns into an opaque
+                # "file missing" failure inside run_screenshot_comparisons().
+                raise AssertionError(
+                    f"capture_for_preview: no pending 'before' capture for '{label}' "
+                    f"(phase={phase!r}) — every after capture needs a matching before "
+                    f"capture with the same name and pair suffix"
+                )
+            ts, before_path = pending
+            path = os.path.join(compare_folder, f"{name}_{ts}_{file_phase}.png")
             rect_pts, screen_pts = meta
             if rect_pts is None or screen_pts is None:
                 rect_pts, screen_pts = self._resolve_capture_rect(by, value)
             if not self._save_preview_image(path, rect_pts, screen_pts, by, value):
-                raise AssertionError(f"Failed to capture after screenshot: {name}")
-            self._preview_compare_queue.append((name, before_path, path, threshold, expected_result))
+                raise AssertionError(f"Failed to capture after screenshot: {label}")
+            self._preview_compare_queue.append((label, before_path, path, threshold, expected_result))
             logger.info(
                 "Captured after screenshot for preview: %s (threshold=%s, expected=%s)",
                 path, threshold, expected_result,
@@ -2436,7 +3144,7 @@ class DriverActions:
         expected_result: str = "same",
         threshold: Optional[float] = None,
         timeout: int = DEFAULT_WAIT,
-    ) -> None:
+    ) -> bool:
         """Capture target before/after a tap action without hierarchy-stability waits."""
         self.capture_for_preview(capture_name, "before", capture_by, capture_value)
         tap_el = self.wait_for_visible(tap_by, tap_value, timeout)
@@ -2460,6 +3168,7 @@ class DriverActions:
             capture_name,
             expected_result,
         )
+        return True
 
     @step("Tap within element and capture before/after preview")
     def tap_within_element_then_capture_preview(
@@ -2475,7 +3184,7 @@ class DriverActions:
         expected_result: str = "same",
         threshold: Optional[float] = None,
         timeout: int = DEFAULT_WAIT,
-    ) -> None:
+    ) -> bool:
         """Capture target before/after a %offset tap action without hierarchy-stability waits."""
         self.capture_for_preview(capture_name, "before", capture_by, capture_value)
         tap_el = self.wait_for_visible(tap_by, tap_value, timeout)
@@ -2499,6 +3208,7 @@ class DriverActions:
             capture_name,
             expected_result,
         )
+        return True
 
     def _compare_images(
         self,
@@ -2582,6 +3292,14 @@ class DriverActions:
         *threshold* is the minimum acceptable SSIM similarity (0–1, 1 = identical).
         Does NOT raise — all failures are collected by ``run_screenshot_comparisons()``.
         """
+        if not compare_path:
+            queued_paths = [
+                path for queued_name, path, _ in self._gt_compare_queue
+                if queued_name == name and path
+            ]
+            if queued_paths:
+                compare_path = queued_paths[-1]
+
         gt_path   = os.path.join(gt_folder, f"{name}.png")
         diff_path = os.path.splitext(compare_path)[0] + "_diff.png"
 
@@ -2677,7 +3395,7 @@ class DriverActions:
     def run_screenshot_comparisons(
         self,
         threshold: float = 0.99,
-    ) -> None:
+    ) -> bool:
         """
         Process every name queued by ``capture_for_gt`` and ``capture_for_preview``.
 
@@ -2709,3 +3427,4 @@ class DriverActions:
         if failures:
             combined = "\n".join(f"  • {f}" for f in failures)
             raise AssertionError(f"Screenshot comparison failures:\n{combined}")
+        return True

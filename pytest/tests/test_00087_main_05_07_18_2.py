@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00087_main_05_07_18_2')
@@ -17,16 +17,18 @@ def test_00087_main_05_07_18_2(actions: DriverActions):
         actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'closeButton')
         actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'navCloseButton')
     with step('[Action] tap_editphoto'):
-        actions.tap_by_locator(AppiumBy.NAME, 'Edit Photo')
+        actions.tap_by_locator(AppiumBy.NAME, 'Edit')
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
     with step('[Action] select_category'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '_AT')
     with step('[Action] select_photo'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'photoCell-1')
     with step('[Action] close_interstitial'):
-        actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnIAP')
-        actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnIAP')
-        actions.wait_for_invisible(AppiumBy.ACCESSIBILITY_ID, 'btnIAP')
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'xpromo btn close n', timeout=2):
+            actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'xpromo btn close n')
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnIAP', timeout=2):
+            actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnIAP')
+            actions.wait_for_invisible(AppiumBy.ACCESSIBILITY_ID, 'btnIAP')
     with step('[Action] scroll_and_tap_feature_tab'):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Edit')
     with step('[Action] scroll_and_tap_feature_tab'):
@@ -41,6 +43,9 @@ def test_00087_main_05_07_18_2(actions: DriverActions):
         actions.capture_for_gt('05_07_18_before_plumpness2.png')
     with step('[Action] tap_phd_btn'):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Plumpness')
+    with step('[Action] wait_process'):
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'waitingView', timeout=5):
+            actions.wait_for_invisible(AppiumBy.ACCESSIBILITY_ID, 'waitingView', timeout=30)
     if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'Please choose another photo'):
         pass
     else:

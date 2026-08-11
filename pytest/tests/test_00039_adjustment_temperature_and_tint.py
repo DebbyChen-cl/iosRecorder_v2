@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00039_adjustment_temperature_and_tint')
@@ -70,7 +70,7 @@ def test_00039_adjustment_temperature_and_tint(actions: DriverActions):
     if (not actions.tap_by_coordinates(300, 230)):
         assert False  # legacy raise
     actions.capture_for_gt('base05_03_08_temp_dropper.png', crop_rect=(0, 60, 276, 429))
-    if (not actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnCancel')):
+    if (not actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btn_cancel_n')):
         assert False  # legacy raise
     with step('[Verify] snapshot: 05_03_08_tap_x.png'):
         actions.capture_for_gt('05_03_08_tap_x.png', crop_rect=(0, 60, 276, 429))

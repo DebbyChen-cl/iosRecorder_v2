@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00007_main_03_01_06_2_2')
@@ -25,7 +25,7 @@ def test_00007_main_03_01_06_2_2(actions: DriverActions):
             assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'contactArrowButton')
     with step('Verify panel is opened'):
         with step('[Action] verify_contact_us_panel_opened'):
-            assert actions.find_element(AppiumBy.XPATH, '//XCUIElementTypeStaticText[contains(@name,"Still have") and contains(@name,"contact us") and (contains(@name,"^") or contains(@label,"^") or contains(@value,"^"))]')
+            assert actions.find_element(AppiumBy.ACCESSIBILITY_ID, 'contactHeaderLabel')
             assert actions.find_element(AppiumBy.ACCESSIBILITY_ID, 'Privacy Policy')
         actions.scroll('up', distance=50 / actions.get_screen_size()[1])
     with step('Tap Privacy Policy hyperlink'):
@@ -78,7 +78,12 @@ def test_00007_main_03_01_06_2_2(actions: DriverActions):
         with step('[Action] tap_system_albums_kobe'):
             assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'kobe')
         with step('[Action] tap_photo_kobe'):
-            assert actions.tap_by_locator(AppiumBy.IOS_CLASS_CHAIN, '**/XCUIElementTypeImage[`name == "PXGGridLayout-Info"`][1]')
+            # PXG grid images are visible="false" — tap by coordinate, not element.click()
+            assert actions.tap_within_element(
+                AppiumBy.IOS_CLASS_CHAIN,
+                '**/XCUIElementTypeImage[`name == "PXGGridLayout-Info"`][1]',
+                50, 50,
+            )
         with step('[Action] tap_phd_btn'):
             assert actions.tap_by_locator(AppiumBy.NAME, 'Add')
     with step('Verify attached image thumbnail is listed'):

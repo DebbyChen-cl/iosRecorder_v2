@@ -3,7 +3,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from reportportal_client import step
 
 from driver.driver_actions import DriverActions
-import testdata as TD
+from tests import testdata as TD
 
 
 @pytest.mark.name('00009_main_03_01_06_4')
@@ -13,7 +13,7 @@ def test_00009_main_03_01_06_4(actions: DriverActions):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnIAP')
     with step('[Action] tap_IAP_back_btn'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnClose')
-        assert actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'imgViewTitle')
+        assert actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnHome')
     with step('[Action] tap_phd_btn'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Mine')
     with step('[Action] tap_notice_btn'):
