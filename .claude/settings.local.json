@@ -47,7 +47,8 @@
       "Bash(python3 -m pytest test_unittest -o addopts=\"\" -q -p no:logging --tb=line)",
       "Bash(python3 pytest/refresh_known_issue.py)",
       "Bash(python3 pytest/refresh_known_issue.py --check)",
-      "Bash(python3 -m pytest test_unittest -o addopts=\"\" -q -p no:logging)"
+      "Bash(python3 -m pytest test_unittest -o addopts=\"\" -q -p no:logging)",
+      "Bash(uniq -c -w35)"
     ]
   }
 }
