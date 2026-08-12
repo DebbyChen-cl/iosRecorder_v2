@@ -27,7 +27,9 @@ iosRecorder_v2/
 │   └── style.css           # UI styling
 └── pytest/                 # Appium + pytest test framework
     ├── conftest.py          # Fixtures: driver (function — fresh WDA session per test), actions (function), screenshot_on_failure (autouse), _failure_evidence_workspace (autouse), _log_auto_healing_context (autouse); auto-healing hooks
-    ├── auto_healing.py      # Auto-healing integration: failure evidence, state.json, retry lane, Phase 2 trigger
+    ├── auto_healing.py      # Auto-healing integration: failure evidence, state.json, known-issue lane, retry lane, Phase 2 trigger
+    ├── known_issue.json     # Cases whose failure is already understood (reason is in the test file name); a repeat of the recorded failure signature skips auto-healing
+    ├── refresh_known_issue.py  # Rebuilds known_issue.json from the test file names (`--check` reports drift); keeps bug_code + recorded signatures
     ├── config.py            # Device capabilities (UDID, bundle ID, Appium URL) + auto-healing switches
     ├── driver/
     │   ├── driver_setup.py  # Creates/quits the Appium driver

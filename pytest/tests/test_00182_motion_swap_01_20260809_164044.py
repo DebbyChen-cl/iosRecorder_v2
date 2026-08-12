@@ -79,6 +79,16 @@ def test_00182_motion_swap_01_20260809_164044(actions: DriverActions):
         actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'labelProcessing')
     with step("[Action] Tap btnBack at (58.1%, 61.3%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnBack', 58.1, 61.3)
+    with step("[Action] Tap chevronView at (27.3%, 56.5%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'chevronView', 27.3, 56.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='editScrollView', container_w=394, container_h=542)
+    with step("[Action] Tap Kling Motion Control at (35.0%, 52.2%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Kling Motion Control', 35.0, 52.2, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeApplication[@name="PhotoDirector"]/XCUIElementTypeWindow/XCUIElementTypeTable', container_w=394, container_h=176)
+    with step("[Action] Tap Generate at (80.0%, 50.0%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Generate', 80.0, 50.0)
+    with step("[Verify] labelProcessing disappears within 1200s"):
+        assert actions.wait_until_not_show(AppiumBy.ACCESSIBILITY_ID, 'labelProcessing', appear_timeout=5, disappear_timeout=1200), 'labelProcessing did not appear within 5s or is still shown after 1200s'
+    with step("[Action] Tap btnBack at (61.3%, 64.5%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnBack', 61.3, 64.5)
     with step("[Action] Tap navArtworkButton at (36.4%, 34.1%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navArtworkButton', 36.4, 34.1)
     with step("[Verify] lblTitle is visible"):

@@ -44,7 +44,7 @@ def test_00164_ai_hair_volume_20260807_103910(actions: DriverActions):
     with step("[Verify] barImageView disappears within 1200s"):
         assert actions.wait_until_not_show(AppiumBy.ACCESSIBILITY_ID, 'barImageView', appear_timeout=5, disappear_timeout=1200), 'barImageView did not appear within 5s or is still shown after 1200s'
     with step("[Verify] Capture 'screenshot' after screenshot"):
-        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'faceOverlayBorderView', expected_result='different', threshold=0.95)
+        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'faceOverlayBorderView', expected_result='different', threshold=0.999)
     with step("[Action] Tap Natural at (30.7%, 60.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Natural', 30.7, 60.0, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='styleCollectionView', container_w=430, container_h=117)
     with step("[Verify] Capture 'screenshot' before screenshot"):
@@ -54,19 +54,19 @@ def test_00164_ai_hair_volume_20260807_103910(actions: DriverActions):
     with step("[Verify] barImageView disappears within 1200s"):
         assert actions.wait_until_not_show(AppiumBy.ACCESSIBILITY_ID, 'barImageView', appear_timeout=5, disappear_timeout=1200), 'barImageView did not appear within 5s or is still shown after 1200s'
     with step("[Verify] Capture 'screenshot' after screenshot"):
-        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'editAreaView', expected_result='different', threshold=0.95)
+        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'editAreaView', expected_result='different', threshold=0.999)
     with step("[Verify] Capture 'screenshot' before screenshot"):
         actions.capture_for_preview('screenshot', 'before', AppiumBy.ACCESSIBILITY_ID, 'faceOverlayBorderView')
     with step("[Action] Tap ic_undo at (62.0%, 34.7%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic_undo', 62.0, 34.7)
     with step("[Verify] Capture 'screenshot' after screenshot"):
-        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'faceOverlayBorderView', expected_result='different', threshold=0.95)
+        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'faceOverlayBorderView', expected_result='different', threshold=0.999)
     with step("[Verify] Capture 'screenshot' before screenshot"):
         actions.capture_for_preview('screenshot', 'before', AppiumBy.ACCESSIBILITY_ID, 'faceOverlayBorderView')
     with step("[Action] Tap ic_redo at (62.0%, 30.6%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic_redo', 62.0, 30.6)
     with step("[Verify] Capture 'screenshot' after screenshot"):
-        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'faceOverlayBorderView', expected_result='different', threshold=0.95)
+        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'faceOverlayBorderView', expected_result='different', threshold=0.999)
     with step("[Action] Tap Western_v3 at (31.8%, 72.7%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Western_v3', 31.8, 72.7, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='styleCollectionView', container_w=430, container_h=117)
     with step("[Verify] Capture 'screenshot' before screenshot"):
@@ -76,7 +76,7 @@ def test_00164_ai_hair_volume_20260807_103910(actions: DriverActions):
     with step("[Verify] barImageView disappears within 1200s"):
         assert actions.wait_until_not_show(AppiumBy.ACCESSIBILITY_ID, 'barImageView', appear_timeout=5, disappear_timeout=1200), 'barImageView did not appear within 5s or is still shown after 1200s'
     with step("[Verify] Capture 'screenshot' after screenshot"):
-        actions.capture_for_preview('screenshot', 'after', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="editAnchorView"]/XCUIElementTypeOther/XCUIElementTypeImage', expected_result='different', threshold=0.95)
+        actions.capture_for_preview('screenshot', 'after', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="editAnchorView"]/XCUIElementTypeOther/XCUIElementTypeImage', expected_result='different', threshold=0.999)
     with step("[Action] Tap Western_v4 at (52.3%, 58.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Western_v4', 52.3, 58.0, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='styleCollectionView', container_w=430, container_h=117)
     with step("[Verify] Capture 'screenshot' before screenshot"):
@@ -86,7 +86,7 @@ def test_00164_ai_hair_volume_20260807_103910(actions: DriverActions):
     with step("[Verify] barImageView disappears within 1200s"):
         assert actions.wait_until_not_show(AppiumBy.ACCESSIBILITY_ID, 'barImageView', appear_timeout=5, disappear_timeout=1200), 'barImageView did not appear within 5s or is still shown after 1200s'
     with step("[Verify] Capture 'screenshot' after screenshot"):
-        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'faceOverlayBorderView', expected_result='different', threshold=0.95)
+        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'faceOverlayBorderView', expected_result='different', threshold=0.999)
     with step("[Action] Tap Maximized at (45.5%, 40.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Maximized', 45.5, 40.0, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='styleCollectionView', container_w=430, container_h=117)
     with step("[Verify] Capture 'screenshot' before screenshot"):
@@ -96,19 +96,19 @@ def test_00164_ai_hair_volume_20260807_103910(actions: DriverActions):
     with step("[Verify] barImageView disappears within 1200s"):
         assert actions.wait_until_not_show(AppiumBy.ACCESSIBILITY_ID, 'barImageView', appear_timeout=5, disappear_timeout=1200), 'barImageView did not appear within 5s or is still shown after 1200s'
     with step("[Verify] Capture 'screenshot' after screenshot"):
-        actions.capture_for_preview('screenshot', 'after', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="editAnchorView"]/XCUIElementTypeOther/XCUIElementTypeImage', expected_result='different', threshold=0.95)
+        actions.capture_for_preview('screenshot', 'after', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="editAnchorView"]/XCUIElementTypeOther/XCUIElementTypeImage', expected_result='different', threshold=0.999)
     with step("[Verify] Capture 'screenshot' before screenshot"):
         actions.capture_for_preview('screenshot', 'before', AppiumBy.ACCESSIBILITY_ID, 'faceOverlayBorderView')
     with step("[Action] Tap btn_reset_n at (72.0%, 40.8%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_reset_n', 72.0, 40.8)
     with step("[Verify] Capture 'screenshot' after screenshot"):
-        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'faceOverlayBorderView', expected_result='different', threshold=0.95)
+        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'faceOverlayBorderView', expected_result='different', threshold=0.999)
     with step("[Verify] Capture 'screenshot' before screenshot"):
         actions.capture_for_preview('screenshot', 'before', AppiumBy.ACCESSIBILITY_ID, 'faceOverlayBorderView')
     with step("[Action] Tap ic_undo at (64.0%, 51.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic_undo', 64.0, 51.0)
     with step("[Verify] Capture 'screenshot' after screenshot"):
-        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'faceOverlayBorderView', expected_result='different', threshold=0.95)
+        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'faceOverlayBorderView', expected_result='different', threshold=0.999)
     with step("[Action] Tap btn_cancel_n at (46.9%, 59.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_cancel_n', 46.9, 59.2)
     with step("[Action] Tap ic_hair at (66.7%, 63.6%)"):
@@ -150,7 +150,7 @@ def test_00164_ai_hair_volume_20260807_103910(actions: DriverActions):
     with step("[Verify] barImageView disappears within 1200s"):
         assert actions.wait_until_not_show(AppiumBy.ACCESSIBILITY_ID, 'barImageView', appear_timeout=5, disappear_timeout=1200), 'barImageView did not appear within 5s or is still shown after 1200s'
     with step("[Verify] Capture 'screenshot' after screenshot"):
-        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'editAreaView', expected_result='different', threshold=0.95)
+        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'editAreaView', expected_result='different', threshold=0.999)
     with step("[Action] Tap //XCUIElementTypeCell[@name=\"MenuCell-1\"]/XCUIElementTypeImage at (50.0%, 58.3%)"):
         actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeCell[@name="MenuCell-1"]/XCUIElementTypeImage', 50.0, 58.3, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="topPanelAreaView"]/XCUIElementTypeCollectionView', container_w=240, container_h=49)
     with step("[Action] Tap Continue Anyway at (28.6%, 79.2%)"):
@@ -168,7 +168,7 @@ def test_00164_ai_hair_volume_20260807_103910(actions: DriverActions):
     with step("[Action] Tap ic_undo at (68.0%, 59.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic_undo', 68.0, 59.2)
     with step("[Verify] Capture 'screenshot' after screenshot"):
-        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'faceOverlayBorderView', expected_result='different', threshold=0.95)
+        actions.capture_for_preview('screenshot', 'after', AppiumBy.ACCESSIBILITY_ID, 'faceOverlayBorderView', expected_result='different', threshold=0.999)
     with step("[Action] Tap ic_redo at (54.0%, 42.9%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic_redo', 54.0, 42.9)
     with step("[Action] Tap btn_ok_n at (73.5%, 44.9%)"):
@@ -180,5 +180,5 @@ def test_00164_ai_hair_volume_20260807_103910(actions: DriverActions):
     with step("[Action] Tap btnHome at (55.3%, 47.3%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnHome', 55.3, 47.3)
     with step("[Verify] Screenshot comparisons"):
-        actions.run_screenshot_comparisons(threshold=0.95)
+        actions.run_screenshot_comparisons(threshold=0.999)
     assert True

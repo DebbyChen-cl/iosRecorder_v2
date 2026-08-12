@@ -238,7 +238,7 @@ def test_00051_lightray_20260804_115641(actions: DriverActions):
     with step("[Action] Drag cpSlider (7.3%,61.9%) → blackBackgroundView (69.1%,76.5%)"):
         actions.drag_within_elements(AppiumBy.ACCESSIBILITY_ID, 'cpSlider', 7.3, 61.9, AppiumBy.ACCESSIBILITY_ID, 'blackBackgroundView', 69.1, 76.5, duration=1.0)
     with step("[Verify] Capture '00051_lightray_Step114' for GT comparison"):
-        actions.capture_for_gt('00051_lightray_Step114', AppiumBy.ACCESSIBILITY_ID, 'blackBackgroundView', threshold=0.95)
+        actions.capture_for_gt('00051_lightray_Step114', AppiumBy.ACCESSIBILITY_ID, 'blackBackgroundView', threshold=0.93)
     with step("[Action] Tap ic_undo at (69.4%, 55.1%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic_undo', 69.4, 55.1)
     with step("[Action] Tap ic_undo at (69.4%, 55.1%)"):

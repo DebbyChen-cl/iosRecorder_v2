@@ -157,10 +157,10 @@ def test_00145_main_05_01_12_6_20260805_173349(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'photoPickerButton', 65.4, 65.4)
     with step("[Action] Tap photoCell-1 at (23.1%, 80.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'photoCell-1', 23.1, 80.0, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=746)
-    with step("[Action] Tap waitingView at (87.4%, 45.4%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'waitingView', 87.4, 45.4, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='EditViewControllerBottomBarCollectionView', container_w=430, container_h=97)
+    with step("[Action] Tap ic_preset at (39.4%, 84.8%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic_preset', 39.4, 84.8, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='EditViewControllerBottomBarCollectionView', container_w=430, container_h=97)
     with step("[Action] Tap Scenery at (66.2%, 56.5%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Scenery', 66.2, 56.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='ScrollableMenuView', container_w=332, container_h=46)
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Scenery', 66.2, 56.5)
     with step("[Action] Tap Scenery 01 at (58.6%, 53.3%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Scenery 01', 58.6, 53.3, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='EditViewControllerBottomBarCollectionView', container_w=430, container_h=97)
     with step("[Action] Drag cpSlider (69.4%,54.0%) → slider (1.9%,63.3%)"):

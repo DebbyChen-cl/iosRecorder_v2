@@ -29,8 +29,8 @@ def test_00185_ai_creative_studio_02_20260807_145017(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'aiCreativeStudioRouter_backButton', 76.9, 44.4)
     with step("[Action] Tap Collage at (36.1%, 54.5%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Collage', 36.1, 54.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='titleCollectionViewCollectionView', container_w=430, container_h=28)
-    with step("[Action] Tap CMS-CreativeStudio_Template_Collage at (37.3%, 44.4%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'CMS-CreativeStudio_Template_Collage', 37.3, 44.4, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='AICreativeStudioTemplatePageContentViewController', container_w=430, container_h=682)
+    with step("[Action] Tap CMS-CreativeStudio_Template_Collage at (31.1%, 55.0%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'CMS-CreativeStudio_Template_Collage', 31.1, 55.0, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='AICreativeStudioTemplatePageContentViewController', container_w=430, container_h=682)
     with step("[Action] Tap addIconView at (65.0%, 22.5%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'addIconView', 65.0, 22.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='aiCreativeStudioPhotoListPanelCollectionView', container_w=386, container_h=62)
     with step("[Action] Tap PhotoPickerRecommendDialog-notShowAgainCheckBox at (74.1%, 70.4%)"):

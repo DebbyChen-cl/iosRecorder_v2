@@ -1,0 +1,200 @@
+[
+  {
+    "file_name": "test_00005_main_03_01_06_2_needupdateBuildInfo.py",
+    "test_name": "test_00005_main_03_01_06_2",
+    "error_reason": "needupdateBuildInfo",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00018_main_G00_01_01_needRDLocator_o.py",
+    "test_name": "test_00018_main_G00_01_01",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00042_vignette_needRecorderUpdate.py",
+    "test_name": "test_00042_vignette",
+    "error_reason": "needRecorderUpdate",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00043_blur_tool_needRecorderUpdate.py",
+    "test_name": "test_00043_blur_tool",
+    "error_reason": "needRecorderUpdate",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00044_main_05_04a_01n_needRDLocator_o.py",
+    "test_name": "test_00044_main_05_04a_01n",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00095_swap_face_NeedRDLocator_o.py",
+    "test_name": "test_00095_swap_face",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00103_main_05_08_01_n5_NeedRDLocator_o.py",
+    "test_name": "test_00103_main_05_08_01_n5",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00104_main_05_08_01_n6_NeedRDLocator_o.py",
+    "test_name": "test_00104_main_05_08_01_n6",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00105_main_05_08_01_n7_NeedRDLocator_o.py",
+    "test_name": "test_00105_main_05_08_01_n7",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00106_main_05_08_01_n8_NeedCheckSteo.py",
+    "test_name": "test_00106_main_05_08_01_n8",
+    "error_reason": "NeedCheckSteo",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00111_main_06_01_01_n5_NeedRDLocator_o.py",
+    "test_name": "test_00111_main_06_01_01_n5",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00112_main_06_01_01_n6_NeedRDLocator_o.py",
+    "test_name": "test_00112_main_06_01_01_n6",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00113_main_06_01_01_n7_NeedRDLocator_o.py",
+    "test_name": "test_00113_main_06_01_01_n7",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00116_main_05_13_01_1n_NeedRDLocator_o.py",
+    "test_name": "test_00116_main_05_13_01_1n_20260805_145011",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00122_main_05_11_01_4_20260805_155236_NeedRDLocator_o.py",
+    "test_name": "test_00122_main_05_11_01_4_20260805_155236",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00123_main_05_11_01_5_20260805_155928_NeedRDLocator_o.py",
+    "test_name": "test_00123_main_05_11_01_5_20260805_155928",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00124_main_05_11_01_6_20260805_160317_NeedRDLocator_o.py",
+    "test_name": "test_00124_main_05_11_01_6_20260805_160317",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00125_main_05_11_01_7_NeedRDLocator_o.py",
+    "test_name": "test_00125_main_05_11_01_7",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00126_main_05_11_01_8_NeedRDLocator_o.py",
+    "test_name": "test_00126_main_05_11_01_8",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00133_main_05_17_03_NeedRDLocator_BokehOnPreview.py",
+    "test_name": "test_00133_main_05_17_03",
+    "error_reason": "NeedRDLocator_BokehOnPreview",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00137_main_06_02_01_2_20260809_160221_NeedRDInitial.py",
+    "test_name": "test_00137_main_06_02_01_2_20260809_160221",
+    "error_reason": "NeedRDInitial",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00138_main_05_14_01_20260809_161044_NeedRDInitial.py",
+    "test_name": "test_00138_main_05_14_01_20260809_161044",
+    "error_reason": "NeedRDInitial",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00139_main_05_07_23_NeedRDLocator.py",
+    "test_name": "test_00139_main_05_07_23",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00142_main_05_01_12_2_20260805_170321_NeedRDLocator_o.py",
+    "test_name": "test_00142_main_05_01_12_2_20260805_170321",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00157_ai_artwork_renew_NeedRecordAgain.py",
+    "test_name": "test_00157_ai_artwork_renew",
+    "error_reason": "NeedRecordAgain",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00174_collage_edit_NeedRDLocator.py",
+    "test_name": "test_00174_collage_edit_20260809_163403",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00178_ai_try_on_03_20260807_142149_NeedRDLocator_o.py",
+    "test_name": "test_00178_ai_try_on_03_20260807_142149",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00180_ai_try_on_05_20260807_142730_NeedRDLocator_o.py",
+    "test_name": "test_00180_ai_try_on_05_20260807_142730",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00181_1_ai_try_on_06_20260807_143101_NeedRDLocator_o.py",
+    "test_name": "test_00181_1_ai_try_on_06_20260807_143101",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00185_ai_creative_studio_02_20260807_145017_NeedRDLocator_o.py",
+    "test_name": "test_00185_ai_creative_studio_02_20260807_145017",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00186_ai_creative_studio_03_20260807_145616_NeedRDLocator_o.py",
+    "test_name": "test_00186_ai_creative_studio_03_20260807_145616",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00187_ai_creative_studio_04_20260807_154112_NeedRDLocator_o.py",
+    "test_name": "test_00187_ai_creative_studio_04_20260807_154112",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  },
+  {
+    "file_name": "test_00228_IDPhoto_34x45_NeedRDLocator.py",
+    "test_name": "test_00228_IDPhoto_34x45_20260812_162719",
+    "error_reason": "NeedRDLocator",
+    "bug_code": ""
+  }
+]

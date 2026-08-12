@@ -8,9 +8,9 @@ from driver.driver_actions import DriverActions
 @pytest.mark.name("00208_ai_video_try_on_photo_20260810_183134")
 def test_00208_ai_video_try_on_photo_20260810_183134(actions: DriverActions):
     with step("[Action] Scroll until AI Video Try-On"):
-        actions.scroll_until(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="LauncherProViewController"]/XCUIElementTypeScrollView/XCUIElementTypeOther[2]/XCUIElementTypeScrollView', AppiumBy.ACCESSIBILITY_ID, 'AI Video Try-On', direction='left', offset_start=(0.94, 0.409), offset_end=(0.049, 0.409), velocity=255)
-    with step("[Action] Tap AI Video Try-On at (67.7%, 59.5%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'AI Video Try-On', 67.7, 59.5, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="LauncherProViewController"]/XCUIElementTypeScrollView/XCUIElementTypeOther[2]/XCUIElementTypeScrollView', container_w=430, container_h=203)
+        actions.scroll_until(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="LauncherProViewController"]/XCUIElementTypeScrollView/XCUIElementTypeOther[2]/XCUIElementTypeScrollView', AppiumBy.ACCESSIBILITY_ID, 'AI Video Try-On', direction='left', offset_start=(0.937, 0.502), offset_end=(0.007, 0.502), velocity=583)
+    with step("[Action] Tap AI Video Try-On at (57.3%, 75.7%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'AI Video Try-On', 57.3, 75.7, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="LauncherProViewController"]/XCUIElementTypeScrollView/XCUIElementTypeOther[2]/XCUIElementTypeScrollView', container_w=430, container_h=203)
     with step("[Action] Tap //XCUIElementTypeOther[@name=\"aiVideoTryOn_importView\"]/XCUIElementTypeOther at (46.2%, 53.1%)"):
         actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="aiVideoTryOn_importView"]/XCUIElementTypeOther', 46.2, 53.1, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='scrollView', container_w=430, container_h=719)
     with step("[Action] Tap notShowAgainCheckBox at (70.4%, 57.7%)"):

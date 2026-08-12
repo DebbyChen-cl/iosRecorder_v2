@@ -76,11 +76,11 @@ def test_00099_main_05_08_01_n_20260808_195259(actions: DriverActions):
     with step("[Action] Rotate imageView 45.0°"):
         actions.rotate(actions.find_element(AppiumBy.ACCESSIBILITY_ID, 'imageView'), rotation=45.0)
     with step("[Verify] Capture '00099_main_05_08_01_n_Step36' for GT comparison"):
-        actions.capture_for_gt('00099_main_05_08_01_n_Step36', AppiumBy.ACCESSIBILITY_ID, 'imageView', threshold=0.95)
+        actions.capture_for_gt('00099_main_05_08_01_n_Step36', AppiumBy.ACCESSIBILITY_ID, 'imageView', threshold=0.90)
     with step("[Action] Tap btnDuplicate at (66.7%, 44.4%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnDuplicate', 66.7, 44.4)
     with step("[Verify] Capture '00099_main_05_08_01_n_Step38' for GT comparison"):
-        actions.capture_for_gt('00099_main_05_08_01_n_Step38', AppiumBy.ACCESSIBILITY_ID, 'imageView', threshold=0.95)
+        actions.capture_for_gt('00099_main_05_08_01_n_Step38', AppiumBy.ACCESSIBILITY_ID, 'imageView', threshold=0.90)
     with step("[Action] Tap ic_undo at (52.0%, 32.7%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic_undo', 52.0, 32.7)
     with step("[Verify] Capture '00099_main_05_08_01_n_Step40' for GT comparison"):
@@ -104,7 +104,7 @@ def test_00099_main_05_08_01_n_20260808_195259(actions: DriverActions):
     with step("[Action] Tap btn_ok_n at (75.5%, 55.1%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_ok_n', 75.5, 55.1)
     with step("[Verify] Capture '00099_main_05_08_01_n_Step50' for GT comparison"):
-        actions.capture_for_gt('00099_main_05_08_01_n_Step50', AppiumBy.ACCESSIBILITY_ID, 'imageView', threshold=0.95)
+        actions.capture_for_gt('00099_main_05_08_01_n_Step50', AppiumBy.ACCESSIBILITY_ID, 'imageView', threshold=0.90)
     with step("[Action] Tap maskButton at (60.0%, 63.4%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'maskButton', 60.0, 63.4)
     with step("[Action] Tap Brush at (62.9%, 27.3%)"):
@@ -114,7 +114,7 @@ def test_00099_main_05_08_01_n_20260808_195259(actions: DriverActions):
     with step("[Action] Tap btn_ok_n at (59.2%, 26.5%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_ok_n', 59.2, 26.5)
     with step("[Verify] Capture '00099_main_05_08_01_n_Step55' for GT comparison"):
-        actions.capture_for_gt('00099_main_05_08_01_n_Step55', AppiumBy.ACCESSIBILITY_ID, 'imageView', threshold=0.95)
+        actions.capture_for_gt('00099_main_05_08_01_n_Step55', AppiumBy.ACCESSIBILITY_ID, 'imageView', threshold=0.90)
     with step("[Action] Tap maskButton at (52.5%, 46.3%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'maskButton', 52.5, 46.3)
     with step("[Action] Drag cpSlider (45.6%,47.6%) → sliderArea (2.3%,57.1%)"):

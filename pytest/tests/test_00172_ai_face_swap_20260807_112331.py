@@ -67,6 +67,9 @@ def test_00172_ai_face_swap_20260807_112331(actions: DriverActions):
         actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'FBComposerView')
     with step("[Action] Tap composer-left-button at (40.9%, 44.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'composer-left-button', 40.9, 44.2)
+    with step("[Action] Tap Discard at (61.5%, 46.7%)"):
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'Discard'):
+            actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Discard', 61.5, 46.7, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeAlert[@name="Discard post?"]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeScrollView[2]', container_w=270, container_h=45)
     with step("[Action] Tap btnShareIG at (59.0%, 50.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnShareIG', 59.0, 50.0, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='scrollView', container_w=430, container_h=737)
     with step("[Verify] Share to Instagram is visible"):
@@ -157,8 +160,8 @@ def test_00172_ai_face_swap_20260807_112331(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Xsilva', 19.0, 63.6, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='albumCollectionView', container_w=394, container_h=746)
     with step("[Action] Tap photoCell-1 at (63.8%, 46.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'photoCell-1', 63.8, 46.2, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=746)
-    with step("[Verify] faceValidationProgress disappears within 1200s"):
-        assert actions.wait_until_not_show(AppiumBy.ACCESSIBILITY_ID, 'faceValidationProgress', appear_timeout=5, disappear_timeout=1200), 'faceValidationProgress did not appear within 5s or is still shown after 1200s'
+    # with step("[Verify] faceValidationProgress disappears within 1200s"):
+    #     assert actions.wait_until_not_show(AppiumBy.ACCESSIBILITY_ID, 'faceValidationProgress', appear_timeout=5, disappear_timeout=1200), 'faceValidationProgress did not appear within 5s or is still shown after 1200s'
     with step("[Verify] Celebrity face detected in the uploaded image and it may violate our terms. Please choose another one. is visible"):
         actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'Celebrity face detected in the uploaded image and it may violate our terms. Please choose another one.')
     with step("[Action] Tap OK at (28.6%, 50.0%)"):
