@@ -27,7 +27,7 @@ def test_00188_regression_quick_action(actions: DriverActions):
             assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Regression')
     with step('Select multi-face photo'):
         with step('[Action] select_photo'):
-            actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'photoCell-0')
+            actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'photoCell-3')
     with step('Tap Quick Action tab'):
         with step('[Action] tap_phd_btn'):
             assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Quick Actions')

@@ -7,7 +7,6 @@ from driver.driver_actions import DriverActions
 
 @pytest.mark.name("00128_main_05_16_01_1_20260805_161624")
 def test_00128_main_05_16_01_1_20260805_161624(actions: DriverActions):
-    '''Cannot find btnplay (don't know why)'''
     with step("[Action] Tap Edit at (57.1%, 44.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Edit', 57.1, 44.0, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="LauncherProViewController"]/XCUIElementTypeScrollView', container_w=430, container_h=843)
     with step("[Action] Tap btnAlbum at (76.1%, 66.7%)"):
@@ -57,15 +56,15 @@ def test_00128_main_05_16_01_1_20260805_161624(actions: DriverActions):
     with step("[Action] Tap blackBackgroundView at (15.6%, 75.3%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'blackBackgroundView', 15.6, 75.3, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="animated_elements"]/XCUIElementTypeOther[4]/XCUIElementTypeOther[3]/XCUIElementTypeCollectionView[2]', container_w=422, container_h=185)
     with step("[Action] Tap btnPlay at (55.0%, 53.7%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnPlay', 55.0, 53.7, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="animated_elements"]/XCUIElementTypeOther[1]/XCUIElementTypeScrollView', container_w=430, container_h=524)
+        actions.tap_within_element(AppiumBy.IOS_PREDICATE, "name == 'btnPlay' AND visible == 1", 55.0, 53.7)
     with step("[Action] Tap blackBackgroundView at (40.5%, 76.4%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'blackBackgroundView', 40.5, 76.4, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="animated_elements"]/XCUIElementTypeOther[4]/XCUIElementTypeOther[3]/XCUIElementTypeCollectionView[2]', container_w=422, container_h=185)
     with step("[Action] Tap btnPlay at (62.5%, 61.0%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnPlay', 62.5, 61.0, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="animated_elements"]/XCUIElementTypeOther[1]/XCUIElementTypeScrollView', container_w=430, container_h=524)
+        actions.tap_within_element(AppiumBy.IOS_PREDICATE, "name == 'btnPlay' AND visible == 1", 55.0, 53.7)
     with step("[Verify] Capture '00128_main_05_16_01_1_Step30' for GT comparison"):
         actions.capture_for_gt('00128_main_05_16_01_1_Step30', AppiumBy.ACCESSIBILITY_ID, 'blackBackgroundView', threshold=0.95)
-    with step("[Action] Tap btn_ok_n at (100.0%, 63.3%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_ok_n', 100.0, 63.3)
+    with step("[Action] Tap btn_ok_n"):
+        actions.tap_by_locator(AppiumBy.ID, 'btn_ok_n')
     with step("[Action] Tap Still Image at (57.4%, 70.8%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Still Image', 57.4, 70.8, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="animated_elements"]/XCUIElementTypeOther[1]/XCUIElementTypeScrollView', container_w=430, container_h=524)
     with step("[Action] Tap homeButton at (65.4%, 42.3%)"):

@@ -7,44 +7,44 @@ from driver.driver_actions import DriverActions
 
 @pytest.mark.name("00174_collage_edit_20260809_163403")
 def test_00174_collage_edit_20260809_163403(actions: DriverActions):
-    # with step("[Action] Scroll until Collage"):
-    #     actions.scroll_until(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="LauncherProViewController"]/XCUIElementTypeScrollView/XCUIElementTypeOther[2]/XCUIElementTypeScrollView', AppiumBy.ACCESSIBILITY_ID, 'Collage', direction='left', offset_start=(0.977, 0.448), offset_end=(0.06, 0.448), velocity=352)
-    # with step("[Action] Tap Collage at (62.5%, 35.1%)"):
-    #     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Collage', 62.5, 35.1, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="LauncherProViewController"]/XCUIElementTypeScrollView/XCUIElementTypeOther[2]/XCUIElementTypeScrollView', container_w=430, container_h=203)
-    # with step("[Action] Tap 2 at (54.5%, 36.8%)"):
-    #     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, '2', 54.5, 36.8, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="photodirector.CollageWebViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeScrollView', container_w=396, container_h=44)
-    # with step("[Action] Tap CMS-phdm_20230610_IndependenceDay_G_1_02 at (56.9%, 50.7%)"):
-    #     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'CMS-phdm_20230610_IndependenceDay_G_1_02', 56.9, 50.7, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='CollageContentViewCell-contentCollectionView', container_w=413, container_h=138)
-    # with step("[Action] Tap btnAlbum at (75.1%, 47.6%)"):
-    #     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum', 75.1, 47.6)
-    # with step("[Action] Tap _AT at (6.8%, 59.1%)"):
-    #     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, '_AT', 6.8, 59.1, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='albumCollectionView', container_w=394, container_h=632)
-    # with step("[Action] Tap photoCell-0 at (46.9%, 60.8%)"):
-    #     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'photoCell-0', 46.9, 60.8, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=632)
-    # with step("[Action] Tap photoCell-1 at (60.0%, 56.9%)"):
-    #     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'photoCell-1', 60.0, 56.9, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=632)
-    # with step("[Action] Tap Next at (55.9%, 57.9%)"):
-    #     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Next', 55.9, 57.9)
-    # with step("[Verify] Capture '00174_collage_edit_Step10' for GT comparison"):
-    #     actions.capture_for_gt('00174_collage_edit_Step10', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="photodirector.AddImageViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeImage', threshold=0.95)
-    # with step("[Action] Tap CMS-Optional(\"phdm_202302_Graduation_J1_02\") at (48.5%, 46.4%)"):
-    #     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'CMS-Optional("phdm_202302_Graduation_J1_02")', 48.5, 46.4, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="photodirector.AddImageViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[3]/XCUIElementTypeOther/XCUIElementTypeCollectionView', container_w=357, container_h=80)
-    # with step("[Action] Tap //XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther/XCUIElementTypeOther[2] at (51.7%, 47.6%)"):
-    #     actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="photodirector.AddImageViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther/XCUIElementTypeOther[2]', 51.7, 47.6)
-    # with step("[Action] Tap lblText at (80.6%, 41.9%)"):
-    #     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'lblText', 80.6, 41.9, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="photodirector.AddImageViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[3]/XCUIElementTypeOther/XCUIElementTypeCollectionView', container_w=359, container_h=80)
-    # with step("[Action] Tap btnCamera at (60.0%, 65.9%)"):
-    #     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnCamera', 60.0, 65.9)
-    # with step("[Action] Tap PhotoCapture at (60.0%, 55.0%)"):
-    #     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'PhotoCapture', 60.0, 55.0)
-    # with step("[Action] Tap Use Photo at (17.6%, 39.1%)"):
-    #     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Use Photo', 17.6, 39.1)
-    # with step("[Action] Tap lblText at (55.2%, 48.4%)"):
-    #     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'lblText', 55.2, 48.4, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="photodirector.AddImageViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[3]/XCUIElementTypeOther/XCUIElementTypeCollectionView', container_w=359, container_h=80)
-    # with step("[Action] Tap photoCell-6 at (40.8%, 48.5%)"):
-    #     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'photoCell-6', 40.8, 48.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=746)
-    # with step("[Verify] Capture '00174_collage_edit_Step20' for GT comparison"):
-    #     actions.capture_for_gt('00174_collage_edit_Step20', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="photodirector.AddImageViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeImage', threshold=0.95)
+    with step("[Action] Scroll until Collage"):
+        actions.scroll_until(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="LauncherProViewController"]/XCUIElementTypeScrollView/XCUIElementTypeOther[2]/XCUIElementTypeScrollView', AppiumBy.ACCESSIBILITY_ID, 'Collage', direction='left', offset_start=(0.977, 0.448), offset_end=(0.06, 0.448), velocity=352)
+    with step("[Action] Tap Collage at (62.5%, 35.1%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Collage', 62.5, 35.1, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="LauncherProViewController"]/XCUIElementTypeScrollView/XCUIElementTypeOther[2]/XCUIElementTypeScrollView', container_w=430, container_h=203)
+    with step("[Action] Tap 2 at (54.5%, 36.8%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, '2', 54.5, 36.8, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="photodirector.CollageWebViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeScrollView', container_w=396, container_h=44)
+    with step("[Action] Tap CMS-phdm_20230610_IndependenceDay_G_1_02 at (56.9%, 50.7%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'CMS-phdm_20230610_IndependenceDay_G_1_02', 56.9, 50.7, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='CollageContentViewCell-contentCollectionView', container_w=413, container_h=138)
+    with step("[Action] Tap btnAlbum at (75.1%, 47.6%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum', 75.1, 47.6)
+    with step("[Action] Tap _AT at (6.8%, 59.1%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, '_AT', 6.8, 59.1, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='albumCollectionView', container_w=394, container_h=632)
+    with step("[Action] Tap photoCell-0 at (46.9%, 60.8%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'photoCell-0', 46.9, 60.8, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=632)
+    with step("[Action] Tap photoCell-1 at (60.0%, 56.9%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'photoCell-1', 60.0, 56.9, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=632)
+    with step("[Action] Tap Next at (55.9%, 57.9%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Next', 55.9, 57.9)
+    with step("[Verify] Capture '00174_collage_edit_Step10' for GT comparison"):
+        actions.capture_for_gt('00174_collage_edit_Step10', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="photodirector.AddImageViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeImage', threshold=0.95)
+    with step("[Action] Tap CMS-Optional(\"phdm_202302_Graduation_J1_02\") at (48.5%, 46.4%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'CMS-Optional("phdm_202302_Graduation_J1_02")', 48.5, 46.4, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="photodirector.AddImageViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[3]/XCUIElementTypeOther/XCUIElementTypeCollectionView', container_w=357, container_h=80)
+    with step("[Action] Tap //XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther/XCUIElementTypeOther[2] at (51.7%, 47.6%)"):
+        actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="photodirector.AddImageViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther/XCUIElementTypeOther[2]', 51.7, 47.6)
+    with step("[Action] Tap lblText at (80.6%, 41.9%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'lblText', 80.6, 41.9, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="photodirector.AddImageViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[3]/XCUIElementTypeOther/XCUIElementTypeCollectionView', container_w=359, container_h=80)
+    with step("[Action] Tap btnCamera at (60.0%, 65.9%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnCamera', 60.0, 65.9)
+    with step("[Action] Tap PhotoCapture at (60.0%, 55.0%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'PhotoCapture', 60.0, 55.0)
+    with step("[Action] Tap Use Photo at (17.6%, 39.1%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Use Photo', 17.6, 39.1)
+    with step("[Action] Tap lblText at (55.2%, 48.4%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'lblText', 55.2, 48.4, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="photodirector.AddImageViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[3]/XCUIElementTypeOther/XCUIElementTypeCollectionView', container_w=359, container_h=80)
+    with step("[Action] Tap photoCell-6 at (40.8%, 48.5%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'photoCell-6', 40.8, 48.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=746)
+    with step("[Verify] Capture '00174_collage_edit_Step20' for GT comparison"):
+        actions.capture_for_gt('00174_collage_edit_Step20', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="photodirector.AddImageViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeImage/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeImage', threshold=0.95)
     with step("[Action] Tap imageView at (69.7%, 58.8%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'imageView', 69.7, 58.8, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="photodirector.AddImageViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[3]/XCUIElementTypeOther/XCUIElementTypeCollectionView', container_w=359, container_h=80)
     with step("[Verify] Capture '00174_collage_edit_Step22' for GT comparison"):

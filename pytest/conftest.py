@@ -335,32 +335,32 @@ def driver():
 
     bundle_id = getattr(config, "TARGET_BUNDLE_ID", "") or config.IOS_CAPABILITIES.get("appium:bundleId", "")
 
-    if bundle_id:
-        if _session_first_run:
-            _session_setup_flow(DriverActions(_driver), bundle_id)
-            _session_first_run = False
-        else:
-            logger.info("=== TEST SETUP: restarting app ===")
-            _terminate_app_resilient(_driver, bundle_id)
-            _close_crash_dialog(_driver)
-            time.sleep(1)
-            _driver.activate_app(bundle_id)
-            time.sleep(1)
-            _close_all_pop_dialog_when_launch(DriverActions(_driver))
+    # if bundle_id:
+    #     if _session_first_run:
+    #         _session_setup_flow(DriverActions(_driver), bundle_id)
+    #         _session_first_run = False
+    #     else:
+    #         logger.info("=== TEST SETUP: restarting app ===")
+    #         _terminate_app_resilient(_driver, bundle_id)
+    #         _close_crash_dialog(_driver)
+    #         time.sleep(1)
+    #         _driver.activate_app(bundle_id)
+    #         time.sleep(1)
+    #         _close_all_pop_dialog_when_launch(DriverActions(_driver))
             
-    else:
-        logger.warning("Bundle ID is empty; skip app setup flow")
+    # else:
+    #     logger.warning("Bundle ID is empty; skip app setup flow")
 
     yield _driver
 
-    logger.info("=== TEST TEARDOWN: quitting Appium driver ===")
-    if bundle_id:
-        try:
-            _driver.terminate_app(bundle_id)
-        except Exception as exc:
-            logger.warning("terminate_app failed: %s", exc)
-    quit_driver(_driver)
-    auto_healing.set_active_driver(None)
+    # logger.info("=== TEST TEARDOWN: quitting Appium driver ===")
+    # if bundle_id:
+    #     try:
+    #         _driver.terminate_app(bundle_id)
+    #     except Exception as exc:
+    #         logger.warning("terminate_app failed: %s", exc)
+    # quit_driver(_driver)
+    # auto_healing.set_active_driver(None)
 
 
 # ──────────────────────────────────────────────────────────────

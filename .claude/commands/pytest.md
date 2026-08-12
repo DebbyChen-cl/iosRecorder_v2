@@ -97,10 +97,56 @@ Phase 1 runs inside the pytest session:
 | Suite filter | `is_own_item()` restricts evidence, retries and registry entries to tests under `pytest/`. Launched from the repo root pytest also collects `test_unittest/`, which the agent cannot replay on a device. |
 | Failure evidence | On any failed phase, saves `fail_moment.png`, `fail_moment_hierarchy.xml`, `stack_trace.txt` and `metadata.json` under `<rootdir>/Self-healing/evidence/<ts>-<test>/`. Passing tests have their folder removed at teardown. |
 | `fail_step` | This suite has no runtime step tracker, so the failing step is inferred from the nearest `with step("...")` above the failing line **within the same test function**. |
+| Known-issue lane (D) | Checked **before** the heuristic lanes. A failing test listed in `pytest/known_issue.json` whose failure signature equals the one stored on its entry is scheduled as `known_issue`: no retry, no Phase 2, and `final_status: "known_issue"` in `state.json`. See Known Issues below. |
 | Heuristic lane (C2) | App not running / black screenshot → `app_crash`; network keywords in the stack → `network_issue`; both retry immediately while budget lasts. Everything else is deferred to Phase 2. |
 | Immediate retry (C1) | Up to 3 cases per run (`AUTO_HEALING_MAX_RETRY_CASES`) are re-run once via `runtestprotocol`; the original evidence folder is preserved. |
 | `state.json` | `<healing project>/runs/<run_id>/state.json` is the run ledger the agent reads. |
 | Phase 2 trigger | If any case is deferred, `pytest_sessionfinish` opens a Terminal running the healing agent's `tools/orchestrator.py` and blocks up to 11 min, passing `TEST_PROJECT=<rootdir>`, `AUTO_HEALING_CREATE_BRANCH`, and the still-open ReportPortal launch id so replays report into the same launch. |
+
+### Known Issues (`pytest/known_issue.json`)
+
+Cases whose failure is already understood — the reason is part of the file name
+(`test_00133_..._NeedRDLocator_BokehOnPreview.py`). Sending them to Phase 2 spends an
+11-minute healing window re-diagnosing something nobody is waiting on, so a *repeat* of
+the same failure skips auto-healing entirely.
+
+```json
+{
+  "file_name": "test_00133_main_05_17_03_NeedRDLocator_BokehOnPreview.py",
+  "test_name": "test_00133_main_05_17_03",
+  "error_reason": "NeedRDLocator_BokehOnPreview",
+  "bug_code": "",
+  "last_fail": { "signature": "…", "error_summary": "…", "run_id": "…", "at": "…", "repeat_count": 2 }
+}
+```
+
+The first four fields are maintained by hand; `last_fail` is written by
+`auto_healing.check_known_issue()` after every failure. Only files pytest actually
+collects belong in the list (`test_*.py` — a `defeature_*` file never runs).
+
+Entries are keyed by file name, so **every rename of a test file requires a refresh**:
+
+```bash
+python3 pytest/refresh_known_issue.py           # rebuild from the test file names
+python3 pytest/refresh_known_issue.py --check   # report drift, write nothing (exit 1)
+```
+
+It scans `pytest/tests/test_*.py` for a `need…` / `should…` segment in the file name,
+takes everything from there as `error_reason`, reads the real `def test_…` name out of
+the file, and carries `bug_code` + `last_fail` over from the current list.
+
+| Rule | Behaviour |
+|------|-----------|
+| Matching | On **file name** (plus `test_name` when the entry carries one), never on the test function alone. The error reason lives in the file name, so renaming the file once the issue is fixed is what retires the entry — a function name never changes and would keep the case skipped forever. |
+| Signature | sha256 of the pytest `E` lines after stripping run-to-run noise: object addresses, UUIDs/session ids, timestamps, `Self-healing/…` evidence paths, decimals (% diffs, durations) and 4+ digit runs. An empty/unfingerprintable report yields `None` and can never match. |
+| First failure | Never skipped — there is no stored signature yet. It heals normally and the signature is recorded, so the **next** identical failure is the one that gets skipped. |
+| Changed failure | Not skipped — a new exception or a different step is a new symptom. The stored signature is replaced. |
+| Recovered by retry | If the case is retried (crash/network lane) and passes, `forget_known_issue_failure()` rolls the signature back, so a known issue that recovers on retry keeps that retry in later runs instead of turning red. |
+| Reporting | The test still reports as FAILED — this only suppresses healing. `state.json` carries `scheduling.action = "known_issue"`, a `known_issue` block on the case, and a `summary.known_issue` count separate from `fail`. |
+| Failure tolerance | A missing, empty or corrupt `known_issue.json` is logged and treated as "no known issues" — it can never change how a test reports. |
+
+Covered by `test_unittest/test_known_issue_skip.py` (no device needed), which also fails
+when `known_issue.json` names a test file that no longer exists.
 
 ### Switches
 
@@ -109,6 +155,7 @@ Primary settings live in `pytest/config.py`:
 | Setting | Default | Effect |
 |---------|---------|--------|
 | `AUTO_HEALING_ENABLED` | `True` | Master switch — `False` means no evidence, state, retry or Phase 2 |
+| `AUTO_HEALING_SKIP_KNOWN_ISSUE` | `True` | Skip retry + Phase 2 for a `known_issue.json` case failing exactly as recorded. `False` still records signatures, but heals every failure |
 | `AUTO_HEALING_CREATE_BRANCH` | `True` | Let Phase 2 commit + push its patches to `<branch>_YYMMDD_hhmmss`. The agent stages the **entire** working tree (`git add -A`) and leaves the repo on the new branch, so unrelated WIP gets committed too |
 
 `config.py` also holds two device-tuning knobs, both read once at import and overridable
@@ -124,7 +171,8 @@ Environment variables of the same name override `config.py` per run
 (`AUTO_HEALING=0`, `AUTO_HEALING_CREATE_BRANCH=0`). Env-only extras:
 `AUTO_HEALING_PHASE2=0` (evidence + state only), `AUTO_HEALING_PROJECT_PATH`,
 `AUTO_HEALING_REGISTRY_PATH`, `AUTO_HEALING_APP_VERSION`,
-`AUTO_HEALING_PHASE2_TIMEOUT`, `AUTO_HEALING_MAX_RETRY_CASES`.
+`AUTO_HEALING_PHASE2_TIMEOUT`, `AUTO_HEALING_MAX_RETRY_CASES`,
+`AUTO_HEALING_KNOWN_ISSUE_PATH`.
 Set by the agent itself: `AUTO_HEALING_REPLAY=1`, `AUTO_HEALING_CONTEXT`,
 `AUTO_HEALING_NOT_HEALED_REASON`, `AUTO_HEALING_RP_LAUNCH_ID`.
 

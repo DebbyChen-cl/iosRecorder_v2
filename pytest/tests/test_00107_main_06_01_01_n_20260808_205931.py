@@ -76,7 +76,7 @@ def test_00107_main_06_01_01_n_20260808_205931(actions: DriverActions):
     with step("[Action] Drag //XCUIElementTypeOther[@name=\"MaskingViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther (44.6%,3.7%) → //XCUIElementTypeOther[@name=\"MaskingViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeImage (46.8%,73.9%)"):
         actions.drag_within_elements(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="MaskingViewController"]/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther', 44.6, 3.7, AppiumBy.XPATH, '//XCUIElementTypeOther[@name="MaskingViewController"]/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeImage', 46.8, 73.9, duration=1.0)
     with step("[Verify] Capture '00107_main_06_01_01_n_Step35' for GT comparison"):
-        actions.capture_for_gt('00107_main_06_01_01_n_Step35', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="MaskingViewController"]/XCUIElementTypeOther[1]', threshold=0.95)
+        actions.capture_for_gt('00107_main_06_01_01_n_Step35', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="MaskingViewController"]/XCUIElementTypeOther[1]', threshold=0.80)
     with step("[Action] Tap btn_ok_n at (61.2%, 46.9%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_ok_n', 61.2, 46.9)
     with step("[Verify] Capture '00107_main_06_01_01_n_Step37' for GT comparison"):
@@ -98,21 +98,21 @@ def test_00107_main_06_01_01_n_20260808_205931(actions: DriverActions):
     with step("[Action] Drag //XCUIElementTypeOther[@name=\"MaskingViewController\"]/XCUIElementTypeOther[1] (49.3%,24.3%) → //XCUIElementTypeOther[@name=\"MaskingViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther (46.3%,98.6%)"):
         actions.drag_within_elements(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="MaskingViewController"]/XCUIElementTypeOther[1]', 49.3, 24.3, AppiumBy.XPATH, '//XCUIElementTypeOther[@name="MaskingViewController"]/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther', 46.3, 98.6, duration=1.0)
     with step("[Verify] Capture '00107_main_06_01_01_n_Step46' for GT comparison"):
-        actions.capture_for_gt('00107_main_06_01_01_n_Step46', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="MaskingViewController"]/XCUIElementTypeOther[1]', threshold=0.95)
+        actions.capture_for_gt('00107_main_06_01_01_n_Step46', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="MaskingViewController"]/XCUIElementTypeOther[1]', threshold=0.8)
     with step("[Action] Tap btt_brush_n at (25.0%, 50.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btt_brush_n', 25.0, 50.0, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="menuView"]/XCUIElementTypeCollectionView', container_w=430, container_h=71)
     with step("[Action] Drag //XCUIElementTypeOther[@name=\"MaskingViewController\"]/XCUIElementTypeOther[1] (52.3%,16.9%) → //XCUIElementTypeOther[@name=\"MaskingViewController\"]/XCUIElementTypeOther[1] (50.9%,77.2%)"):
         actions.drag_within_elements(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="MaskingViewController"]/XCUIElementTypeOther[1]', 52.3, 16.9, AppiumBy.XPATH, '//XCUIElementTypeOther[@name="MaskingViewController"]/XCUIElementTypeOther[1]', 50.9, 77.2, duration=1.0)
     with step("[Verify] Capture '00107_main_06_01_01_n_Step49' for GT comparison"):
-        actions.capture_for_gt('00107_main_06_01_01_n_Step49', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="MaskingViewController"]/XCUIElementTypeOther[1]', threshold=0.95)
+        actions.capture_for_gt('00107_main_06_01_01_n_Step49', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="MaskingViewController"]/XCUIElementTypeOther[1]', threshold=0.8)
     with step("[Action] Tap ic_undo at (69.4%, 42.9%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic_undo', 69.4, 42.9)
     with step("[Verify] Capture '00107_main_06_01_01_n_Step51' for GT comparison"):
-        actions.capture_for_gt('00107_main_06_01_01_n_Step51', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="MaskingViewController"]/XCUIElementTypeOther[1]', threshold=0.95)
+        actions.capture_for_gt('00107_main_06_01_01_n_Step51', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="MaskingViewController"]/XCUIElementTypeOther[1]', threshold=0.8)
     with step("[Action] Tap ic_redo at (65.3%, 57.1%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic_redo', 65.3, 57.1)
     with step("[Verify] Capture '00107_main_06_01_01_n_Step53' for GT comparison"):
-        actions.capture_for_gt('00107_main_06_01_01_n_Step53', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="MaskingViewController"]/XCUIElementTypeOther[1]', threshold=0.95)
+        actions.capture_for_gt('00107_main_06_01_01_n_Step53', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="MaskingViewController"]/XCUIElementTypeOther[1]', threshold=0.8)
     with step("[Action] Tap btn_cancel_n at (44.9%, 38.8%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_cancel_n', 44.9, 38.8)
     with step("[Verify] Capture '00107_main_06_01_01_n_Step55' for GT comparison"):

@@ -5,8 +5,8 @@ from reportportal_client import step
 from driver.driver_actions import DriverActions
 
 
-@pytest.mark.name("0176_ai_try_on_01_20260807_141633")
-def test_0176_ai_try_on_01_20260807_141633(actions: DriverActions):
+@pytest.mark.name("00176_ai_try_on_01_20260807_141633")
+def test_00176_ai_try_on_01_20260807_141633(actions: DriverActions):
     with step("[Action] Tap Edit at (25.7%, 56.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Edit', 25.7, 56.0)
     with step("[Action] Tap btnAlbum at (72.6%, 52.4%)"):

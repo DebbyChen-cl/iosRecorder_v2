@@ -28,7 +28,10 @@
 #   AUTO_HEALING_CONTEXT=...        root-cause/patch summary for a replay run
 #   AUTO_HEALING_NOT_HEALED_REASON  skip all tests, reporting this reason
 #   AUTO_HEALING_APP_VERSION=...    app version recorded into state.json
+#   AUTO_HEALING_SKIP_KNOWN_ISSUE=0 heal known issues too (don't skip repeats)
+#   AUTO_HEALING_KNOWN_ISSUE_PATH=. override the known_issue.json location
 
+import hashlib
 import json
 import logging
 import os
@@ -95,6 +98,10 @@ def _flag(env_name, config_name=None, default=True):
 
 ENABLED = _flag('AUTO_HEALING', 'AUTO_HEALING_ENABLED')
 CREATE_BRANCH = _flag('AUTO_HEALING_CREATE_BRANCH', 'AUTO_HEALING_CREATE_BRANCH')
+SKIP_KNOWN_ISSUE = _flag('AUTO_HEALING_SKIP_KNOWN_ISSUE', 'AUTO_HEALING_SKIP_KNOWN_ISSUE')
+KNOWN_ISSUE_PATH = os.environ.get(
+    'AUTO_HEALING_KNOWN_ISSUE_PATH', os.path.join(MODULE_DIR, 'known_issue.json')
+)
 PHASE2_ENABLED = _flag('AUTO_HEALING_PHASE2')
 IS_REPLAY = os.environ.get('AUTO_HEALING_REPLAY') == '1'
 PHASE2_TIMEOUT_SEC = int(os.environ.get('AUTO_HEALING_PHASE2_TIMEOUT', '660'))
@@ -264,7 +271,7 @@ def _init_state_json(pytest_config):
         'summary': {
             'total': 0, 'pass': 0, 'fail': 0,
             'pass_with_healing': 0, 'pass_after_retry': 0,
-            'deferred': 0, 'manual_review': 0, 'product_bug': 0,
+            'deferred': 0, 'manual_review': 0, 'product_bug': 0, 'known_issue': 0,
             'healing_attempted': 0, 'healing_succeeded': 0,
         },
     }
@@ -305,7 +312,8 @@ def _finalize_state_json(pytest_config):
     state['ended_at'] = time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime())
     state['immediate_retry_budget']['used'] = _retry_budget['used']
 
-    counts = {'pass': 0, 'fail': 0, 'pass_after_retry': 0, 'deferred': 0, 'manual_review': 0}
+    counts = {'pass': 0, 'fail': 0, 'pass_after_retry': 0, 'deferred': 0,
+              'manual_review': 0, 'known_issue': 0}
     for c in state['cases'].values():
         status = c.get('original_status', 'unknown')
         retry = c.get('retry')
@@ -314,6 +322,10 @@ def _finalize_state_json(pytest_config):
             counts['pass_after_retry'] += 1
         elif status == 'pass':
             counts['pass'] += 1
+        elif scheduling and scheduling.get('action') == 'known_issue':
+            # A known issue still failed — counted apart from 'fail' so a run whose
+            # only failures are known ones is visible as such in the ledger.
+            counts['known_issue'] += 1
         elif scheduling and scheduling.get('action') == 'deferred':
             counts['deferred'] += 1
         elif scheduling and scheduling.get('action') == 'manual_review':
@@ -325,6 +337,189 @@ def _finalize_state_json(pytest_config):
     state['summary']['total'] = len(state['cases'])
     _write_state_json(pytest_config, state)
     logger.info('[Auto-Healing] state.json finalized: %s', counts)
+
+
+# ─── Known Issues ────────────────────────────────────────────────────────────
+# pytest/known_issue.json lists cases whose failure is already understood — the
+# error reason is even part of the file name (`..._NeedRDLocator.py`). Sending
+# those to Phase 2 spends an 11-minute healing window re-diagnosing something
+# nobody is waiting on, so a *repeat* of the same failure is skipped.
+#
+# "Same failure" is decided by a signature of the pytest error lines, which this
+# module writes back into the entry's `last_fail`. Consequences worth knowing:
+#   * the first failure of a known issue is never skipped — there is nothing to
+#     compare against yet, so it heals normally and only the NEXT identical run
+#     is skipped;
+#   * a known issue that starts failing differently (new exception, different
+#     step) is not skipped either — that is a new symptom and deserves analysis.
+
+_KNOWN_ISSUE_SCHEMA_KEYS = ('file_name', 'test_name', 'error_reason', 'bug_code')
+
+# Volatile fragments that differ between two runs of the *same* failure and would
+# otherwise make every signature unique.
+_NOISE_PATTERNS = (
+    (re.compile(r'0x[0-9a-fA-F]+'), '<addr>'),
+    (re.compile(r'\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-'
+                r'[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b'), '<uuid>'),
+    (re.compile(r'\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:[.,]\d+)?'), '<ts>'),
+    (re.compile(r'\d{8}[-_]?\d{6}\d*'), '<ts>'),          # 20260811_094010 / run ids
+    (re.compile(r'/[^\s\'"]*Self-healing/[^\s\'"]*'), '<evidence>'),
+    (re.compile(r'\d+\.\d+'), '<f>'),                     # % diffs, durations, coords
+    (re.compile(r'\b\d{4,}\b'), '<n>'),                   # epoch-ish / session numbers
+    (re.compile(r'\s+'), ' '),
+)
+
+
+def _load_known_issues():
+    """Returns the raw list from known_issue.json ([] when absent/unreadable)."""
+    if not os.path.exists(KNOWN_ISSUE_PATH):
+        return []
+    try:
+        with open(KNOWN_ISSUE_PATH, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except Exception as e:
+        logger.warning('[Auto-Healing] known_issue.json unreadable (%s); treating as empty', e)
+        return []
+    if isinstance(data, dict):          # tolerate {case: {...}} shape
+        data = list(data.values())
+    return [e for e in data if isinstance(e, dict)]
+
+
+def _match_known_issue(item, entries=None):
+    """The known_issue.json entry for this test, or None.
+
+    Matched on the test **file name**, not the test function name. The error
+    reason is part of the file name (`..._NeedRDLocator.py`), so renaming the
+    file once the issue is fixed is what retires the entry — matching on the
+    function name instead would keep skipping the case long after it was fixed,
+    since the function name does not carry the suffix and never changes.
+
+    `test_name` is checked too when the entry carries one, so an entry cannot
+    claim a different test that happens to share the file.
+    """
+    entries = _load_known_issues() if entries is None else entries
+    if not entries or not item.fspath:
+        return None
+
+    file_name = os.path.basename(str(item.fspath))
+    test_name = getattr(item, 'originalname', item.name)
+    for entry in entries:
+        if os.path.basename(str(entry.get('file_name') or '').strip()) != file_name:
+            continue
+        listed_test = str(entry.get('test_name') or '').strip()
+        if listed_test and listed_test != test_name:
+            continue
+        return entry
+    return None
+
+
+def _fail_log_lines(longrepr):
+    """The lines that describe *what* failed, ignoring the traceback frames.
+
+    pytest marks them with a leading `E`; when there are none (a collection or
+    teardown error) the tail of the report is the best available substitute.
+    """
+    lines = [ln.rstrip() for ln in (longrepr or '').splitlines() if ln.strip()]
+    marked = [_TB_MARKER_RE.sub('', ln).strip() for ln in lines if _TB_MARKER_RE.match(ln)]
+    return marked or lines[-10:]
+
+
+def _fail_signature(longrepr):
+    """(signature, human-readable excerpt) for a failure report.
+
+    Returns (None, None) when there is nothing to fingerprint — an unknown
+    failure must never compare equal to a stored one.
+    """
+    selected = _fail_log_lines(longrepr)
+    if not selected:
+        return None, None
+    normalized = []
+    for line in selected:
+        for pattern, replacement in _NOISE_PATTERNS:
+            line = pattern.sub(replacement, line)
+        normalized.append(line.strip())
+    digest = hashlib.sha256('\n'.join(normalized).encode('utf-8')).hexdigest()[:16]
+    excerpt = ' | '.join(selected)[:400]
+    return digest, excerpt
+
+
+def _write_known_issues(entries):
+    """Atomic rewrite, preserving the file's key order for unchanged fields."""
+    tmp_path = f'{KNOWN_ISSUE_PATH}.tmp'
+    with open(tmp_path, 'w', encoding='utf-8') as f:
+        json.dump(entries, f, indent=2, ensure_ascii=False)
+        f.write('\n')
+    os.replace(tmp_path, KNOWN_ISSUE_PATH)
+
+
+def check_known_issue(item, longrepr, run_id=None):
+    """Decide whether this failure is a known issue repeating itself.
+
+    Also records the signature back into known_issue.json, which is what makes
+    the *next* identical failure skippable. Returns None when the test is not a
+    known issue at all; otherwise a dict with:
+        matched  – True when the signature equals the stored one
+        entry    – the known_issue.json record (error_reason, bug_code, ...)
+    Never raises: a broken known_issue.json must not change how tests report.
+    """
+    try:
+        entries = _load_known_issues()
+        entry = _match_known_issue(item, entries)
+        if entry is None:
+            return None
+
+        signature, excerpt = _fail_signature(longrepr)
+        previous = entry.get('last_fail') or {}
+        previous_signature = previous.get('signature')
+        matched = bool(signature) and signature == previous_signature
+
+        entry['last_fail'] = {
+            'signature': signature,
+            'error_summary': excerpt,
+            'run_id': run_id,
+            'at': time.strftime('%Y-%m-%dT%H:%M:%S', time.localtime()),
+            'repeat_count': (previous.get('repeat_count', 0) + 1) if matched else 1,
+        }
+        try:
+            _write_known_issues(entries)
+        except Exception as e:
+            logger.warning('[Auto-Healing] could not update known_issue.json: %s', e)
+
+        return {
+            'matched': matched,
+            'entry': entry,
+            'signature': signature,
+            'previous_signature': previous_signature,
+            'previous_last_fail': previous or None,
+            'error_reason': entry.get('error_reason'),
+            'bug_code': entry.get('bug_code') or None,
+            'first_seen_this_signature': not matched,
+        }
+    except Exception as e:
+        logger.warning('[Auto-Healing] known-issue check failed: %s', e)
+        return None
+
+
+def forget_known_issue_failure(item, previous_last_fail):
+    """Undo the signature just recorded, because the run recovered from it.
+
+    A known issue that crashes the app and then passes on retry must keep that
+    retry in later runs. Leaving the crash signature recorded would make the next
+    identical crash skip auto-healing — no retry — so a case that used to end
+    green would start ending red purely because it is on the known-issue list.
+    """
+    try:
+        entries = _load_known_issues()
+        entry = _match_known_issue(item, entries)
+        if entry is None:
+            return
+        if previous_last_fail:
+            entry['last_fail'] = previous_last_fail
+        else:
+            entry.pop('last_fail', None)
+        _write_known_issues(entries)
+    except Exception as e:
+        logger.warning('[Auto-Healing] could not roll back known-issue signature: %s', e)
 
 
 # ─── Heuristic Failure Classification (C2) ───────────────────────────────────
@@ -732,11 +927,6 @@ def runtest_protocol(item, nextitem):
         evidence_dir = getattr(item, '_failure_evidence_dir', None)
         evidence_rel = os.path.relpath(evidence_dir, PROJECT_ROOT) if evidence_dir else None
 
-        remaining_budget = _retry_budget['max_cases'] - _retry_budget['used']
-        scheduling = _classify_failure_heuristic(evidence_dir, remaining_budget) if evidence_dir else {
-            'lane': 'C', 'action': 'deferred', 'preliminary_category': 'unknown',
-            'reason': 'no evidence dir available'}
-
         error_summary = None
         error_type = None
         fail_step = None
@@ -770,6 +960,28 @@ def runtest_protocol(item, nextitem):
             except Exception:
                 pass
 
+        # Known issue repeating itself → no retry, no Phase 2. Checked before the
+        # heuristic lanes so even an app_crash/network repeat of a known issue
+        # stops consuming the retry budget meant for genuinely new failures.
+        known_issue = check_known_issue(item, longrepr, run_id=_run_id(pytest_config))
+        skip_healing = bool(known_issue and known_issue['matched'] and SKIP_KNOWN_ISSUE)
+
+        remaining_budget = _retry_budget['max_cases'] - _retry_budget['used']
+        if skip_healing:
+            scheduling = {
+                'lane': 'D', 'action': 'known_issue',
+                'preliminary_category': 'known_issue',
+                'reason': 'Known issue ({}){} failing exactly as recorded — '
+                          'auto-healing skipped'.format(
+                              known_issue.get('error_reason') or 'no reason recorded',
+                              f", bug {known_issue['bug_code']}" if known_issue.get('bug_code') else ''),
+            }
+        elif evidence_dir:
+            scheduling = _classify_failure_heuristic(evidence_dir, remaining_budget)
+        else:
+            scheduling = {'lane': 'C', 'action': 'deferred', 'preliminary_category': 'unknown',
+                          'reason': 'no evidence dir available'}
+
         case_data = {
             'case_name': getattr(item, 'originalname', item.name),
             'test_file': item.nodeid,
@@ -781,14 +993,28 @@ def runtest_protocol(item, nextitem):
             'evidence_complete': evidence_dir is not None and os.path.exists(
                 os.path.join(evidence_dir, 'metadata.json')),
             'scheduling': scheduling,
+            'known_issue': {
+                'listed': True,
+                'error_reason': known_issue.get('error_reason'),
+                'bug_code': known_issue.get('bug_code'),
+                'same_as_last_run': known_issue['matched'],
+                'signature': known_issue.get('signature'),
+                'previous_signature': known_issue.get('previous_signature'),
+                'healing_skipped': skip_healing,
+            } if known_issue else None,
             'retry': None,
             'root_cause': None, 'patch': None, 'replay': None,
-            'final_status': None, 'pr_eligible': False,
+            'final_status': 'known_issue' if skip_healing else None,
+            'pr_eligible': False,
         }
 
         logger.info('[Auto-Healing] %s: %s (category: %s, lane: %s)', case_id,
                     scheduling.get('action'), scheduling.get('preliminary_category'),
                     scheduling.get('lane'))
+        if known_issue:
+            logger.info('[Auto-Healing]   known issue "%s": %s', known_issue.get('error_reason'),
+                        'same failure as last run — healing skipped' if skip_healing
+                        else 'first/changed failure signature — healing continues')
 
         if scheduling.get('action') == 'retry' and remaining_budget > 0:
             logger.info('[Auto-Healing] Retrying %s (reason: %s)', case_id,
@@ -830,6 +1056,14 @@ def runtest_protocol(item, nextitem):
             reports = retry_reports
             logger.info('[Auto-Healing] Retry result for %s: %s', case_id,
                         'PASS' if retry_passed else 'FAIL')
+
+            if retry_passed and known_issue:
+                # The run recovered, so this failure must not become the stored
+                # signature — otherwise the next identical crash would be skipped
+                # instead of retried, turning a green case red.
+                forget_known_issue_failure(item, known_issue.get('previous_last_fail'))
+                case_data['known_issue']['signature'] = known_issue.get('previous_signature')
+                case_data['known_issue']['recovered_by_retry'] = True
 
         _update_case_in_state(pytest_config, case_id, case_data)
     else:
@@ -911,6 +1145,13 @@ def _trigger_phase2(session):
         1 for c in state.get('cases', {}).values()
         if c.get('scheduling', {}).get('action') == 'deferred'
     )
+    known_issue_count = sum(
+        1 for c in state.get('cases', {}).values()
+        if c.get('scheduling', {}).get('action') == 'known_issue'
+    )
+    if known_issue_count:
+        logger.info('[Auto-Healing] %d known issue(s) failed as recorded — not sent to Phase 2',
+                    known_issue_count)
     if deferred_count == 0:
         logger.info('[Auto-Healing] No deferred cases — Phase 2 not needed')
         return

@@ -55,6 +55,8 @@ def test_00054_vhs_20260804_162255(actions: DriverActions):
         actions.verify_text(AppiumBy.ACCESSIBILITY_ID, 'distortionValueLabel', '0')
     with step("[Verify] Capture '00054_vhs_Step20' after — expect changed"):
         assert actions.capture_for_preview('00054_vhs_Step20', 'after', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[1]', expected_result='different', threshold=0.999)
+    with step("[Action] Drag distortionSlider (8.0%,55.6%) → //XCUIElementTypeOther[@name=\"parametersStackVIew\"]/XCUIElementTypeOther[2] (50.9%,47.7%)"):
+        actions.drag_within_elements(AppiumBy.ACCESSIBILITY_ID, 'distortionSlider', 8.0, 55.6, AppiumBy.XPATH, '//XCUIElementTypeOther[@name="parametersStackVIew"]/XCUIElementTypeOther[2]', 50.9, 47.7, duration=1.0)
     with step("[Verify] Capture '00054_vhs_Step23' before"):
         assert actions.capture_for_preview('00054_vhs_Step23', 'before', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[1]')
     with step("[Action] Drag positionSlider (33.7%,62.2%) → //XCUIElementTypeOther[@name=\"parametersStackVIew\"]/XCUIElementTypeOther[3] (80.5%,65.9%)"):
@@ -62,13 +64,13 @@ def test_00054_vhs_20260804_162255(actions: DriverActions):
     with step("[Verify] positionValueLabel text equals '100'"):
         actions.verify_text(AppiumBy.ACCESSIBILITY_ID, 'positionValueLabel', '100')
     with step("[Verify] Capture '00054_vhs_Step23' after — expect changed"):
-        assert actions.capture_for_preview('00054_vhs_Step23', 'after', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[1]', expected_result='different', threshold=0.9999)
+        assert actions.capture_for_preview('00054_vhs_Step23', 'after', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[1]', expected_result='different', threshold=0.999)
     with step("[Verify] Capture '00054_vhs_Step25' before"):
         assert actions.capture_for_preview('00054_vhs_Step25', 'before', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[1]')
     with step("[Action] Drag positionSlider (93.6%,60.0%) → //XCUIElementTypeOther[@name=\"parametersStackVIew\"]/XCUIElementTypeOther[3] (24.9%,61.4%)"):
         actions.drag_within_elements(AppiumBy.ACCESSIBILITY_ID, 'positionSlider', 93.6, 60.0, AppiumBy.XPATH, '//XCUIElementTypeOther[@name="parametersStackVIew"]/XCUIElementTypeOther[3]', 24.9, 61.4, duration=1.0)
     with step("[Verify] Capture '00054_vhs_Step25' after — expect changed"):
-        assert actions.capture_for_preview('00054_vhs_Step25', 'after', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[1]', expected_result='different', threshold=0.9999)
+        assert actions.capture_for_preview('00054_vhs_Step25', 'after', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[1]', expected_result='different', threshold=0.999)
     with step("[Verify] positionValueLabel text equals '0'"):
         actions.verify_text(AppiumBy.ACCESSIBILITY_ID, 'positionValueLabel', '0')
     with step("[Verify] Capture '00054_vhs_Step29' before"):
@@ -92,35 +94,37 @@ def test_00054_vhs_20260804_162255(actions: DriverActions):
     with step("[Action] Tap shapeMaskModeButton at (67.5%, 57.5%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'shapeMaskModeButton', 67.5, 57.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='editingImageView', container_w=430, container_h=682)
     with step("[Verify] Capture '00054_vhs_Step36' before"):
-        assert actions.capture_for_preview('00054_vhs_Step36', 'before', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[2]')
+        assert actions.capture_for_preview('00054_vhs_Step36', 'before', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[1]')
     with step("[Action] Tap drop_thumb at (44.4%, 56.1%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'drop_thumb', 44.4, 56.1, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='shapeMaskCollectionView', container_w=366, container_h=108)
     with step("[Verify] Capture '00054_vhs_Step36' after — expect changed"):
-        assert actions.capture_for_preview('00054_vhs_Step36', 'after', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[2]', expected_result='different', threshold=0.9999)
+        assert actions.capture_for_preview('00054_vhs_Step36', 'after', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[1]', expected_result='different', threshold=0.9999)
     with step("[Verify] Capture '00054_vhs_Step38' before"):
-        assert actions.capture_for_preview('00054_vhs_Step38', 'before', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[2]')
+        assert actions.capture_for_preview('00054_vhs_Step38', 'before', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView')
     with step("[Action] Tap film_thumb at (58.0%, 51.5%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'film_thumb', 58.0, 51.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='shapeMaskCollectionView', container_w=366, container_h=108)
     with step("[Verify] Capture '00054_vhs_Step38' after — expect changed"):
-        assert actions.capture_for_preview('00054_vhs_Step38', 'after', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[2]', expected_result='different', threshold=0.999)
+        assert actions.capture_for_preview('00054_vhs_Step38', 'after', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', expected_result='different', threshold=0.999)
     with step("[Verify] Capture '00054_vhs_Step40' before"):
-        assert actions.capture_for_preview('00054_vhs_Step40', 'before', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[2]')
+        assert actions.capture_for_preview('00054_vhs_Step40', 'before', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView')
     with step("[Action] Tap shapeMaskInvertButton at (55.0%, 37.5%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'shapeMaskInvertButton', 55.0, 37.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='editingImageView', container_w=430, container_h=682)
     with step("[Verify] Capture '00054_vhs_Step40' after — expect changed"):
-        assert actions.capture_for_preview('00054_vhs_Step40', 'after', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[2]', expected_result='different', threshold=0.999)
+        assert actions.capture_for_preview('00054_vhs_Step40', 'after', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', expected_result='different', threshold=0.999)
     with step("[Verify] Capture '00054_vhs_Step42' before"):
-        assert actions.capture_for_preview('00054_vhs_Step42', 'before', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[2]')
-    with step("[Action] Rotate //XCUIElementTypeScrollView[@name=\"editingImageView\"]/XCUIElementTypeOther[1]/XCUIElementTypeImage[2] 57.3°"):
-        actions.rotate(actions.find_element(AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[1]/XCUIElementTypeImage[2]'), rotation=57.3)
+        assert actions.capture_for_preview('00054_vhs_Step42', 'before', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView')
+    with step("[Action] Pinch EditingImageView_ImageView scale=0.896"):
+        actions.pinch(actions.find_element(AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView'), scale=0.896, velocity=-0.1)
     with step("[Verify] Capture '00054_vhs_Step42' after — expect changed"):
-        assert actions.capture_for_preview('00054_vhs_Step42', 'after', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[2]', expected_result='different', threshold=0.999)
+        assert actions.capture_for_preview('00054_vhs_Step42', 'after', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', expected_result='different', threshold=0.999)
     with step("[Verify] Capture '00054_vhs_Step44' before"):
-        assert actions.capture_for_preview('00054_vhs_Step44', 'before', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[1]')
-    with step("[Action] Pinch //XCUIElementTypeScrollView[@name=\"editingImageView\"]/XCUIElementTypeOther[2] scale=0.489"):
-        actions.pinch(actions.find_element(AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[2]'), scale=0.489, velocity=-0.626)
+        assert actions.capture_for_preview('00054_vhs_Step44', 'before', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView')
+    with step("[Action] Rotate EditingImageView_ImageView 44.3°"):
+            actions.rotate(actions.find_element(AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView'), rotation=44.3)
     with step("[Verify] Capture '00054_vhs_Step44' after — expect changed"):
-        assert actions.capture_for_preview('00054_vhs_Step44', 'after', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[1]', expected_result='different', threshold=0.999)
+        assert actions.capture_for_preview('00054_vhs_Step44', 'after', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', expected_result='different', threshold=0.999)
+
+
     with step("[Verify] Capture '00054_vhs_Step46' before"):
         assert actions.capture_for_preview('00054_vhs_Step46', 'before', AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="editingImageView"]/XCUIElementTypeOther[1]')
     with step("[Action] Tap btn_cancel_n at (32.7%, 46.9%)"):

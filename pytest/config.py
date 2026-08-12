@@ -25,8 +25,18 @@ AUTO_HEALING_ENABLED = False
 # patches yourself before committing.
 AUTO_HEALING_CREATE_BRANCH = False
 
-# Both settings are overridable per run by the environment variables
-# AUTO_HEALING=0 / AUTO_HEALING_CREATE_BRANCH=0.
+# Skip auto-healing for a *known* issue that failed the same way as last run.
+# A case listed in pytest/known_issue.json is already understood (waiting on RD,
+# needs re-recording, needs a QA decision...), so handing it to the healing agent
+# burns a Phase 2 window on a diagnosis nobody is waiting for. The signature of
+# every failure is stored back into known_issue.json, so the FIRST failure — and
+# any failure that looks different from the stored one — still goes through the
+# normal retry/defer lanes; only a repeat of the recorded signature is skipped.
+AUTO_HEALING_SKIP_KNOWN_ISSUE = True
+
+# All three settings are overridable per run by the environment variables
+# AUTO_HEALING=0 / AUTO_HEALING_CREATE_BRANCH=0 /
+# AUTO_HEALING_SKIP_KNOWN_ISSUE=0.
 
 # ─── Numeric text tolerance (verify_text) ────────────────────────────
 # Element id → how far the number in its text may differ from the recorded one.

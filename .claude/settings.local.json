@@ -38,7 +38,16 @@
       "Read(//Users/rdqe/Desktop/rdqe-ios-autotest-phdm/SFT/tests/**)",
       "Bash(grep -n \"Allow Full Access\\\\|Allow\\\\|photo.*library\\\\|permission\\\\|springboard\" /Users/rdqe/Desktop/rdqe-ios-autotest-phdm/SFT/tests/test_pytest_iPHD_SFT_v20.py | head -20)",
       "Bash(grep -rn \"Allow\\\\|alert\\\\|springboard\\\\|permission\\\\|defaultActive\" /Users/rdqe/Desktop/rdqe-ios-autotest-phdm/SFT/conftest.py /Users/rdqe/Desktop/rdqe-ios-autotest-phdm/ATFramework/pages/base_page.py 2>/dev/null | head -20)",
-      "Read(//Users/rdqe/Desktop/rdqe-ios-autotest-phdm/SFT/**)"
+      "Read(//Users/rdqe/Desktop/rdqe-ios-autotest-phdm/SFT/**)",
+      "Bash(python3 -m py_compile pytest/tests/test_00050_main_05_17_04_20260808_172522_NeedFindWhy.py)",
+      "Bash(python3 -c \"import json;d=json.load\\(open\\('pytest/known_issue.json'\\)\\);print\\(len\\(d\\)\\);from collections import Counter;print\\(Counter\\(x['error_reason'] for x in d\\)\\)\")",
+      "Bash(python3 -m pytest test_unittest/test_known_issue_skip.py -o addopts=\"\" -q -p no:logging)",
+      "Bash(python3 -m py_compile pytest/auto_healing.py pytest/config.py)",
+      "Bash(python3 -m pytest test_unittest -o addopts=\"\" -q)",
+      "Bash(python3 -m pytest test_unittest -o addopts=\"\" -q -p no:logging --tb=line)",
+      "Bash(python3 pytest/refresh_known_issue.py)",
+      "Bash(python3 pytest/refresh_known_issue.py --check)",
+      "Bash(python3 -m pytest test_unittest -o addopts=\"\" -q -p no:logging)"
     ]
   }
 }
