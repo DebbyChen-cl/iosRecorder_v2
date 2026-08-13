@@ -23,7 +23,7 @@ def test_00203_ai_image_to_video_pixverse_v6(actions: DriverActions):
         if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, "Kling 2.6", timeout=2):
             actions.tap_by_coordinates(160, 240)
         if actions.is_element_present(
-            AppiumBy.ACCESSIBILITY_ID, "ScrollableMenuViewCell-Image to Video", timeout=2
+            AppiumBy.ACCESSIBILITY_ID, "ScrollableMenuViewCell-ImageToVideo", timeout=2
         ):
             actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, "btnBack", 50.0, 50.0)
         if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, "btnHome", timeout=2):
@@ -166,5 +166,5 @@ def test_00203_ai_image_to_video_pixverse_v6(actions: DriverActions):
         actions.tap(generate)
     with step("[Verify] Artwork starts generation without an error"):
         assert actions.verify_text(AppiumBy.ACCESSIBILITY_ID, "lblTitle", "My AI Artwork") is not False
-        assert actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, "ScrollableMenuViewCell-Image to Video")
+        assert actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, "ScrollableMenuViewCell-ImageToVideo")
         assert actions.verify_text(AppiumBy.ACCESSIBILITY_ID, "processingLabel", "Processing...") is not False

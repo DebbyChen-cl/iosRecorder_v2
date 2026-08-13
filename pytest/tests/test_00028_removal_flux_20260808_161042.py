@@ -73,6 +73,9 @@ def test_00028_removal_flux_20260808_161042(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'AI Removal', 74.6, 15.8, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='EditViewControllerBottomBarCollectionView', container_w=430, container_h=97)
     with step("[Verify] Capture '00028_removal_flux_Step33' for GT comparison"):
         actions.capture_for_gt('00028_removal_flux_Step33', AppiumBy.ACCESSIBILITY_ID, 'proPlusToggle', threshold=0.95)
+    with step("[Action] Tap Try First when shown"):
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'Try First', timeout=3):
+            actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Try First', 50.0, 50.0)
     with step("[Action] Tap Manual at (52.9%, 83.3%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Manual', 52.9, 83.3)
     with step("[Action] Drag EditingImageView_ImageView (54.9%,20.4%) → backgroundView (56.5%,54.9%)"):

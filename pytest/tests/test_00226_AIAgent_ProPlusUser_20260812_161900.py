@@ -20,7 +20,7 @@ def test_00226_AIAgent_ProPlusUser_20260812_161900(actions: DriverActions):
     with step("[Action] Tap chevron.left at (20.0%, 44.4%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'chevron.left', 20.0, 44.4)
     with step("[Action] Tap btnBack at (60.7%, 53.2%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnBack', 60.7, 53.2)
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'chevron.left', 60.7, 53.2)
     with step("[Action] Tap btnBack at (53.6%, 55.3%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnBack', 53.6, 55.3)
     with step("[Action] Tap AI Edit Agent at (25.0%, 32.4%)"):

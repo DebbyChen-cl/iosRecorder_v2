@@ -179,10 +179,13 @@ def test_00043_blur_tool(actions: DriverActions):
         else:
             assert False  # legacy raise
     with step('[Action] tap_edit_home'):
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btn_cancel_n', timeout=2):
+            actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btn_cancel_n')
         for __by, __val in [(AppiumBy.ACCESSIBILITY_ID, 'homeButton'), (AppiumBy.ACCESSIBILITY_ID, 'btnHome'), (AppiumBy.ACCESSIBILITY_ID, 'btnHome'), (AppiumBy.IOS_CLASS_CHAIN, '**/XCUIElementTypeWindow/XCUIElementTypeOther[3]/XCUIElementTypeOther/XCUIElementTypeOther[3]/XCUIElementTypeButton[2]')]:
             if actions.is_element_present(__by, __val, timeout=2):
                 actions.tap_by_locator(__by, __val); break
     with step('[Action] tap_phd_btn'):
-        actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Discard')
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'Discard', timeout=2):
+            actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Discard')
     with step("[Verify] test_00043 completion"):
         assert True

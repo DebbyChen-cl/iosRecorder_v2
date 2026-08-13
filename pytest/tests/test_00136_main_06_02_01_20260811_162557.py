@@ -177,6 +177,9 @@ def test_00136_main_06_02_01_20260811_162557(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_ok_n', 57.1, 38.8)
     with step("[Action] Tap navSaveButton at (47.7%, 46.7%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navSaveButton', 47.7, 46.7)
+    with step("[Action] Tap btnClose if present"):
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnClose'):
+            actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnClose')
     with step("[Action] Tap navHomeButton at (50.0%, 62.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navHomeButton', 50.0, 62.2)
     with step("[Verify] Screenshot comparisons"):

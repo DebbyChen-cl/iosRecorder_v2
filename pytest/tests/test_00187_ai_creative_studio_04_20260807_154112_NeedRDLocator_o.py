@@ -86,11 +86,11 @@ def test_00187_ai_creative_studio_04_20260807_154112(actions: DriverActions):
     with step("[Action] Tap My Prompts at (43.5%, 73.7%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'My Prompts', 43.5, 73.7, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='scrollView', container_w=430, container_h=665)
     with step("[Action] Tap Select at (62.5%, 57.1%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Select', 62.5, 57.1)
+        actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeButton[@name="btnAction"]', 62.5, 57.1)
     with step("[Action] Tap containerView at (51.0%, 82.2%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'containerView', 51.0, 82.2, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='listCollectionView', container_w=394, container_h=806)
+        actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeCell[@name="AICreativeStudioPromptCell-0"]', 51.0, 82.2, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='listCollectionView', container_w=394, container_h=806)
     with step("[Action] Tap containerView at (56.3%, 78.5%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'containerView', 56.3, 78.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='listCollectionView', container_w=394, container_h=806)
+        actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeCell[@name="AICreativeStudioPromptCell-1"]', 56.3, 78.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='listCollectionView', container_w=394, container_h=806)
     with step("[Action] Tap Delete at (51.9%, 81.8%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Delete', 51.9, 81.8)
     with step("[Verify] lblEmpty is visible"):

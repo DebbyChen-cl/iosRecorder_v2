@@ -11,12 +11,15 @@ def test_00178_ai_try_on_03_20260807_142149(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'AI Photos', 69.4, 72.7)
     with step("[Action] Tap AI Try-On at (80.3%, 55.6%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'AI Try-On', 80.3, 55.6, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='entryCollectionView', container_w=396, container_h=724)
-    with step("[Action] Tap thumbnailImageView at (70.7%, 86.6%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'thumbnailImageView', 70.7, 86.6)
+    with step("[Action] Tap importButton"):
+        actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'importButton')
+    with step("[Action] Tap photoCell-2 at (70.7%, 86.6%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'photoCell-2', 70.7, 86.6)
     with step("[Action] Tap importLabel at (1.9%, 82.5%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'importLabel', 1.9, 82.5)
     with step("[Action] Tap PhotoPickerRecommendDialog-continueButton at (16.4%, 28.6%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'PhotoPickerRecommendDialog-continueButton', 16.4, 28.6)
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'PhotoPickerRecommendDialog-continueButton', timeout=3):
+            actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'PhotoPickerRecommendDialog-continueButton', 16.4, 28.6)
     with step("[Action] Tap btnAlbum at (69.0%, 50.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum', 69.0, 50.0)
     with step("[Action] Tap _AT at (9.7%, 63.6%)"):
@@ -27,6 +30,8 @@ def test_00178_ai_try_on_03_20260807_142149(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Custom', 51.1, 30.0, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='styleCollectionView', container_w=430, container_h=323)
     with step("[Action] Tap titleLabel at (31.9%, 40.9%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'titleLabel', 31.9, 40.9)
+    with step("[Action] Tap describeClothingStyleButton"):
+        actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'describeClothingStyleButton')
     with step("[Action] Tap placeholderLabel at (18.6%, 75.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'placeholderLabel', 18.6, 75.0)
     with step("[Action] Type 'Uniform of 7-11' into placeholderLabel"):

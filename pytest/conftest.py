@@ -259,10 +259,12 @@ def _close_all_pop_dialog_when_launch(actions: DriverActions) -> bool:
     return closed_any
 
 def _allow_screenshot(actions: DriverActions) -> bool:
+    _case_continue_edit(actions)
     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnSettings', 66.7, 47.1)
     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'About', 64.7, 69.6, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="photodirector.SettingPageViewController"]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeCollectionView', container_w=430, container_h=592)
     actions.five_tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'developerButton', 59.2, 46.0)
-    actions.tap_within_element(AppiumBy.XPATH, '(//XCUIElementTypeSwitch[@value="0"])[6]', 47.6, 48.3, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeApplication[@name="PhotoDirector"]/XCUIElementTypeWindow[1]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeScrollView', container_w=430, container_h=932)
+    if not actions.is_element_highlighted(AppiumBy.ACCESSIBILITY_ID, 'Force Allow Screenshot', timeout=3):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Force Allow Screenshot', 47.6, 48.3)
     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'chevron.left', 65.0, 58.3)
     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnBack', 64.3, 46.8)
     actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnBack', 53.6, 51.1)
@@ -335,32 +337,32 @@ def driver():
 
     bundle_id = getattr(config, "TARGET_BUNDLE_ID", "") or config.IOS_CAPABILITIES.get("appium:bundleId", "")
 
-    # if bundle_id:
-    #     if _session_first_run:
-    #         _session_setup_flow(DriverActions(_driver), bundle_id)
-    #         _session_first_run = False
-    #     else:
-    #         logger.info("=== TEST SETUP: restarting app ===")
-    #         _terminate_app_resilient(_driver, bundle_id)
-    #         _close_crash_dialog(_driver)
-    #         time.sleep(1)
-    #         _driver.activate_app(bundle_id)
-    #         time.sleep(1)
-    #         _close_all_pop_dialog_when_launch(DriverActions(_driver))
+    if bundle_id:
+        if _session_first_run:
+            _session_setup_flow(DriverActions(_driver), bundle_id)
+            _session_first_run = False
+        else:
+            logger.info("=== TEST SETUP: restarting app ===")
+            _terminate_app_resilient(_driver, bundle_id)
+            _close_crash_dialog(_driver)
+            time.sleep(1)
+            _driver.activate_app(bundle_id)
+            time.sleep(1)
+            _close_all_pop_dialog_when_launch(DriverActions(_driver))
             
-    # else:
-    #     logger.warning("Bundle ID is empty; skip app setup flow")
+    else:
+        logger.warning("Bundle ID is empty; skip app setup flow")
 
     yield _driver
 
-    # logger.info("=== TEST TEARDOWN: quitting Appium driver ===")
-    # if bundle_id:
-    #     try:
-    #         _driver.terminate_app(bundle_id)
-    #     except Exception as exc:
-    #         logger.warning("terminate_app failed: %s", exc)
-    # quit_driver(_driver)
-    # auto_healing.set_active_driver(None)
+    logger.info("=== TEST TEARDOWN: quitting Appium driver ===")
+    if bundle_id:
+        try:
+            _driver.terminate_app(bundle_id)
+        except Exception as exc:
+            logger.warning("terminate_app failed: %s", exc)
+    quit_driver(_driver)
+    auto_healing.set_active_driver(None)
 
 
 # ──────────────────────────────────────────────────────────────

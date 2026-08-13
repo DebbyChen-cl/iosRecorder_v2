@@ -55,6 +55,11 @@ def test_00137_main_06_02_01_2_20260809_160221(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navSaveButton', 61.4, 62.2)
     with step("[Action] Tap OK at (78.6%, 79.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'OK', 78.6, 79.2)
+    with step("[Action] Dismiss promotional overlay when present"):
+        assert (
+            actions.try_tap(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=5)
+            or not actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=1)
+        )
     with step("[Action] Tap ic_square at (58.3%, 55.4%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic_square', 58.3, 55.4, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='animationPhotoAspectRatioViewCollectionView', container_w=430, container_h=107)
     with step("[Verify] Capture '00137_main_06_02_01_2_Step26' for GT comparison"):
@@ -117,6 +122,11 @@ def test_00137_main_06_02_01_2_20260809_160221(actions: DriverActions):
         actions.drag_within_elements(AppiumBy.ACCESSIBILITY_ID, 'blackBackgroundView', 23.0, 33.8, AppiumBy.ACCESSIBILITY_ID, 'blackBackgroundView', 83.0, 62.6, duration=1.0)
     with step("[Action] Tap btn_ok_n at (83.7%, 49.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_ok_n', 83.7, 49.0)
+    with step("[Action] Dismiss promotional overlay when present"):
+        assert (
+            not actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=2)
+            or actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnClose')
+        )
     with step("[Action] Tap ic_square at (54.2%, 58.5%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic_square', 54.2, 58.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='animationPhotoAspectRatioViewCollectionView', container_w=430, container_h=107)
     with step("[Action] Tap 1080P at (71.4%, 71.4%)"):
@@ -129,6 +139,11 @@ def test_00137_main_06_02_01_2_20260809_160221(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, '2K', 9.5, 81.0)
     with step("[Action] Tap navSaveButton at (65.9%, 57.8%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navSaveButton', 65.9, 57.8)
+    with step("[Action] Dismiss promotional overlay when present"):
+        assert (
+            not actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=2)
+            or actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnClose')
+        )
     with step("[Action] Tap navBackButton at (40.9%, 60.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navBackButton', 40.9, 60.0)
     with step("[Action] Tap button_4K at (70.9%, 33.3%)"):
@@ -141,6 +156,11 @@ def test_00137_main_06_02_01_2_20260809_160221(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'button_720P', 60.8, 83.3)
     with step("[Action] Tap navSaveButton at (72.7%, 62.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navSaveButton', 72.7, 62.2)
+    with step("[Action] Dismiss promotional overlay when present"):
+        assert (
+            actions.try_tap(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=5)
+            or not actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=1)
+        )
     with step("[Action] Tap navBackButton at (52.3%, 22.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navBackButton', 52.3, 22.2)
     with step("[Action] Tap ic_16v9 at (61.5%, 56.9%)"):

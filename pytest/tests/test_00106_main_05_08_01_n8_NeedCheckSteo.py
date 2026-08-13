@@ -42,7 +42,7 @@ def test_00106_main_05_08_01_n8(actions: DriverActions):
     with step('[Action] tap_phd_btn'):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Style')
     with step('[Action] scroll_and_tap_feature_tab'):
-        assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Shape')
+        assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Color')
     with step('[Verify] snapshot: 05_08_01_shape_default.png'):
         actions.capture_for_gt('05_08_01_shape_default.png')
     if actions.compare_with_gt('05_08_01_shape_default.png', gt_folder=TD.GT_FOLDER)[0]:
@@ -60,7 +60,7 @@ def test_00106_main_05_08_01_n8(actions: DriverActions):
     with step('[Action] tap_phd_btn'):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Style')
     with step('[Action] tap_phd_btn'):
-        assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Shape')
+        assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Color')
     if (actions.get_text(AppiumBy.IOS_CLASS_CHAIN, '**/XCUIElementTypeWindow[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[3]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[3]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeOther[1]/XCUIElementTypeStaticText[2]') == '100'):
         pass
     if (actions.get_text(AppiumBy.IOS_CLASS_CHAIN, '**/XCUIElementTypeWindow[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[3]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[3]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeOther[2]/XCUIElementTypeStaticText[2]') == '0'):
@@ -79,9 +79,9 @@ def test_00106_main_05_08_01_n8(actions: DriverActions):
     destination = (40, 680)
     with step('[Action] brush_surrealart'):
         actions.drag_coordinates(40, 800, 40, 680)
-    if (actions.get_text(AppiumBy.ACCESSIBILITY_ID, '0') == '0'):
+    if (actions.get_text(AppiumBy.ACCESSIBILITY_ID, 'valueLabel') == '0'):
         pass
-    if (actions.get_text(AppiumBy.ACCESSIBILITY_ID, '0') == '0'):
+    if (actions.get_text(AppiumBy.ACCESSIBILITY_ID, 'valueLabel') == '0'):
         pass
     from_pos = (40, 680)
     destination = (40, 800)
@@ -92,7 +92,7 @@ def test_00106_main_05_08_01_n8(actions: DriverActions):
     with step('[Action] select_text_panel_color'):
         assert actions.tap_by_locator(AppiumBy.IOS_CLASS_CHAIN, '**/XCUIElementTypeWindow[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[3]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[3]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeCollectionView/XCUIElementTypeCell[11]')
     with step('[Verify] snapshot: base05_08_01_shape_solid_color.png'):
-        actions.capture_for_gt('base05_08_01_shape_solid_color.png')
+        actions.capture_for_gt('05_08_01_shape_solid_color.png')
     if actions.compare_with_gt('05_08_01_shape_solid_color.png', gt_folder=TD.GT_FOLDER)[0]:
         pass
     with step('[Action] adjust_text_shape_solid_opacity_slider'):
@@ -102,13 +102,13 @@ def test_00106_main_05_08_01_n8(actions: DriverActions):
     with step('[Verify] snapshot: 05_08_01_shape_shape_solid_opacity_slider.png'):
         actions.capture_for_gt('05_08_01_shape_shape_solid_opacity_slider.png')
     with step('[Verify] snapshot: base05_08_01_shape_solid_color_opacity_min.png'):
-        actions.capture_for_gt('base05_08_01_shape_solid_color_opacity_min.png')
+        actions.capture_for_gt('05_08_01_shape_solid_color_opacity_min.png')
     if actions.compare_with_gt('05_08_01_shape_solid_color_opacity_min.png', gt_folder=TD.GT_FOLDER)[0]:
         pass
     with step('[Action] adjust_text_shape_solid_opacity_slider'):
         actions.set_slider(AppiumBy.IOS_CLASS_CHAIN, '**/XCUIElementTypeSlider[1]', '0.5')
     with step('[Verify] snapshot: base05_08_01_shape_solid_color_opacity_mid.png'):
-        actions.capture_for_gt('base05_08_01_shape_solid_color_opacity_mid.png')
+        actions.capture_for_gt('05_08_01_shape_solid_color_opacity_mid.png')
     if actions.compare_with_gt('05_08_01_shape_solid_color_opacity_mid.png', gt_folder=TD.GT_FOLDER)[0]:
         pass
     with step('[Action] adjust_text_shape_solid_opacity_slider'):
@@ -116,7 +116,7 @@ def test_00106_main_05_08_01_n8(actions: DriverActions):
     with step('[Action] adjust_text_shape_solid_opacity_slider'):
         actions.set_slider(AppiumBy.IOS_CLASS_CHAIN, '**/XCUIElementTypeSlider[1]', '1')
     with step('[Verify] snapshot: base05_08_01_shape_solid_color_opacity_max.png'):
-        actions.capture_for_gt('base05_08_01_shape_solid_color_opacity_max.png')
+        actions.capture_for_gt('05_08_01_shape_solid_color_opacity_max.png')
     if actions.compare_with_gt('05_08_01_shape_solid_color_opacity_max.png', gt_folder=TD.GT_FOLDER)[0]:
         pass
     with step('[Action] adjust_text_shape_solid_horizontal_slider'):

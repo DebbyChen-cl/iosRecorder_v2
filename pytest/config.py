@@ -15,7 +15,7 @@ TARGET_BUNDLE_ID = "com.cyberlink.photodirector"
 # Master switch for pytest/auto_healing.py: failure evidence, state.json,
 # the immediate-retry lane, and handing deferred cases to the Phase 2 agent.
 # Set False to run pytest with no auto-healing side effects at all.
-AUTO_HEALING_ENABLED = False
+AUTO_HEALING_ENABLED = True
 
 # After Phase 2, let the healing agent commit its patches to a new
 # '<branch>_YYMMDD_hhmmss' branch and push it.
@@ -23,7 +23,7 @@ AUTO_HEALING_ENABLED = False
 # unrelated work-in-progress is committed and pushed along with the patches,
 # and the repo is left checked out on the new branch. Set False to review the
 # patches yourself before committing.
-AUTO_HEALING_CREATE_BRANCH = False
+AUTO_HEALING_CREATE_BRANCH = True
 
 # Skip auto-healing for a *known* issue that failed the same way as last run.
 # A case listed in pytest/known_issue.json is already understood (waiting on RD,

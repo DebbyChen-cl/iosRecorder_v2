@@ -82,13 +82,13 @@ def test_00142_main_05_01_12_2_20260805_170321(actions: DriverActions):
     with step("[Action] Drag cpSlider (29.7%,48.0%) → //XCUIElementTypeOther[@name=\"photodirector.SubjectQuickActionViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage (25.3%,97.2%)"):
         actions.drag_within_elements(AppiumBy.ACCESSIBILITY_ID, 'cpSlider', 29.7, 48.0, AppiumBy.XPATH, '//XCUIElementTypeOther[@name="photodirector.SubjectQuickActionViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage', 25.3, 97.2, duration=1.0)
     with step("[Verify] valueLabel text equals '1'"):
-        actions.verify_text(AppiumBy.ACCESSIBILITY_ID, 'valueLabel', '1')
+        actions.verify_text(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="intensitySlider"]/XCUIElementTypeStaticText[@name="valueLabel"]', '1')
     with step("[Verify] Capture '00142_main_05_01_12_2_Step39' for GT comparison"):
         actions.capture_for_gt('00142_main_05_01_12_2_Step39', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="photodirector.SubjectQuickActionViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage', threshold=0.95)
     with step("[Action] Drag cpSlider (9.6%,54.0%) → //XCUIElementTypeOther[@name=\"photodirector.SubjectQuickActionViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage (75.3%,96.3%)"):
         actions.drag_within_elements(AppiumBy.ACCESSIBILITY_ID, 'cpSlider', 9.6, 54.0, AppiumBy.XPATH, '//XCUIElementTypeOther[@name="photodirector.SubjectQuickActionViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage', 75.3, 96.3, duration=1.0)
     with step("[Verify] valueLabel text equals '100'"):
-        actions.verify_text(AppiumBy.ACCESSIBILITY_ID, 'valueLabel', '100')
+        actions.verify_text(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="intensitySlider"]/XCUIElementTypeStaticText[@name="valueLabel"]', '100')
     with step("[Verify] Capture '00142_main_05_01_12_2_Step42' for GT comparison"):
         actions.capture_for_gt('00142_main_05_01_12_2_Step42', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="photodirector.SubjectQuickActionViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage', threshold=0.95)
     with step("[Action] Tap Pop at (58.5%, 65.0%)"):
@@ -98,13 +98,13 @@ def test_00142_main_05_01_12_2_20260805_170321(actions: DriverActions):
     with step("[Action] Drag cpSlider (31.4%,48.0%) → //XCUIElementTypeOther[@name=\"photodirector.SubjectQuickActionViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage (24.7%,97.1%)"):
         actions.drag_within_elements(AppiumBy.ACCESSIBILITY_ID, 'cpSlider', 31.4, 48.0, AppiumBy.XPATH, '//XCUIElementTypeOther[@name="photodirector.SubjectQuickActionViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage', 24.7, 97.1, duration=1.0)
     with step("[Verify] valueLabel text equals '1'"):
-        actions.verify_text(AppiumBy.ACCESSIBILITY_ID, 'valueLabel', '1')
+        actions.verify_text(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="intensitySlider"]/XCUIElementTypeStaticText[@name="valueLabel"]', '1')
     with step("[Verify] Capture '00142_main_05_01_12_2_Step47' for GT comparison"):
         actions.capture_for_gt('00142_main_05_01_12_2_Step47', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="photodirector.SubjectQuickActionViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage', threshold=0.95)
     with step("[Action] Drag cpSlider (8.4%,52.0%) → //XCUIElementTypeOther[@name=\"photodirector.SubjectQuickActionViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage (77.2%,97.1%)"):
         actions.drag_within_elements(AppiumBy.ACCESSIBILITY_ID, 'cpSlider', 8.4, 52.0, AppiumBy.XPATH, '//XCUIElementTypeOther[@name="photodirector.SubjectQuickActionViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage', 77.2, 97.1, duration=1.0)
     with step("[Verify] valueLabel text equals '100'"):
-        actions.verify_text(AppiumBy.ACCESSIBILITY_ID, 'valueLabel', '100')
+        actions.verify_text(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="intensitySlider"]/XCUIElementTypeStaticText[@name="valueLabel"]', '100')
     with step("[Verify] Capture '00142_main_05_01_12_2_Step50' for GT comparison"):
         actions.capture_for_gt('00142_main_05_01_12_2_Step50', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="photodirector.SubjectQuickActionViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeImage', threshold=0.95)
     with step("[Action] Tap Cool at (64.6%, 35.0%)"):

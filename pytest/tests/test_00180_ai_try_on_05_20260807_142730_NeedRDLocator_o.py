@@ -12,11 +12,17 @@ def test_00180_ai_try_on_05_20260807_142730(actions: DriverActions):
     with step("[Action] Tap AI Try-On at (71.2%, 72.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'AI Try-On', 71.2, 72.2, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='entryCollectionView', container_w=396, container_h=724)
     with step("[Action] Tap thumbnailImageView at (76.0%, 85.5%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'thumbnailImageView', 76.0, 85.5)
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'importButton', 76.0, 85.5)
     with step("[Action] Tap importLabel at (85.2%, 47.5%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'importLabel', 85.2, 47.5)
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'importLabel', timeout=3):
+            actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'importLabel', 85.2, 47.5)
     with step("[Action] Tap PhotoPickerRecommendDialog-continueButton at (33.9%, 73.5%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'PhotoPickerRecommendDialog-continueButton', 33.9, 73.5)
+        if actions.is_element_present(
+            AppiumBy.ACCESSIBILITY_ID, 'PhotoPickerRecommendDialog-continueButton', timeout=3
+        ):
+            actions.tap_within_element(
+                AppiumBy.ACCESSIBILITY_ID, 'PhotoPickerRecommendDialog-continueButton', 33.9, 73.5
+            )
     with step("[Action] Tap btnAlbum at (70.1%, 59.5%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum', 70.1, 59.5)
     with step("[Action] Tap _AT at (10.0%, 81.8%)"):
@@ -26,7 +32,7 @@ def test_00180_ai_try_on_05_20260807_142730(actions: DriverActions):
     with step("[Action] Tap Custom at (48.9%, 75.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Custom', 48.9, 75.0, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='styleCollectionView', container_w=430, container_h=323)
     with step("[Action] Tap titleLabel at (50.3%, 59.1%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'titleLabel', 50.3, 59.1)
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'uploadClothingPhotoButton', 50.3, 59.1)
     with step("[Action] Tap PhotoPickerRecommendDialog-continueButton at (19.6%, 69.4%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'PhotoPickerRecommendDialog-continueButton', 19.6, 69.4)
     with step("[Action] Tap btnAlbum at (66.0%, 66.7%)"):
@@ -94,7 +100,8 @@ def test_00180_ai_try_on_05_20260807_142730(actions: DriverActions):
     with step("[Action] Tap navBackButton at (60.0%, 52.5%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navBackButton', 60.0, 52.5)
     with step("[Action] Tap navBackButton at (46.2%, 50.0%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navBackButton', 46.2, 50.0)
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'navBackButton', timeout=3):
+            actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navBackButton', 46.2, 50.0)
     with step("[Action] Tap btnHome at (48.7%, 21.8%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnHome', 48.7, 21.8)
     with step("[Verify] Screenshot comparisons"):

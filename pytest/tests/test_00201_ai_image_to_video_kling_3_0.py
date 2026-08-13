@@ -171,5 +171,5 @@ def test_00201_ai_image_to_video_kling_3_0(actions: DriverActions):
         actions.tap(generate)
     with step("[Verify] Artwork starts generation without an error"):
         assert actions.verify_text(AppiumBy.ACCESSIBILITY_ID, "lblTitle", "My AI Artwork") is not False
-        assert actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, "ScrollableMenuViewCell-Image to Video")
+        assert actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, "ScrollableMenuViewCell-ImageToVideo")
         assert actions.verify_text(AppiumBy.ACCESSIBILITY_ID, "processingLabel", "Processing...") is not False

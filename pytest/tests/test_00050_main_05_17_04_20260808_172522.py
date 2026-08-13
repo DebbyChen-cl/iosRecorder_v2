@@ -11,8 +11,8 @@ def test_00050_main_05_17_04_20260808_172522(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Edit', 17.1, 28.0)
     with step("[Action] Tap btnAlbum at (78.7%, 71.4%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum', 78.7, 71.4)
-    with step("[Action] Tap //XCUIElementTypeOther[@name=\"light_hits\"]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2] at (10.4%, 54.5%)"):
-        actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="light_hits"]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]', 10.4, 54.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='albumCollectionView', container_w=394, container_h=746)
+    with step("[Action] Tap _AT at (10.4%, 54.5%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, '_AT', 10.4, 54.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='albumCollectionView', container_w=394, container_h=746)
     with step("[Action] Tap photoCell-0 at (39.2%, 45.4%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'photoCell-0', 39.2, 45.4, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=746)
     with step("[Action] Tap Effects at (53.5%, 62.2%)"):

@@ -104,15 +104,24 @@ def test_00018_main_G00_01_01(actions: DriverActions):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnClose')
         assert actions.wait_for_invisible(AppiumBy.NAME, 'Unlock premium features')
     with step('[Action] tap_phd_btn'):
-        assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '50')
+        assert actions.tap_by_locator(
+            AppiumBy.XPATH,
+            '//XCUIElementTypeStaticText[@name="lblPlan" and @label="50"]',
+        )
     with step('[Action] verify_phd_str'):
         assert actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'Get 50 Credits for $9.99')
     with step('[Action] tap_phd_btn'):
-        assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '100')
+        assert actions.tap_by_locator(
+            AppiumBy.XPATH,
+            '//XCUIElementTypeStaticText[@name="lblPlan" and @label="100"]',
+        )
     with step('[Action] verify_phd_str'):
         assert actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'Get 100 Credits for $17.99')
     with step('[Action] tap_phd_btn'):
-        assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, '200')
+        assert actions.tap_by_locator(
+            AppiumBy.XPATH,
+            '//XCUIElementTypeStaticText[@name="lblPlan" and @label="200"]',
+        )
     with step('[Action] verify_phd_str'):
         assert actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'Get 200 Credits for $31.99')
     with step('[Action] tap_phd_btn'):

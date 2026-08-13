@@ -33,8 +33,8 @@ def test_00186_ai_creative_studio_03_20260807_145616(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Next', 44.1, 63.2)
     with step("[Verify] Capture '00186_ai_creative_studio_03_Step13' for GT comparison"):
         actions.capture_for_gt('00186_ai_creative_studio_03_Step13', AppiumBy.ACCESSIBILITY_ID, 'photoListPanel', threshold=0.95)
-    with step("[Action] Long press drag (//XCUIElementTypeImage[@name=\"imageView\"])[2] (69.7%,60.5%) → AICreativeStudioPhotoThumbnailCell-0 (7.9%,56.6%)"):
-        actions.long_press_drag_within_elements(AppiumBy.XPATH, '(//XCUIElementTypeImage[@name="imageView"])[2]', 69.7, 60.5, AppiumBy.ACCESSIBILITY_ID, 'AICreativeStudioPhotoThumbnailCell-0', 7.9, 56.6, duration=1.11, press_duration=1.45)
+    with step("[Action] Long press drag imageView (69.7%,60.5%) → AICreativeStudioPhotoThumbnailCell-0 (7.9%,56.6%)"):
+        actions.long_press_drag_within_elements(AppiumBy.ACCESSIBILITY_ID, 'imageView', 69.7, 60.5, AppiumBy.ACCESSIBILITY_ID, 'AICreativeStudioPhotoThumbnailCell-0', 7.9, 56.6, duration=1.11, press_duration=1.45)
     with step("[Verify] Capture '00186_ai_creative_studio_03_Step15' for GT comparison"):
         actions.capture_for_gt('00186_ai_creative_studio_03_Step15', AppiumBy.ACCESSIBILITY_ID, 'photoListPanel', threshold=0.95)
     with step("[Action] Tap Generate at (66.7%, 60.9%)"):

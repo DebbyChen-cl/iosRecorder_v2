@@ -36,7 +36,7 @@ def test_00223_AITryOn_MyStyle_ReferencePhoto_20260812_142439(actions: DriverAct
     with step("[Action] Tap NonScrollableSegment-myStyle at (26.2%, 76.1%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'NonScrollableSegment-myStyle', 26.2, 76.1)
     with step("[Action] Tap Photos at (9.5%, 59.3%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Photos', 9.5, 59.3, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='titleCollectionViewCollectionView', container_w=430, container_h=33)
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'category_my_style_photos', 9.5, 59.3, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='titleCollectionViewCollectionView', container_w=430, container_h=33)
     with step("[Action] Tap //XCUIElementTypeCollectionView[@name=\"styleCollectionView\"]/XCUIElementTypeCell[2]/XCUIElementTypeOther[1]/XCUIElementTypeImage at (40.9%, 50.0%)"):
         actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeCollectionView[@name="styleCollectionView"]/XCUIElementTypeCell[2]/XCUIElementTypeOther[1]/XCUIElementTypeImage', 40.9, 50.0, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='styleCollectionView', container_w=430, container_h=305)
     with step("[Verify] Select up to 3 apparel photos. (2/3) is visible"):

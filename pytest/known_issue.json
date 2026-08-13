@@ -3,198 +3,429 @@
     "file_name": "test_00005_main_03_01_06_2_needupdateBuildInfo.py",
     "test_name": "test_00005_main_03_01_06_2",
     "error_reason": "needupdateBuildInfo",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "5e842ad484a6fed8",
+      "error_summary": "selenium.common.exceptions.TimeoutException: Message: Element not found: (name, 'PHI260623-02') | Stacktrace: | NoSuchElementError: An element could not be located on the page using the given search parameters. | at XCUITestDriver.doNativeFind (/Users/juliarychen-mac-mini/.appium/node_modules/appium-xcuitest-driver/lib/commands/find.js:116:11) | at processTicksAndRejections (node:internal/process/",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T17:25:09",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00018_main_G00_01_01_needRDLocator_o.py",
     "test_name": "test_00018_main_G00_01_01",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "b749a7d346d75b34",
+      "error_summary": "selenium.common.exceptions.TimeoutException: Message: Element not found: (accessibility id, '50') | Stacktrace: | NoSuchElementError: An element could not be located on the page using the given search parameters. | at XCUITestDriver.doNativeFind (/Users/juliarychen-mac-mini/.appium/node_modules/appium-xcuitest-driver/lib/commands/find.js:116:11) | at processTicksAndRejections (node:internal/proces",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T18:20:14",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00042_vignette_needRecorderUpdate.py",
     "test_name": "test_00042_vignette",
     "error_reason": "needRecorderUpdate",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "23127ee6f0349294",
+      "error_summary": "assert False",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T19:16:11",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00043_blur_tool_needRecorderUpdate.py",
     "test_name": "test_00043_blur_tool",
     "error_reason": "needRecorderUpdate",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "d66fcc9308d2c75d",
+      "error_summary": "selenium.common.exceptions.TimeoutException: Message: Element not found: (accessibility id, 'Discard') | Stacktrace: | NoSuchElementError: An element could not be located on the page using the given search parameters. | at XCUITestDriver.doNativeFind (/Users/juliarychen-mac-mini/.appium/node_modules/appium-xcuitest-driver/lib/commands/find.js:116:11) | at processTicksAndRejections (node:internal/p",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T19:20:39",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00044_main_05_04a_01n_needRDLocator_o.py",
     "test_name": "test_00044_main_05_04a_01n",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "d66fcc9308d2c75d",
+      "error_summary": "selenium.common.exceptions.TimeoutException: Message: Element not found: (accessibility id, 'Discard') | Stacktrace: | NoSuchElementError: An element could not be located on the page using the given search parameters. | at XCUITestDriver.doNativeFind (/Users/juliarychen-mac-mini/.appium/node_modules/appium-xcuitest-driver/lib/commands/find.js:116:11) | at processTicksAndRejections (node:internal/p",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T19:25:25",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00095_swap_face_NeedRDLocator_o.py",
     "test_name": "test_00095_swap_face",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "91d0b84e4cfb1511",
+      "error_summary": "AssertionError: makeup face 1 fail | assert False",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T22:08:52",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00103_main_05_08_01_n5_NeedRDLocator_o.py",
     "test_name": "test_00103_main_05_08_01_n5",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "1818a8bdc0e76e7e",
+      "error_summary": "AssertionError: Close color panel x comparison fail | assert False",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T22:35:27",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00104_main_05_08_01_n6_NeedRDLocator_o.py",
     "test_name": "test_00104_main_05_08_01_n6",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "6cada9417795d3de",
+      "error_summary": "AssertionError: Close border panel x comparison fail | assert False",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T22:37:20",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00105_main_05_08_01_n7_NeedRDLocator_o.py",
     "test_name": "test_00105_main_05_08_01_n7",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "93bd5f6fa436bde7",
+      "error_summary": "AssertionError: Close shadow panel x comparison fail | assert False",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T22:39:15",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00106_main_05_08_01_n8_NeedCheckSteo.py",
     "test_name": "test_00106_main_05_08_01_n8",
     "error_reason": "NeedCheckSteo",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "31e2877be44ef608",
+      "error_summary": "selenium.common.exceptions.TimeoutException: Message: Element not found: (accessibility id, 'Shape') | Stacktrace: | NoSuchElementError: An element could not be located on the page using the given search parameters. | at XCUITestDriver.doNativeFind (/Users/juliarychen-mac-mini/.appium/node_modules/appium-xcuitest-driver/lib/commands/find.js:116:11) | at processTicksAndRejections (node:internal/pro",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T22:41:06",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00111_main_06_01_01_n5_NeedRDLocator_o.py",
     "test_name": "test_00111_main_06_01_01_n5",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "33b6b731d3e7e88c",
+      "error_summary": "AssertionError: cancel picker fail | assert False",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T22:55:31",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00112_main_06_01_01_n6_NeedRDLocator_o.py",
     "test_name": "test_00112_main_06_01_01_n6",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "91ee4bf5be661a43",
+      "error_summary": "AssertionError: tap x close panel fail | assert False",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T22:56:56",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00113_main_06_01_01_n7_NeedRDLocator_o.py",
     "test_name": "test_00113_main_06_01_01_n7",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "91ee4bf5be661a43",
+      "error_summary": "AssertionError: tap x close panel fail | assert False",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T22:58:29",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00116_main_05_13_01_1n_NeedRDLocator_o.py",
     "test_name": "test_00116_main_05_13_01_1n_20260805_145011",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "32359ab9751e2f60",
+      "error_summary": "AssertionError: verify_text FAILED for (accessibility id, 'lblVal') | expected : '0' | actual   : '100'",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T23:08:56",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00122_main_05_11_01_4_20260805_155236_NeedRDLocator_o.py",
     "test_name": "test_00122_main_05_11_01_4_20260805_155236",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "5c3a2579d731b538",
+      "error_summary": "selenium.common.exceptions.NoSuchElementException: Message: Element (accessibility id, 'imageView') not usable after 30 scrolls — best visibility reached was 0% (need 50% inside container (xpath, '//XCUIElementTypeOther[@name=\"mainPanel\"]/XCUIElementTypeOther/XCUIElementTypeCollectionView') and the screen).; For documentation on this error, please visit: https://www.selenium.dev/documentation/webd",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T23:37:43",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00123_main_05_11_01_5_20260805_155928_NeedRDLocator_o.py",
     "test_name": "test_00123_main_05_11_01_5_20260805_155928",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "e879507628e37a0b",
+      "error_summary": "selenium.common.exceptions.NoSuchElementException: Message: Element (accessibility id, 'Simple Frames') not found after 20 scrolls in container (xpath, '//XCUIElementTypeOther[@name=\"mainPanel\"]/XCUIElementTypeOther/XCUIElementTypeCollectionView').; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#nosuchelementexception",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T23:40:34",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00124_main_05_11_01_6_20260805_160317_NeedRDLocator_o.py",
     "test_name": "test_00124_main_05_11_01_6_20260805_160317",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "4383ee06b0230fa7",
+      "error_summary": "selenium.common.exceptions.TimeoutException: Message: Element not found: (xpath, '//XCUIElementTypeOther[@name=\"funcPanel\"]/XCUIElementTypeOther/XCUIElementTypeCollectionView') | Stacktrace: | NoSuchElementError: An element could not be located on the page using the given search parameters. | at XCUITestDriver.doNativeFind (/Users/juliarychen-mac-mini/.appium/node_modules/appium-xcuitest-driver/li",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T23:42:41",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00125_main_05_11_01_7_NeedRDLocator_o.py",
     "test_name": "test_00125_main_05_11_01_7",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "30142e0cd7302898",
+      "error_summary": "AssertionError: Fail to verify second photo was added | assert False",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T23:44:25",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00126_main_05_11_01_8_NeedRDLocator_o.py",
     "test_name": "test_00126_main_05_11_01_8",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "0b7c919525c45af8",
+      "error_summary": "AssertionError: Fail to verify font change | assert False",
+      "run_id": "20260812171910",
+      "at": "2026-08-12T23:46:23",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00133_main_05_17_03_NeedRDLocator_BokehOnPreview.py",
     "test_name": "test_00133_main_05_17_03",
     "error_reason": "NeedRDLocator_BokehOnPreview",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "da461d89ca699c4d",
+      "error_summary": "AssertionError: adjust inner compare failed | assert False",
+      "run_id": "20260812171910",
+      "at": "2026-08-13T00:12:33",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00137_main_06_02_01_2_20260809_160221_NeedRDInitial.py",
     "test_name": "test_00137_main_06_02_01_2_20260809_160221",
     "error_reason": "NeedRDInitial",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "167b468e4bae5f08",
+      "error_summary": "selenium.common.exceptions.TimeoutException: Message: Element not found: (accessibility id, 'navBackButton') | Stacktrace: | NoSuchElementError: An element could not be located on the page using the given search parameters. | at XCUITestDriver.doNativeFind (/Users/juliarychen-mac-mini/.appium/node_modules/appium-xcuitest-driver/lib/commands/find.js:116:11) | at processTicksAndRejections (node:inte",
+      "run_id": "20260812171910",
+      "at": "2026-08-13T00:34:38",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00138_main_05_14_01_20260809_161044_NeedRDInitial.py",
     "test_name": "test_00138_main_05_14_01_20260809_161044",
     "error_reason": "NeedRDInitial",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "a36ea5eacf13d4b2",
+      "error_summary": "selenium.common.exceptions.TimeoutException: Message: Element not found: (accessibility id, 'navHomeButton') | Stacktrace: | NoSuchElementError: An element could not be located on the page using the given search parameters. | at XCUITestDriver.doNativeFind (/Users/juliarychen-mac-mini/.appium/node_modules/appium-xcuitest-driver/lib/commands/find.js:116:11) | at processTicksAndRejections (node:inte",
+      "run_id": "20260812171910",
+      "at": "2026-08-13T00:43:45",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00139_main_05_07_23_NeedRDLocator.py",
     "test_name": "test_00139_main_05_07_23",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "5b7b05aa365d06d0",
+      "error_summary": "selenium.common.exceptions.TimeoutException: Message: Element not found: (accessibility id, 'AI Relight') | Stacktrace: | NoSuchElementError: An element could not be located on the page using the given search parameters. | at XCUITestDriver.doNativeFind (/Users/juliarychen-mac-mini/.appium/node_modules/appium-xcuitest-driver/lib/commands/find.js:116:11) | at processTicksAndRejections (node:interna",
+      "run_id": "20260812171910",
+      "at": "2026-08-13T00:45:24",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00142_main_05_01_12_2_20260805_170321_NeedRDLocator_o.py",
     "test_name": "test_00142_main_05_01_12_2_20260805_170321",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "9fc1053c53f416c4",
+      "error_summary": "AssertionError: verify_text FAILED for (accessibility id, 'valueLabel') | expected : '100' (±3) | actual   : '0'",
+      "run_id": "20260812171910",
+      "at": "2026-08-13T00:52:44",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00157_ai_artwork_renew_NeedRecordAgain.py",
     "test_name": "test_00157_ai_artwork_renew",
     "error_reason": "NeedRecordAgain",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "6ac92197f886db8c",
+      "error_summary": "AssertionError: assert False | +  where False = is_element_present('accessibility id', 'Quick Actions') | +    where is_element_present = <driver.driver_actions.DriverActions object at 0x11b9debe0>.is_element_present | +    and   'accessibility id' = AppiumBy.ACCESSIBILITY_ID",
+      "run_id": "20260812171910",
+      "at": "2026-08-13T02:09:25",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00174_collage_edit_NeedRDLocator.py",
     "test_name": "test_00174_collage_edit_20260809_163403",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "9b4234501c0665ff",
+      "error_summary": "selenium.common.exceptions.TimeoutException: Message: Element not found: (xpath, '//XCUIElementTypeOther[@name=\"photodirector.AddImageViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[3]/XCUIElementTypeOther/XCUIElementTypeCollectionView') | Stacktrace: | NoSuchElementError: An element could not be located on the page using the given search par",
+      "run_id": "20260812171910",
+      "at": "2026-08-13T03:02:39",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00178_ai_try_on_03_20260807_142149_NeedRDLocator_o.py",
     "test_name": "test_00178_ai_try_on_03_20260807_142149",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "883f41883a9e2472",
+      "error_summary": "selenium.common.exceptions.TimeoutException: Message: Element not found: (accessibility id, 'placeholderLabel') | Stacktrace: | NoSuchElementError: An element could not be located on the page using the given search parameters. | at XCUITestDriver.doNativeFind (/Users/juliarychen-mac-mini/.appium/node_modules/appium-xcuitest-driver/lib/commands/find.js:116:11) | at processTicksAndRejections (node:i",
+      "run_id": "20260812171910",
+      "at": "2026-08-13T03:08:41",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00180_ai_try_on_05_20260807_142730_NeedRDLocator_o.py",
     "test_name": "test_00180_ai_try_on_05_20260807_142730",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "97b96109cc536ef9",
+      "error_summary": "selenium.common.exceptions.TimeoutException: Message: Element not found: (accessibility id, 'PhotoPickerRecommendDialog-continueButton') | Stacktrace: | NoSuchElementError: An element could not be located on the page using the given search parameters. | at XCUITestDriver.doNativeFind (/Users/juliarychen-mac-mini/.appium/node_modules/appium-xcuitest-driver/lib/commands/find.js:116:11) | at processT",
+      "run_id": "20260812171910",
+      "at": "2026-08-13T03:11:49",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00181_1_ai_try_on_06_20260807_143101_NeedRDLocator_o.py",
     "test_name": "test_00181_1_ai_try_on_06_20260807_143101",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "ab811cf659869b7f",
+      "error_summary": "selenium.common.exceptions.TimeoutException: Message: Element not found: (accessibility id, 'Try now') | Stacktrace: | NoSuchElementError: An element could not be located on the page using the given search parameters. | at XCUITestDriver.doNativeFind (/Users/juliarychen-mac-mini/.appium/node_modules/appium-xcuitest-driver/lib/commands/find.js:116:11) | at processTicksAndRejections (node:internal/p",
+      "run_id": "20260812171910",
+      "at": "2026-08-13T03:13:18",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00185_ai_creative_studio_02_20260807_145017_NeedRDLocator_o.py",
     "test_name": "test_00185_ai_creative_studio_02_20260807_145017",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "c6970dec5dd55ffe",
+      "error_summary": "selenium.common.exceptions.NoSuchElementException: Message: Element (accessibility id, 'btn FontDelete n') not found after 20 scrolls in container (xpath, '//XCUIElementTypeOther[@name=\"selectionContainerView\"]/XCUIElementTypeOther/XCUIElementTypeTable').; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#nosuchelementexception",
+      "run_id": "20260812171910",
+      "at": "2026-08-13T03:35:12",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00186_ai_creative_studio_03_20260807_145616_NeedRDLocator_o.py",
     "test_name": "test_00186_ai_creative_studio_03_20260807_145616",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "8dadf2b9d792d252",
+      "error_summary": "selenium.common.exceptions.TimeoutException: Message: Element not found: (xpath, '(//XCUIElementTypeImage[@name=\"imageView\"])[2]') | Stacktrace: | NoSuchElementError: An element could not be located on the page using the given search parameters. | at XCUITestDriver.doNativeFind (/Users/juliarychen-mac-mini/.appium/node_modules/appium-xcuitest-driver/lib/commands/find.js:116:11) | at processTicksAn",
+      "run_id": "20260812171910",
+      "at": "2026-08-13T03:37:00",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00187_ai_creative_studio_04_20260807_154112_NeedRDLocator_o.py",
     "test_name": "test_00187_ai_creative_studio_04_20260807_154112",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "aada6f6c612861c5",
+      "error_summary": "selenium.common.exceptions.TimeoutException: Message: Element not found: (accessibility id, 'Delete') | Stacktrace: | NoSuchElementError: An element could not be located on the page using the given search parameters. | at XCUITestDriver.doNativeFind (/Users/juliarychen-mac-mini/.appium/node_modules/appium-xcuitest-driver/lib/commands/find.js:116:11) | at processTicksAndRejections (node:internal/pr",
+      "run_id": "20260812171910",
+      "at": "2026-08-13T03:41:34",
+      "repeat_count": 1
+    }
   },
   {
     "file_name": "test_00228_IDPhoto_34x45_NeedRDLocator.py",
     "test_name": "test_00228_IDPhoto_34x45_20260812_162719",
     "error_reason": "NeedRDLocator",
-    "bug_code": ""
+    "bug_code": "",
+    "last_fail": {
+      "signature": "d64421761f71d741",
+      "error_summary": "selenium.common.exceptions.NoSuchElementException: Message: Element (accessibility id, 'btnMain') not usable after 30 scrolls — best visibility reached was 0% (need 50% inside container (accessibility id, 'launcherTrendyViewConfigCollectionView') and the screen).; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#nosuchelementexc",
+      "run_id": "20260812171910",
+      "at": "2026-08-13T06:12:18",
+      "repeat_count": 1
+    }
   }
 ]

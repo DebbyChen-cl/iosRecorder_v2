@@ -219,6 +219,10 @@ def test_00138_main_05_14_01_20260809_161044(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic_video_n', 44.4, 56.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='animationPhotoExportTypeViewCollectionView', container_w=430, container_h=80)
     with step("[Action] Tap navSaveButton at (56.8%, 42.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navSaveButton', 56.8, 42.2)
+    with step("[Action] Tap Later to dismiss the rating prompt"):
+        assert (not actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'Later', timeout=3)) or actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Later', 50.0, 50.0)
+    with step("[Action] Tap btnClose to dismiss the subscription paywall if shown"):
+        assert (not actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=3)) or actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnClose', 50.0, 50.0)
     with step("[Action] Tap navHomeButton at (47.7%, 51.1%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navHomeButton', 47.7, 51.1)
     with step("[Verify] Screenshot comparisons"):

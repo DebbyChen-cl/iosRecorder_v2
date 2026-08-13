@@ -8,7 +8,7 @@ from driver.driver_actions import DriverActions
 @pytest.mark.name("00228_IDPhoto_34x45_20260812_162719")
 def test_00228_IDPhoto_34x45_20260812_162719(actions: DriverActions):
     with step("[Action] Scroll until btnMain"):
-        actions.scroll_until(AppiumBy.ACCESSIBILITY_ID, 'launcherTrendyViewConfigCollectionView', AppiumBy.ACCESSIBILITY_ID, 'btnMain', direction='down', offset_start=(0.421, 0.851), offset_end=(0.421, 0.0), velocity=238)
+        actions.scroll_until(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="LauncherProViewController"]/XCUIElementTypeScrollView', AppiumBy.ACCESSIBILITY_ID, 'btnMain', direction='down', offset_start=(0.421, 0.851), offset_end=(0.421, 0.0), velocity=238)
     with step("[Action] Tap btnMain at (7.9%, 59.8%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnMain', 7.9, 59.8, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="LauncherProViewController"]/XCUIElementTypeScrollView', container_w=430, container_h=843)
     with step("[Action] Tap btnAlbum at (80.0%, 70.9%)"):
@@ -25,6 +25,8 @@ def test_00228_IDPhoto_34x45_20260812_162719(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnNext', 81.0, 40.0)
     with step("[Action] Tap btnNext at (75.5%, 87.8%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnNext', 75.5, 87.8)
+    with step("[Action] Tap btnNext to continue to ID photo editor"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnNext', 50.0, 50.0)
     with step("[Action] Tap Size at (36.2%, 45.5%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Size', 36.2, 45.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='idPhotoEditMainPanelCollectionView', container_w=308, container_h=97)
     with step("[Action] Tap 35 x 45mm at (21.4%, 77.3%)"):

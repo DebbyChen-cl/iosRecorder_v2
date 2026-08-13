@@ -44,9 +44,9 @@ def test_00123_main_05_11_01_5_20260805_155928(actions: DriverActions):
     with step("[Verify] Capture '00123_main_05_11_01_5_Step18' for GT comparison"):
         actions.capture_for_gt('00123_main_05_11_01_5_Step18', AppiumBy.ACCESSIBILITY_ID, 'imageView', threshold=0.95)
     with step("[Action] Scroll until lblText"):
-        actions.scroll_until(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="mainPanel"]/XCUIElementTypeOther/XCUIElementTypeCollectionView', AppiumBy.ACCESSIBILITY_ID, 'lblText', direction='left', offset_start=(0.823, 0.282), offset_end=(0.34, 0.282), velocity=387)
+        actions.scroll_until(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="mainPanel"]/XCUIElementTypeOther/XCUIElementTypeCollectionView', AppiumBy.XPATH, '//XCUIElementTypeStaticText[@name="lblText" and @label="Frame"]', direction='left', offset_start=(0.823, 0.282), offset_end=(0.34, 0.282), velocity=387)
     with step("[Action] Tap lblText at (63.5%, 72.7%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'lblText', 63.5, 72.7, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="mainPanel"]/XCUIElementTypeOther/XCUIElementTypeCollectionView', container_w=430, container_h=71)
+        actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeStaticText[@name="lblText" and @label="Frame"]', 63.5, 72.7, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="mainPanel"]/XCUIElementTypeOther/XCUIElementTypeCollectionView', container_w=430, container_h=71)
     with step("[Action] Tap Simple Frames at (47.5%, 64.3%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Simple Frames', 47.5, 64.3, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="mainPanel"]/XCUIElementTypeOther/XCUIElementTypeCollectionView', container_w=430, container_h=71)
     with step("[Action] Tap 01 at (49.2%, 92.9%)"):
@@ -82,7 +82,7 @@ def test_00123_main_05_11_01_5_20260805_155928(actions: DriverActions):
     with step("[Verify] valueLabel text equals '100'"):
         actions.verify_text(AppiumBy.ACCESSIBILITY_ID, 'valueLabel', '100')
     with step("[Action] Tap btt_eraser_n at (60.0%, 70.0%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btt_eraser_n', 60.0, 70.0, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="menuView"]/XCUIElementTypeCollectionView', container_w=430, container_h=71)
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Eraser', 60.0, 70.0, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="menuView"]/XCUIElementTypeCollectionView', container_w=430, container_h=71)
     with step("[Action] Drag //XCUIElementTypeOther[@name=\"MaskingViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther (48.3%,4.3%) → //XCUIElementTypeOther[@name=\"MaskingViewController\"]/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeImage (50.1%,82.4%)"):
         actions.drag_within_elements(AppiumBy.XPATH, '//XCUIElementTypeOther[@name="MaskingViewController"]/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther', 48.3, 4.3, AppiumBy.XPATH, '//XCUIElementTypeOther[@name="MaskingViewController"]/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeImage', 50.1, 82.4, duration=1.0)
     with step("[Verify] Capture '00123_main_05_11_01_5_Step40' for GT comparison"):

@@ -32,7 +32,7 @@ def test_00216_AIBackground_CustomStyle_20260811_181933(actions: DriverActions):
     with step("[Action] Five tap delete at (44.6%, 28.6%)"):
         actions.five_tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'delete', 44.6, 28.6)
     with step("[Action] Type 'Custom name 1' into delete"):
-        actions.type_text_by_locator(AppiumBy.ACCESSIBILITY_ID, 'delete', 'Custom name 1')
+        actions.type_text_by_locator(AppiumBy.ACCESSIBILITY_ID, 'styleNameTextField', 'Custom name 1')
     with step("[Action] Tap promptTextView at (28.2%, 29.8%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'promptTextView', 28.2, 29.8, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='contentView', container_w=430, container_h=701)
     with step("[Action] Type 'Taipei street' into promptTextView"):

@@ -25,8 +25,12 @@ def test_00189_regression_beautify_01_20260811_165901(actions: DriverActions):
         actions.verify_visible(AppiumBy.XPATH, '//XCUIElementTypeCell[@name="CircleMenuCell-0"]/XCUIElementTypeImage')
     with step("[Action] Tap btn_ok_n at (89.8%, 18.4%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_ok_n', 89.8, 18.4)
+    with step("[Action] Dismiss subscription overlay via btnClose"):
+        actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnClose')
     with step("[Action] Tap btn_cancel_n at (40.8%, 24.5%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_cancel_n', 40.8, 24.5)
+    with step("[Action] Exit portrait editing sub-flow via btn_cancel_n"):
+        actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btn_cancel_n')
     with step("[Action] Tap homeButton at (69.2%, 69.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'homeButton', 69.2, 69.2)
     assert True

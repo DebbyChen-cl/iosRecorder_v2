@@ -25,8 +25,8 @@ def test_00211_reshape_shape_preset_20260811_172501(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Natural', 73.0, 26.3, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='adjustableOptionCollectionView', container_w=430, container_h=97)
     with step("[Verify] valueLabel text equals '50'"):
         actions.verify_text(AppiumBy.ACCESSIBILITY_ID, 'valueLabel', '50')
-    with step("[Action] Drag cpSlider (52.4%,50.0%) → //XCUIElementTypeOther[@name=\"photodirector.FacialFeatureReshapeViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[5]/XCUIElementTypeOther[1] (1.6%,51.0%)"):
-        actions.drag_within_elements(AppiumBy.ACCESSIBILITY_ID, 'cpSlider', 52.4, 50.0, AppiumBy.XPATH, '//XCUIElementTypeOther[@name="photodirector.FacialFeatureReshapeViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[5]/XCUIElementTypeOther[1]', 1.6, 51.0, duration=1.0)
+    with step("[Action] Drag cpSlider (52.4%,50.0%) → intensitySlider (1.6%,51.0%)"):
+        actions.drag_within_elements(AppiumBy.ACCESSIBILITY_ID, 'cpSlider', 52.4, 50.0, AppiumBy.ACCESSIBILITY_ID, 'intensitySlider', 1.6, 51.0, duration=1.0)
     with step("[Verify] valueLabel text equals '0'"):
         actions.verify_text(AppiumBy.ACCESSIBILITY_ID, 'valueLabel', '0')
     with step("[Verify] Capture '00211_reshape_shape_preset_Step12' for GT comparison"):
@@ -79,8 +79,8 @@ def test_00211_reshape_shape_preset_20260811_172501(actions: DriverActions):
         actions.verify_text(AppiumBy.ACCESSIBILITY_ID, 'valueLabel', '0')
     with step("[Verify] Capture '00211_reshape_shape_preset_Step36' for GT comparison"):
         actions.capture_for_gt('00211_reshape_shape_preset_Step36', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="photodirector.FacialFeatureReshapeViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[2]', threshold=0.95)
-    with step("[Action] Drag cpSlider (6.0%,56.0%) → //XCUIElementTypeOther[@name=\"photodirector.FacialFeatureReshapeViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[5]/XCUIElementTypeOther[1] (79.8%,53.1%)"):
-        actions.drag_within_elements(AppiumBy.ACCESSIBILITY_ID, 'cpSlider', 6.0, 56.0, AppiumBy.XPATH, '//XCUIElementTypeOther[@name="photodirector.FacialFeatureReshapeViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[5]/XCUIElementTypeOther[1]', 79.8, 53.1, duration=1.0)
+    with step("[Action] Drag cpSlider (6.0%,56.0%) → //XCUIElementTypeOther[@name=\"photodirector.FacialFeatureReshapeViewController\"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[6]/XCUIElementTypeOther[1] (79.8%,53.1%)"):
+        actions.drag_within_elements(AppiumBy.ACCESSIBILITY_ID, 'cpSlider', 6.0, 56.0, AppiumBy.XPATH, '//XCUIElementTypeOther[@name="photodirector.FacialFeatureReshapeViewController"]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[6]/XCUIElementTypeOther[1]', 79.8, 53.1, duration=1.0)
     with step("[Verify] valueLabel text equals '100'"):
         actions.verify_text(AppiumBy.ACCESSIBILITY_ID, 'valueLabel', '100')
     with step("[Verify] Capture '00211_reshape_shape_preset_Step39' for GT comparison"):
