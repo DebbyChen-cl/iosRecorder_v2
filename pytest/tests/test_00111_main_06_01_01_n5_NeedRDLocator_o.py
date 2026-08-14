@@ -163,6 +163,8 @@ def test_00111_main_06_01_01_n5(actions: DriverActions):
         assert actions.tap_by_coordinates(250, 620)
     with step('[Action] tap_phd_btn'):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'doneButton')
+    with step('[Verify] solid color panel is visible'):
+        assert actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'colorCollectionView')
     with step('[Verify] snapshot: 06_01_01_solid_color_picker_done.png'):
         actions.capture_for_gt('06_01_01_solid_color_picker_done.png')
     if actions.compare_with_gt('06_01_01_solid_color_picker_done.png', gt_folder=TD.GT_FOLDER)[0]:

@@ -15,10 +15,12 @@ def test_00166_image_to_video_kling_26_20260807_110017(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnNext', 79.9, 60.0)
     with step("[Action] Tap itv_example_single at (64.5%, 47.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'itv_example_single', 64.5, 47.2, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="singleScrollView"]/XCUIElementTypeScrollView', container_w=394, container_h=430)
-    with step("[Action] Tap btnAlbum at (82.7%, 78.6%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum', 82.7, 78.6)
-    with step("[Action] Tap Sample Photos at (32.6%, 68.2%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Sample Photos', 32.6, 68.2, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='albumCollectionView', container_w=394, container_h=746)
+    with step("[Action] Tap btnAlbum"):
+        assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
+    with step("[Verify] Sample Photos album is visible"):
+        assert actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'Sample Photos', container_by=AppiumBy.ACCESSIBILITY_ID, container_value='albumCollectionView', container_w=394, container_h=746)
+    with step("[Action] Tap Sample Photos"):
+        assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Sample Photos', container_by=AppiumBy.ACCESSIBILITY_ID, container_value='albumCollectionView', container_w=394, container_h=746)
     with step('[Action] Tap photoCell-5'):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'photoCell-5')
     with step("[Action] Tap Custom at (43.2%, 30.0%)"):
@@ -64,5 +66,4 @@ def test_00166_image_to_video_kling_26_20260807_110017(actions: DriverActions):
     with step("[Verify] Screenshot comparisons"):
         actions.run_screenshot_comparisons(threshold=0.95)
     assert True
-
 

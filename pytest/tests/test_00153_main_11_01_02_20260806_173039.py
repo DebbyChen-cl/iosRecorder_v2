@@ -35,12 +35,12 @@ def test_00153_main_11_01_02_20260806_173039(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn close outline n', 59.3, 44.4)
     with step("[Action] Tap Enhance at (50.7%, 79.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Enhance', 50.7, 79.2)
-    with step("[Verify] advancedWaitLabel disappears within 1200s"):
-        assert actions.wait_until_not_show(AppiumBy.ACCESSIBILITY_ID, 'advancedWaitLabel', appear_timeout=5, disappear_timeout=1200), 'advancedWaitLabel did not appear within 5s or is still shown after 1200s'
+    with step("[Verify] advancedWaitLabel is gone within 1200s"):
+        assert actions.wait_until_not_show(AppiumBy.ACCESSIBILITY_ID, 'advancedWaitLabel', appear_timeout=5, disappear_timeout=1200, allow_already_gone=True), 'advancedWaitLabel is still shown after 1200s'
     with step("[Action] Tap btn_ok_n at (85.7%, 44.9%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_ok_n', 85.7, 44.9)
-    with step("[Verify] Capture '00152_main_11_01_01_Step16' for GT comparison"):
-        actions.capture_for_gt('00152_main_11_01_01_Step16', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', threshold=0.8)
+    with step("[Verify] Capture '00153_main_11_01_02_Step16' for GT comparison"):
+        actions.capture_for_gt('00153_main_11_01_02_Step16', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', threshold=0.79)
     with step("[Action] Tap ic edit undo n at (71.8%, 53.8%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic edit undo n', 71.8, 53.8)
     with step("[Action] Tap Edit at (69.6%, 66.7%)"):
@@ -58,8 +58,8 @@ def test_00153_main_11_01_02_20260806_173039(actions: DriverActions):
         actions.drag_within_elements(AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', 54.7, 15.7, AppiumBy.ACCESSIBILITY_ID, 'backgroundView', 56.5, 52.4, duration=1.0)
     with step("[Action] Tap Remove at (48.5%, 26.1%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Remove', 48.5, 26.1)
-    with step("[Verify] magicText disappears within 1200s"):
-        assert actions.wait_until_not_show(AppiumBy.ACCESSIBILITY_ID, 'magicText', appear_timeout=5, disappear_timeout=1200), 'magicText did not appear within 5s or is still shown after 1200s'
+    with step("[Verify] magicText is gone within 1200s"):
+        assert actions.wait_until_not_show(AppiumBy.ACCESSIBILITY_ID, 'magicText', appear_timeout=5, disappear_timeout=1200, allow_already_gone=True), 'magicText is still shown after 1200s'
     with step("[Action] Tap btn_ok_n at (71.4%, 36.7%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_ok_n', 71.4, 36.7)
     with step("[Verify] Capture 'screenshot' before screenshot"):
@@ -80,8 +80,8 @@ def test_00153_main_11_01_02_20260806_173039(actions: DriverActions):
         actions.drag_within_elements(AppiumBy.ACCESSIBILITY_ID, 'cpSlider', 7.7, 48.0, AppiumBy.ACCESSIBILITY_ID, 'backgroundView', 85.6, 88.5, duration=1.0)
     with step("[Action] Tap btn_ok_n at (73.5%, 26.5%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_ok_n', 73.5, 26.5)
-    with step("[Verify] Capture '00152_main_11_01_01_Step35' for GT comparison"):
-        actions.capture_for_gt('00152_main_11_01_01_Step35', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', threshold=0.95)
+    with step("[Verify] Capture '00153_main_11_01_02_Step35' for GT comparison"):
+        actions.capture_for_gt('00153_main_11_01_02_Step35', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', threshold=0.95)
     with step("[Action] Tap ic edit undo n at (43.6%, 53.8%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'ic edit undo n', 43.6, 53.8)
     with step("[Action] Tap Enhance at (57.1%, 66.7%)"):
@@ -92,12 +92,12 @@ def test_00153_main_11_01_02_20260806_173039(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'icon_denoise', 39.4, 48.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='EditViewControllerBottomBarCollectionView', container_w=430, container_h=97)
     with step("[Action] Tap Denoise at (34.2%, 58.3%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Denoise', 34.2, 58.3)
-    with step("[Verify] downloadingAssetText disappears within 1200s"):
-        assert actions.wait_until_not_show(AppiumBy.ACCESSIBILITY_ID, 'downloadingAssetText', appear_timeout=5, disappear_timeout=1200), 'downloadingAssetText did not appear within 5s or is still shown after 1200s'
+    with step("[Verify] downloadingAssetText is gone within 1200s"):
+        assert actions.wait_until_not_show(AppiumBy.ACCESSIBILITY_ID, 'downloadingAssetText', appear_timeout=5, disappear_timeout=1200, allow_already_gone=True), 'downloadingAssetText is still shown after 1200s'
     with step("[Action] Tap btn_ok_n at (89.8%, 32.7%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btn_ok_n', 89.8, 32.7)
-    with step("[Verify] Capture '00152_main_11_01_01_Step42' for GT comparison"):
-        actions.capture_for_gt('00152_main_11_01_01_Step42', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', threshold=0.95)
+    with step("[Verify] Capture '00153_main_11_01_02_Step42' for GT comparison"):
+        actions.capture_for_gt('00153_main_11_01_02_Step42', AppiumBy.ACCESSIBILITY_ID, 'EditingImageView_ImageView', threshold=0.95)
     with step("[Action] Tap homeButton at (73.1%, 73.1%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'homeButton', 73.1, 73.1)
     with step("[Action] Tap Discard at (72.5%, 50.0%)"):

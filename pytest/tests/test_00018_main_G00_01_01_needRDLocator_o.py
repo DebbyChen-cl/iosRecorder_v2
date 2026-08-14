@@ -125,7 +125,7 @@ def test_00018_main_G00_01_01(actions: DriverActions):
     with step('[Action] verify_phd_str'):
         assert actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'Get 200 Credits for $31.99')
     with step('[Action] tap_phd_btn'):
-        assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Purchase')
+        assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnBuy')
     with step('[Action] verify_phd_str'):
         assert actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, '200 Credits')
     with step('[Action] click_element'):

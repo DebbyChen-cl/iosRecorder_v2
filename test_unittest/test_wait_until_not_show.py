@@ -68,6 +68,20 @@ def test_returns_false_when_element_never_appears():
     assert actions.probes == 1, "only the appear probe should have run"
 
 
+def test_returns_true_when_element_is_already_gone_if_explicitly_allowed():
+    """A completed transient operation may be observed after its OSD vanishes."""
+    actions = _fast([False])
+
+    result = actions.wait_until_not_show(
+        "accessibility id", "Downloading",
+        appear_timeout=0.05, disappear_timeout=600, poll_interval=0.01,
+        allow_already_gone=True,
+    )
+
+    assert result is True
+    assert actions.probes == 1, "do not spend the long disappearance budget"
+
+
 def test_returns_true_once_the_element_disappears():
     actions = _fast([True, True, True, False])
 

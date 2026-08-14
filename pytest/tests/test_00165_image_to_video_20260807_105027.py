@@ -25,8 +25,8 @@ def test_00165_image_to_video_20260807_105027(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnSave', 13.0, 55.1, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="photodirector.VideoExportViewController"]/XCUIElementTypeScrollView', container_w=430, container_h=779)
     with step("[Action] Tap btnShareFB at (31.4%, 53.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnShareFB', 31.4, 53.0, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="photodirector.VideoExportViewController"]/XCUIElementTypeScrollView', container_w=430, container_h=779)
-    with step("[Verify] New post is visible"):
-        actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'New post')
+    with step("[Verify] Facebook is visible"):
+        actions.verify_visible(AppiumBy.XPATH, '//XCUIElementTypeApplication[@name="Facebook"]')
     with step("[Action] Tap composer-left-button at (43.2%, 44.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'composer-left-button', 43.2, 44.2)
     with step("[Action] Tap Discard at (55.6%, 51.1%)"):
@@ -77,14 +77,14 @@ def test_00165_image_to_video_20260807_105027(actions: DriverActions):
         actions.capture_for_gt('00165_image_to_video_Step34', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="duoScrollView"]/XCUIElementTypeScrollView/XCUIElementTypeImage', threshold=0.95)
     with step("[Action] Tap replaceImageButton at (69.2%, 46.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'replaceImageButton', 69.2, 46.2)
-    with step("[Action] Tap btnNext at (20.8%, 53.1%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnNext', 20.8, 53.1)
-    with step("[Action] Tap btnAlbum at (85.8%, 52.4%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum', 85.8, 52.4)
+    with step("[Action] Tap btnAlbum"):
+        assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
+    with step("[Verify] _AT album item is visible"):
+        assert actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, '_AT')
     with step("[Action] Tap _AT at (12.9%, 72.7%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, '_AT', 12.9, 72.7, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='albumCollectionView', container_w=394, container_h=746)
-    with step("[Action] Tap photoCell-4 at (48.5%, 43.8%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'photoCell-4', 48.5, 43.8, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=746)
+    with step("[Action] Tap photoCell-0"):
+        actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'photoCell-0', container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=746)
     with step("[Verify] Capture '00165_image_to_video_Step40' for GT comparison"):
         actions.capture_for_gt('00165_image_to_video_Step40', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="duoScrollView"]/XCUIElementTypeScrollView/XCUIElementTypeImage', threshold=0.95)
     with step("[Action] Tap 2 Solo Photos at (48.1%, 71.4%)"):
@@ -137,8 +137,6 @@ def test_00165_image_to_video_20260807_105027(actions: DriverActions):
         actions.capture_for_gt('00165_image_to_video_Step65', AppiumBy.XPATH, '//XCUIElementTypeOther[@name="singleScrollView"]/XCUIElementTypeScrollView/XCUIElementTypeImage', threshold=0.95)
     with step("[Action] Tap replaceImageButton at (42.3%, 69.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'replaceImageButton', 42.3, 69.2)
-    with step("[Action] Tap btnNext at (16.0%, 46.9%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnNext', 16.0, 46.9)
     with step("[Action] Tap photoCell-2 at (60.0%, 65.4%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'photoCell-2', 60.0, 65.4, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='photoCollectionView', container_w=430, container_h=746)
     with step("[Verify] Capture '00165_image_to_video_Step69' for GT comparison"):

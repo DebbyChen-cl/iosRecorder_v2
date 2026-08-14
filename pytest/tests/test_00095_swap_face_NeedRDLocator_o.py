@@ -34,7 +34,7 @@ def test_00095_swap_face(actions: DriverActions):
     with step('[Action] tap_phd_btn'):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Makeup')
     with step('[Action] tap_phd_btn'):
-        assert actions.tap_by_locator(AppiumBy.IOS_CLASS_CHAIN, '**/XCUIElementTypeCell[1]')
+        assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'MenuCancelCell-0')
     with step('[Action] tap_phd_btn'):
         assert actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Lipstick')
     with step('[Action] tap_phd_btn'):

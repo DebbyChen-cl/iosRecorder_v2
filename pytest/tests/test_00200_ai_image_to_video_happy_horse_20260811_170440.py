@@ -15,8 +15,9 @@ def test_00200_ai_image_to_video_happy_horse_20260811_170440(actions: DriverActi
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Continue', 88.8, 50.0)
     with step("[Action] Tap imageIconView at (77.5%, 73.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'imageIconView', 77.5, 73.2)
-    with step("[Action] Tap Continue at (66.2%, 43.5%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Continue', 66.2, 43.5)
+    with step("[Action] Tap optional Continue if the recommendation dialog is shown"):
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'Continue', timeout=3):
+            actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Continue', 66.2, 43.5)
     with step("[Action] Tap btnAlbum at (88.8%, 59.5%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum', 88.8, 59.5)
     with step("[Action] Scroll until Sample Photos"):

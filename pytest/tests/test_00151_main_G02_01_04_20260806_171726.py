@@ -15,8 +15,8 @@ def test_00151_main_G02_01_04_20260806_171726(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Try Now', 55.4, 76.5, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='animeVideoCollectionView', container_w=430, container_h=680)
     with step("[Action] Tap navArtworkButton at (61.4%, 59.1%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navArtworkButton', 61.4, 59.1)
-    with step("[Action] Tap packThumbnailImageView at (83.0%, 55.2%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'packThumbnailImageView', 83.0, 55.2, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='packCollectionView', container_w=394, container_h=668)
+    with step("[Action] Tap first AI Anime Video album"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'AIAnimeVideoHistoryCellView-0', 50.0, 50.0, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='packCollectionView', container_w=394, container_h=668)
     with step("[Action] Tap btnSave at (60.5%, 67.3%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnSave', 60.5, 67.3, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='scrollView', container_w=430, container_h=779)
     with step("[Action] Tap btnShareFB at (44.1%, 31.0%)"):

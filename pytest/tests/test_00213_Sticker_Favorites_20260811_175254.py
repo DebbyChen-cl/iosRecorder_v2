@@ -10,7 +10,9 @@ def test_00213_Sticker_Favorites_20260811_175254(actions: DriverActions):
     with step("[Action] Tap Edit at (57.1%, 60.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Edit', 57.1, 60.0)
     with step("[Action] Tap btnAlbum at (93.9%, 50.0%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum', 93.9, 50.0)
+        actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnAlbum')
+    with step("[Verify] _AT is visible"):
+        assert actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, '_AT')
     with step("[Action] Tap _AT at (10.0%, 39.1%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, '_AT', 10.0, 39.1, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='albumCollectionView', container_w=394, container_h=746)
     with step("[Action] Tap photoCell-2 at (50.8%, 56.2%)"):

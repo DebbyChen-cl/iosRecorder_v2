@@ -111,7 +111,7 @@ Runtime override: when started with `bash start.sh --xpath` (`RECORDER_XPATH_ONL
 - Falls back to a `# comment` when no element matched (never crashes)
 - Test function name and `@pytest.mark.name` derived from case name + timestamp suffix (`_YYYYMMDD_HHMMSS`) appended at export time
 - For `verify_screenshot_diff(before) -> long_press -> verify_screenshot_diff(after)` on compare-tagged element ids, codegen emits a hold-time capture flow: before capture -> start long press -> after capture -> release (`recording_rules.json` controls keyword/type matching)
-- `wait_until_not_show` → `assert actions.wait_until_not_show(by, value, appear_timeout=N, disappear_timeout=M)`: waits for a transient element (progress bar, spinner) to appear and then vanish. The helper returns `False` instead of raising — never appeared (short budget) and still shown (long budget) are both reported through the generated `assert`
+- `wait_until_not_show` → `assert actions.wait_until_not_show(by, value, appear_timeout=N, disappear_timeout=M)`: waits for a transient element (progress bar, spinner) to appear and then vanish. The helper returns `False` instead of raising — never appeared (short budget) and still shown (long budget) are both reported through the generated `assert`. A manually repaired case may explicitly pass `allow_already_gone=True` only when the completed screen proves a short-lived OSD has already finished.
 
 ### Export output (POST /api/export)
 - Backend appends timestamp to case name before generating code (e.g. `MyTest_20260508_143022`)

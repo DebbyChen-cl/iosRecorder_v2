@@ -11,6 +11,9 @@ def test_00178_ai_try_on_03_20260807_142149(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'AI Photos', 69.4, 72.7)
     with step("[Action] Tap AI Try-On at (80.3%, 55.6%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'AI Try-On', 80.3, 55.6, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='entryCollectionView', container_w=396, container_h=724)
+    with step("[Action] Tap Try now"):
+        if actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnNext', timeout=3):
+            actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnNext')
     with step("[Action] Tap importButton"):
         actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'importButton')
     with step("[Action] Tap photoCell-2 at (70.7%, 86.6%)"):

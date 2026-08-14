@@ -18,15 +18,19 @@ def test_00226_AIAgent_ProPlusUser_20260812_161900(actions: DriverActions):
     with step("[Action] Tap Pro+ at (74.3%, 42.9%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Pro+', 74.3, 42.9, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeAlert[@name="Select an Option"]/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeScrollView[2]', container_w=320, container_h=305)
     with step("[Action] Tap chevron.left at (20.0%, 44.4%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'chevron.left', 20.0, 44.4)
+        actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'chevron.left')
+    with step("[Verify] btnBack is visible"):
+        assert actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'btnBack')
     with step("[Action] Tap btnBack at (60.7%, 53.2%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'chevron.left', 60.7, 53.2)
+        actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnBack')
     with step("[Action] Tap btnBack at (53.6%, 55.3%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnBack', 53.6, 55.3)
+        actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnBack')
+    with step("[Verify] AI Edit Agent is visible"):
+        assert actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'AI Edit Agent')
     with step("[Action] Tap AI Edit Agent at (25.0%, 32.4%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'AI Edit Agent', 25.0, 32.4, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="LauncherProViewController"]/XCUIElementTypeScrollView/XCUIElementTypeOther[2]/XCUIElementTypeScrollView', container_w=430, container_h=203)
-    with step("[Verify] chatWelcomeBannerDialog-messageLabel is visible"):
-        actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'chatWelcomeBannerDialog-messageLabel')
+    with step("[Verify] messageLabel is visible"):
+        assert actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'messageLabel')
     with step("[Action] Tap chatWelcomeBannerDialog-closeButton at (55.6%, 44.4%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'chatWelcomeBannerDialog-closeButton', 55.6, 44.4)
     with step("[Action] Tap chatMenuButton at (77.4%, 51.6%)"):
@@ -38,7 +42,7 @@ def test_00226_AIAgent_ProPlusUser_20260812_161900(actions: DriverActions):
     with step("[Action] Tap Rename at (46.4%, 51.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Rename', 46.4, 51.2, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeApplication[@name="PhotoDirector"]/XCUIElementTypeWindow[1]/XCUIElementTypeOther[4]/XCUIElementTypeOther[2]/XCUIElementTypeOther[2]/XCUIElementTypeOther/XCUIElementTypeOther[1]/XCUIElementTypeCollectionView', container_w=250, container_h=933)
     with step("[Action] Type 'Old Chat' into Rename"):
-        actions.type_text_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Rename', 'Old Chat')
+        actions.type_text_by_locator(AppiumBy.XPATH, '//XCUIElementTypeAlert[@name="Rename The Chat"]//XCUIElementTypeTextField', 'Old Chat')
     with step("[Action] Tap Confirm at (19.3%, 61.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Confirm', 19.3, 61.2, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeAlert[@name="Rename The Chat"]/XCUIElementTypeOther[1]/XCUIElementTypeOther/XCUIElementTypeOther[2]/XCUIElementTypeScrollView[2]', container_w=320, container_h=81)
     with step("[Verify] Old Chat is visible"):

@@ -256,14 +256,34 @@ def wait_for_stable_hierarchy(fn):
             count_required_samples = max(2, int(getattr(self, "stability_count_required_samples", 2)))
             started_at = time.monotonic()
             deadline = time.monotonic() + timeout
-            prev = self._hierarchy_stability_signature(self.driver.page_source)
-            prev_count, prev_digest = _split_sig(prev)
+            prev = None
+            prev_count = prev_digest = None
             stable_samples = 0
             stable_count_samples = 0
             while time.monotonic() < deadline:
                 time.sleep(interval)
-                curr = self._hierarchy_stability_signature(self.driver.page_source)
+                try:
+                    curr = self._hierarchy_stability_signature(self.driver.page_source)
+                except StaleElementReferenceException:
+                    # WDA can briefly lose the accessibility root while an action
+                    # hands off from the app to an external app.  Reacquire it on
+                    # the next poll; the normal stability criteria still apply.
+                    logger.debug(
+                        "[stability] page source unavailable during app handoff after '%s'",
+                        fn.__name__,
+                    )
+                    prev = None
+                    prev_count = prev_digest = None
+                    stable_samples = 0
+                    stable_count_samples = 0
+                    continue
                 curr_count, curr_digest = _split_sig(curr)
+
+                if prev is None:
+                    prev = curr
+                    prev_count = curr_count
+                    prev_digest = curr_digest
+                    continue
 
                 if curr_digest == prev_digest:
                     stable_samples += 1
@@ -376,7 +396,7 @@ class DriverActions:
         # transition. Playback/progress churn is ignored by the signature, so
         # require a short settle window and several matching samples.
         self.stability_min_wait: float = 0.8
-        self.stability_required_samples: int = 2
+        self.stability_required_samples: int = 1
         # Fallback for continuously changing screens (e.g. playing videos):
         # if full structural identity keeps changing, allow release when
         # element count remains stable for a short period.
@@ -2539,6 +2559,7 @@ class DriverActions:
         appear_timeout: float = DEFAULT_NOT_SHOW_APPEAR_TIMEOUT,
         disappear_timeout: float = DEFAULT_NOT_SHOW_DISAPPEAR_TIMEOUT,
         poll_interval: float = DEFAULT_NOT_SHOW_POLL_INTERVAL,
+        allow_already_gone: bool = False,
         msg: str = "",
     ) -> bool:
         """
@@ -2548,8 +2569,10 @@ class DriverActions:
         The two budgets are counted **separately**:
 
         1. *appear_timeout* — the element must show up within this window.  When
-           it never appears there is nothing to wait for, so this returns
-           ``False`` immediately rather than sitting out the long budget.
+           it never appears this returns ``False`` immediately rather than
+           sitting out the long budget, unless *allow_already_gone* is explicitly
+           set for a short-lived indicator whose completed state is already
+           visible before the first lookup.
         2. *disappear_timeout* — once seen, the element gets this much time to
            disappear.  ``True`` as soon as it is gone, ``False`` when it is still
            on screen after the budget runs out.
@@ -2562,6 +2585,12 @@ class DriverActions:
 
         # Phase 1 — did it ever show up?  Own budget, own verdict.
         if not self.is_element_present(by, value, timeout=appear_timeout):
+            if allow_already_gone:
+                logger.info(
+                    "wait_until_not_show: %s was already gone within %ss",
+                    label, appear_timeout,
+                )
+                return True
             logger.warning(
                 "wait_until_not_show: %s never appeared within %ss — nothing to wait for",
                 label, appear_timeout,

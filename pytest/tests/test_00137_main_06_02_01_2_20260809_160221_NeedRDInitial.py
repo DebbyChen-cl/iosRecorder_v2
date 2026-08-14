@@ -39,6 +39,11 @@ def test_00137_main_06_02_01_2_20260809_160221(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navSaveButton', 63.6, 57.8)
     with step("[Action] Tap OK at (42.9%, 66.7%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'OK', 42.9, 66.7)
+    with step("[Action] Dismiss subscription offer when present"):
+        assert (
+            actions.try_tap(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=5)
+            or not actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=1)
+        )
     with step("[Action] Tap //XCUIElementTypeScrollView[@name=\"animationScrollView\"]/XCUIElementTypeOther at (51.8%, 53.4%)"):
         actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeScrollView[@name="animationScrollView"]/XCUIElementTypeOther', 51.8, 53.4, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='animationScrollView', container_w=430, container_h=253)
     with step("[Verify] Capture '00137_main_06_02_01_2_Step18' for GT comparison"):
@@ -80,6 +85,11 @@ def test_00137_main_06_02_01_2_20260809_160221(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Video', 55.4, 26.1, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='animationPhotoExportTypeViewCollectionView', container_w=430, container_h=80)
     with step("[Action] Tap navSaveButton at (47.7%, 55.6%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navSaveButton', 47.7, 55.6)
+    with step("[Action] Dismiss subscription offer when present"):
+        assert (
+            actions.try_tap(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=5)
+            or not actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=1)
+        )
     with step("[Action] Tap navBackButton at (56.8%, 55.6%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navBackButton', 56.8, 55.6)
     with step("[Action] Tap //XCUIElementTypeScrollView[@name=\"animationScrollView\"]/XCUIElementTypeOther at (56.0%, 54.5%)"):
@@ -150,16 +160,26 @@ def test_00137_main_06_02_01_2_20260809_160221(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'button_4K', 70.9, 33.3)
     with step("[Action] Tap navSaveButton at (63.6%, 46.7%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navSaveButton', 63.6, 46.7)
+    with step("[Action] Dismiss subscription offer when present"):
+        assert (
+            actions.try_tap(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=5)
+            or not actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=1)
+        )
     with step("[Action] Tap navBackButton at (54.5%, 62.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navBackButton', 54.5, 62.2)
+    with step("[Verify] button_720P is visible"):
+        actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'button_720P')
     with step("[Action] Tap button_720P at (60.8%, 83.3%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'button_720P', 60.8, 83.3)
     with step("[Action] Tap navSaveButton at (72.7%, 62.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navSaveButton', 72.7, 62.2)
     with step("[Action] Dismiss promotional overlay when present"):
         assert (
-            actions.try_tap(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=5)
-            or not actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=1)
+            not actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=5)
+            or (
+                actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnClose')
+                and actions.verify_not_visible(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=5)
+            )
         )
     with step("[Action] Tap navBackButton at (52.3%, 22.2%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navBackButton', 52.3, 22.2)
@@ -209,12 +229,20 @@ def test_00137_main_06_02_01_2_20260809_160221(actions: DriverActions):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, '4K', 54.5, 90.5)
     with step("[Action] Tap navSaveButton at (50.0%, 48.9%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'navSaveButton', 50.0, 48.9)
+    with step("[Action] Dismiss subscription offer when present"):
+        assert (
+            not actions.is_element_present(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=5)
+            or (
+                actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnClose')
+                and actions.verify_not_visible(AppiumBy.ACCESSIBILITY_ID, 'btnClose', timeout=5)
+            )
+        )
     with step("[Action] Tap btnShareIG at (54.7%, 35.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnShareIG', 54.7, 35.0, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='scrollView', container_w=430, container_h=786)
-    with step("[Verify] Share to Instagram is visible"):
-        actions.verify_visible(AppiumBy.ACCESSIBILITY_ID, 'Share to Instagram')
-    with step("[Action] Tap //XCUIElementTypeApplication[@name=\"Instagram\"]/XCUIElementTypeWindow/XCUIElementTypeOther[2] at (5.1%, 4.2%)"):
-        actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeApplication[@name="Instagram"]/XCUIElementTypeWindow/XCUIElementTypeOther[2]', 5.1, 4.2)
+    with step("[Verify] Instagram is visible"):
+        actions.verify_visible(AppiumBy.XPATH, '//XCUIElementTypeApplication[@name="Instagram"]')
+    with step("[Action] Tap //XCUIElementTypeApplication[@name=\"Instagram\"]/XCUIElementTypeWindow/XCUIElementTypeOther[1] at (5.1%, 4.2%)"):
+        actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeApplication[@name="Instagram"]/XCUIElementTypeWindow/XCUIElementTypeOther[1]', 5.1, 4.2)
     with step("[Action] Tap btnShareFB at (50.0%, 31.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnShareFB', 50.0, 31.0, container_by=AppiumBy.ACCESSIBILITY_ID, container_value='scrollView', container_w=430, container_h=786)
     with step("[Verify] New post is visible"):

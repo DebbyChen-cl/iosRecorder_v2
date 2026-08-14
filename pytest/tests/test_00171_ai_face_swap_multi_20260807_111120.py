@@ -63,7 +63,9 @@ def test_00171_ai_face_swap_multi_20260807_111120(actions: DriverActions):
     with step("[Action] Tap btnHome at (65.0%, 50.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnHome', 65.0, 50.0)
     with step("[Action] Tap btnSettings at (69.7%, 38.2%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'btnSettings', 69.7, 38.2)
+        actions.tap_by_locator(AppiumBy.ACCESSIBILITY_ID, 'btnSettings')
+    with step("[Verify] SettingPageHelpCenterCell-1 is visible"):
+        assert actions.verify_visible(AppiumBy.XPATH, '//XCUIElementTypeImage[@name="SettingPageHelpCenterCell-1"]/XCUIElementTypeOther[2]')
     with step("[Action] Tap //XCUIElementTypeImage[@name=\"SettingPageHelpCenterCell-1\"]/XCUIElementTypeOther[2] at (39.8%, 47.2%)"):
         actions.tap_within_element(AppiumBy.XPATH, '//XCUIElementTypeImage[@name="SettingPageHelpCenterCell-1"]/XCUIElementTypeOther[2]', 39.8, 47.2, container_by=AppiumBy.XPATH, container_value='//XCUIElementTypeOther[@name="photodirector.SettingPageViewController"]/XCUIElementTypeScrollView/XCUIElementTypeOther[1]/XCUIElementTypeCollectionView', container_w=430, container_h=592)
     with step("[Action] Five tap developerButton at (24.5%, 12.0%)"):

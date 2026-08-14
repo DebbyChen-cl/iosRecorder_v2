@@ -67,18 +67,18 @@ def test_00225_AIAgent_ProUser_20260812_145030(actions: DriverActions):
         actions.type_text_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Tell AI Edit Agent your requirements', 'more suggestion?')
     with step("[Action] Tap chatSendButton at (30.0%, 70.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'chatSendButton', 30.0, 70.0)
-    with step("[Action] Tap Task in progress... at (55.5%, 27.3%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Task in progress...', 55.5, 27.3)
-    with step("[Action] Type 'more suggestion?' into Task in progress..."):
-        actions.type_text_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Task in progress...', 'more suggestion?')
+    with step("[Action] Tap chatInputTextView at (55.5%, 27.3%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'chatInputTextView', 55.5, 27.3)
+    with step("[Action] Type 'more suggestion?' into chatInputTextView"):
+        actions.type_text_by_locator(AppiumBy.ACCESSIBILITY_ID, 'chatInputTextView', 'more suggestion?')
     with step("[Action] Tap chatSendButton at (45.0%, 75.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'chatSendButton', 45.0, 75.0)
     with step("[Verify] Thinking disappears within 1200s"):
         assert actions.wait_until_not_show(AppiumBy.ACCESSIBILITY_ID, 'Thinking', appear_timeout=5, disappear_timeout=1200), 'Thinking did not appear within 5s or is still shown after 1200s'
-    with step("[Action] Tap Task in progress... at (63.7%, 63.6%)"):
-        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'Task in progress...', 63.7, 63.6)
-    with step("[Action] Type 'more suggestion?' into Task in progress..."):
-        actions.type_text_by_locator(AppiumBy.ACCESSIBILITY_ID, 'Task in progress...', 'more suggestion?')
+    with step("[Action] Tap chatInputTextView at (63.7%, 63.6%)"):
+        actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'chatInputTextView', 63.7, 63.6)
+    with step("[Action] Type 'more suggestion?' into chatInputTextView"):
+        actions.type_text_by_locator(AppiumBy.ACCESSIBILITY_ID, 'chatInputTextView', 'more suggestion?')
     with step("[Action] Tap chatSendButton at (32.5%, 75.0%)"):
         actions.tap_within_element(AppiumBy.ACCESSIBILITY_ID, 'chatSendButton', 32.5, 75.0)
     with step("[Verify] Thinking disappears within 1200s"):
