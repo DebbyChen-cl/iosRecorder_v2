@@ -127,7 +127,7 @@ def _close_crash_dialog(driver) -> bool:
         feedback_field.send_keys("UI AT")
         logger.info("Entered feedback field, sending crash dialog.")
 
-        driver.find_element(AppiumBy.ACCESSIBILITY_ID, "Up")
+        driver.find_element(AppiumBy.ACCESSIBILITY_ID, "Up").click()
         return True
     except Exception as exc:
         logger.warning("Crash dialog handling failed: %s", exc)
@@ -238,18 +238,31 @@ _POST_LAUNCH_POPUP_CASES = [
 ]
 
 
-def _close_all_pop_dialog_when_launch(actions: DriverActions) -> bool:
+def _close_all_pop_dialog_when_launch(actions: DriverActions, continue_edit_only: bool = False) -> bool:
     """Close whichever post-launch popup (continue-edit / IAP / banner / interstitial) appears.
 
     Popups can chain (IAP closes, an interstitial takes its place), so every
     round runs all cases instead of stopping at the first hit, and the rounds
     are spaced out to give the next dialog time to animate in.
+
+    ``continue_edit_only`` is for the deep-link launch: the app suppresses its
+    own launch popups there, so the only dialog still worth sweeping for is the
+    continue-edit one — it comes from leftover editing state, not the launch
+    sequence. Every other case would just burn its detection timeout.
     """
+    # A native crash dialog left over from the previous run sits on top of the
+    # app and swallows every tap, so it is cleared once up front — before the
+    # first continue-edit lookup — rather than re-searched on every round.
+    _close_crash_dialog(actions.driver)
+
     closed_any = False
     for i in range(_POST_LAUNCH_POPUP_LOOP_MAX):
         logger.info("Popup sweep %d/%d", i + 1, _POST_LAUNCH_POPUP_LOOP_MAX)
         if _case_continue_edit(actions):
             closed_any = True
+        if continue_edit_only:
+            logger.info("Deep-link launch: skipping the remaining popup cases")
+            continue
         for case in _POST_LAUNCH_POPUP_CASES:
             if case(actions):
                 logger.info("When Launch Executed for case %s", case.__name__)
@@ -286,12 +299,47 @@ def _handle_ios_permission_alerts(actions: DriverActions) -> None:
         logger.info("Push allow button not found within %ss", _ALLOW_TIMEOUT_SEC)
 
 
-def _session_setup_flow(actions: DriverActions, bundle_id: str) -> None:
+# ──────────────────────────────────────────────────────────────
+# Deep-link launch
+# ──────────────────────────────────────────────────────────────
+
+# Tests that must keep the plain launch path. test_00001 is the launch/first-run
+# case itself, so it has to see the app come up exactly as a user's would —
+# popups included.
+_NO_DEEPLINK_TESTS = ("test_00001",)
+
+
+def _deeplink_url_for(node_name: str) -> str:
+    """Return the launch deep link for this test, or "" to use the plain path."""
+    url = getattr(config, "LAUNCH_DEEPLINK_URL", "")
+    if not url or node_name.startswith(_NO_DEEPLINK_TESTS):
+        return ""
+    return url
+
+
+def _launch_via_deeplink(driver, url: str, bundle_id: str) -> bool:
+    """Cold-start the app through its custom URL scheme.
+
+    Returns False when the deep link cannot be delivered (older XCUITest driver,
+    scheme not registered, ...) so the caller can fall back to the ordinary
+    launch/activate path instead of failing the test in setup.
+    """
+    try:
+        driver.execute_script("mobile: deepLink", {"url": url, "bundleId": bundle_id})
+        logger.info("Launched %s via deep link: %s", bundle_id, url)
+        return True
+    except WebDriverException as exc:
+        logger.warning("Deep link launch failed (%s); falling back to plain launch", exc)
+        return False
+
+
+def _session_setup_flow(actions: DriverActions, bundle_id: str, deeplink_url: str = "") -> None:
     """Run the requested one-time pre-test setup flow."""
     logger.info("=== SESSION PREP: restart app ===")
     actions.terminate_app(bundle_id)
     time.sleep(1)
-    actions.launch_app(bundle_id)
+    if not (deeplink_url and _launch_via_deeplink(actions.driver, deeplink_url, bundle_id)):
+        actions.launch_app(bundle_id)
 
     logger.info("=== SESSION PREP: onboarding ===")
     _run_onboarding_if_needed(actions)
@@ -303,7 +351,7 @@ def _session_setup_flow(actions: DriverActions, bundle_id: str) -> None:
     _handle_ios_permission_alerts(actions)
 
     logger.info("=== SESSION PREP: close post-launch popup ===")
-    _close_all_pop_dialog_when_launch(actions)
+    _close_all_pop_dialog_when_launch(actions, continue_edit_only=bool(deeplink_url))
 
     logger.info('=== SESSION PREP: Allow screenshot')
     _allow_screenshot(actions)
@@ -317,7 +365,7 @@ _session_first_run = True
 
 
 @pytest.fixture(scope="function")
-def driver():
+def driver(request):
     """
     Create a fresh Appium driver for every test function and quit it
     after the test finishes.
@@ -327,8 +375,8 @@ def driver():
     """
     global _session_first_run
 
-    logger.info("=== Test Reset: Clean up compare folder ===")
-    _clean_compare_folder()
+    # logger.info("=== Test Reset: Clean up compare folder ===")
+    # _clean_compare_folder()
 
     logger.info("=== TEST SETUP: creating fresh Appium driver ===")
     _driver = create_driver()
@@ -336,22 +384,34 @@ def driver():
     auto_healing.set_active_driver(_driver)
 
     bundle_id = getattr(config, "TARGET_BUNDLE_ID", "") or config.IOS_CAPABILITIES.get("appium:bundleId", "")
+    deeplink_url = _deeplink_url_for(getattr(request.node, "originalname", request.node.name) or "")
 
-    if bundle_id:
-        if _session_first_run:
-            _session_setup_flow(DriverActions(_driver), bundle_id)
-            _session_first_run = False
+    try:
+        if bundle_id:
+            if _session_first_run:
+                _session_setup_flow(DriverActions(_driver), bundle_id, deeplink_url)
+                _session_first_run = False
+            else:
+                logger.info("=== TEST SETUP: restarting app ===")
+                _terminate_app_resilient(_driver, bundle_id)
+                _close_crash_dialog(_driver)
+                time.sleep(1)
+                if not (deeplink_url and _launch_via_deeplink(_driver, deeplink_url, bundle_id)):
+                    _activate_app_resilient(_driver, bundle_id)
+                time.sleep(1)
+                _close_all_pop_dialog_when_launch(DriverActions(_driver), continue_edit_only=bool(deeplink_url))
+
         else:
-            logger.info("=== TEST SETUP: restarting app ===")
-            _terminate_app_resilient(_driver, bundle_id)
-            _close_crash_dialog(_driver)
-            time.sleep(1)
-            _driver.activate_app(bundle_id)
-            time.sleep(1)
-            _close_all_pop_dialog_when_launch(DriverActions(_driver))
-            
-    else:
-        logger.warning("Bundle ID is empty; skip app setup flow")
+            logger.warning("Bundle ID is empty; skip app setup flow")
+    except Exception:
+        # Setup raises *before* the yield, which means the teardown below never
+        # runs: without this the session leaks and — with newCommandTimeout set
+        # to hours — every failed test adds another live session fighting for
+        # the same device.
+        logger.exception("Driver setup failed; closing the session before re-raising")
+        quit_driver(_driver)
+        auto_healing.set_active_driver(None)
+        raise
 
     yield _driver
 
@@ -521,3 +581,31 @@ def _terminate_app_resilient(driver, bundle_id: str) -> None:
             )
             time.sleep(_TERMINATE_RETRY_DELAY_SEC)
     logger.warning("terminate_app gave up after %d attempts; continuing", _TERMINATE_MAX_RETRIES)
+
+
+_ACTIVATE_MAX_ATTEMPTS = 2
+_ACTIVATE_RETRY_DELAY_SEC = 2.0
+
+
+def _activate_app_resilient(driver, bundle_id: str) -> None:
+    """Bring the app to the foreground, retrying once on a launch timeout.
+
+    ``XCTDaemonErrorDomain Code=5`` ("Timed out attempting to launch app")
+    covers both a WDA hiccup, which a second attempt clears, and a modal that
+    still owns the screen — while SpringBoard has the foreground XCTest cannot
+    make the app frontmost, and no retry will help. One extra attempt
+    distinguishes the two cheaply; a launch that fails twice is reported as it
+    was before.
+    """
+    for attempt in range(1, _ACTIVATE_MAX_ATTEMPTS + 1):
+        try:
+            driver.activate_app(bundle_id)
+            return
+        except WebDriverException as exc:
+            logger.warning(
+                "activate_app attempt %d/%d failed: %s",
+                attempt, _ACTIVATE_MAX_ATTEMPTS, exc,
+            )
+            if attempt == _ACTIVATE_MAX_ATTEMPTS:
+                raise
+            time.sleep(_ACTIVATE_RETRY_DELAY_SEC)

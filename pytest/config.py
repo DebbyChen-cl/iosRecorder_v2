@@ -11,11 +11,19 @@ APPIUM_SERVER_URL = "http://localhost:4723"
 # (system alerts overlaying the AUT are accessible through it in XCUITest).
 TARGET_BUNDLE_ID = "com.cyberlink.photodirector"
 
+# ─── Launch deep link ────────────────────────────────────────
+# Every test *except* the ones listed in conftest._NO_DEEPLINK_TESTS starts the
+# app through this custom URL scheme instead of a plain launch/activate.
+# `skipLaunchPopups=true` asks the app itself to suppress the IAP / promo /
+# interstitial dialogs, so the post-launch popup sweep has nothing to chase.
+# Set to "" to go back to the plain launch_app / activate_app path everywhere.
+LAUNCH_DEEPLINK_URL = "clphd://uiTest?skipLaunchPopups=true"
+
 # ─── Auto-Healing ────────────────────────────────────────────
 # Master switch for pytest/auto_healing.py: failure evidence, state.json,
 # the immediate-retry lane, and handing deferred cases to the Phase 2 agent.
 # Set False to run pytest with no auto-healing side effects at all.
-AUTO_HEALING_ENABLED = True
+AUTO_HEALING_ENABLED = False
 
 # After Phase 2, let the healing agent commit its patches to a new
 # '<branch>_YYMMDD_hhmmss' branch and push it.
@@ -23,7 +31,10 @@ AUTO_HEALING_ENABLED = True
 # unrelated work-in-progress is committed and pushed along with the patches,
 # and the repo is left checked out on the new branch. Set False to review the
 # patches yourself before committing.
-AUTO_HEALING_CREATE_BRANCH = True
+AUTO_HEALING_CREATE_BRANCH = False
+
+# Enable the post-run Phase 2 healing agent.
+AUTO_HEALING_PHASE2 = False
 
 # Skip auto-healing for a *known* issue that failed the same way as last run.
 # A case listed in pytest/known_issue.json is already understood (waiting on RD,
@@ -33,6 +44,12 @@ AUTO_HEALING_CREATE_BRANCH = True
 # any failure that looks different from the stored one — still goes through the
 # normal retry/defer lanes; only a repeat of the recorded signature is skipped.
 AUTO_HEALING_SKIP_KNOWN_ISSUE = True
+
+# Phase 2 AI backend. Keep these explicit so auto-healing uses Luna with the
+# maximum reasoning setting even if the external healing agent's defaults change.
+AUTO_HEALING_AI_BACKEND = "codex"
+AUTO_HEALING_CODEX_MODEL = "gpt-5.6-luna"
+AUTO_HEALING_CODEX_REASONING_EFFORT = "max"
 
 # All three settings are overridable per run by the environment variables
 # AUTO_HEALING=0 / AUTO_HEALING_CREATE_BRANCH=0 /

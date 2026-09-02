@@ -37,6 +37,24 @@ class FakeElement:
         return []
 
 
+class SequencedValueElement(FakeElement):
+    """Expose a stale accessibility value once, then the committed value."""
+
+    def __init__(self, values):
+        super().__init__("")
+        self._values = iter(values)
+        self._last_value = ""
+
+    def get_attribute(self, name):
+        if name != "value":
+            return None
+        try:
+            self._last_value = next(self._values)
+        except StopIteration:
+            pass
+        return self._last_value
+
+
 def _actions(actual, tolerance_table=None):
     actions = DriverActions(driver=None)
     actions.stability_check = False
@@ -50,6 +68,7 @@ def _actions(actual, tolerance_table=None):
 
 
 def _verify(actual, expected, tolerance_table=None, **kwargs):
+    kwargs.setdefault("timeout", 0)
     return _actions(actual, tolerance_table).verify_text(
         "accessibility id", "valueLabel", expected, **kwargs
     )
@@ -83,7 +102,7 @@ def test_percent_suffix_and_decimal_comma_parse():
 def test_an_unlisted_element_id_stays_an_exact_match():
     actions = _actions("52")
     with pytest.raises(AssertionError):
-        actions.verify_text("accessibility id", "photoCount", "50")
+        actions.verify_text("accessibility id", "photoCount", "50", timeout=0)
 
 
 def test_explicit_zero_tolerance_forces_an_exact_match():
@@ -103,3 +122,12 @@ def test_non_numeric_text_is_never_compared_loosely():
 
 def test_equal_text_passes_without_any_tolerance():
     assert _verify("50", "50", tolerance_table={}) is True
+
+
+def test_waits_for_a_visible_elements_accessibility_value_to_commit():
+    actions = _actions("0")
+    actions.find_element = lambda *a, **kw: SequencedValueElement(["0", "100"])
+
+    assert actions.verify_text(
+        "accessibility id", "valueLabel", "100", timeout=0.3, tolerance=0
+    ) is True

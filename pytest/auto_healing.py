@@ -30,6 +30,10 @@
 #   AUTO_HEALING_APP_VERSION=...    app version recorded into state.json
 #   AUTO_HEALING_SKIP_KNOWN_ISSUE=0 heal known issues too (don't skip repeats)
 #   AUTO_HEALING_KNOWN_ISSUE_PATH=. override the known_issue.json location
+#   HEALING_AI_BACKEND         Phase 2 backend (default: config value)
+#   HEALING_CODEX_MODEL        Phase 2 Codex model (default: config value)
+#   HEALING_CODEX_REASONING_EFFORT
+#                              Phase 2 Codex reasoning effort (default: config value)
 
 import hashlib
 import json
@@ -51,7 +55,6 @@ logger = logging.getLogger(__name__)
 
 # Where this suite lives — fixed, independent of how pytest was invoked.
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
-_REPO_ROOT = os.path.dirname(MODULE_DIR)
 
 # PROJECT_ROOT is pytest's real rootdir, resolved in configure() from
 # `config.rootpath`. Everything the healing agent consumes — nodeids in
@@ -69,9 +72,15 @@ def _set_project_root(rootdir):
     logger.info('[Auto-Healing] project root (pytest rootdir): %s', PROJECT_ROOT)
 
 
+# The healing agent checkout. Anchored to the home directory rather than derived
+# from this file's location: it used to be `os.path.dirname(_REPO_ROOT)`, which
+# assumed auto_healing.py lived one level down in SFT/ as it did in the phdm
+# project this was ported from. With the file at the repo root that resolved one
+# directory too high, onto a stub with no tools/orchestrator.py, and Phase 2
+# silently never launched. A fixed path cannot drift with the suite's layout.
 HEALING_PROJECT_PATH = os.environ.get(
     'AUTO_HEALING_PROJECT_PATH',
-    os.path.join(os.path.dirname(_REPO_ROOT), 'iOS_auto_healing_agent'),
+    os.path.expanduser('~/iOS_auto_healing_agent'),
 )
 HEALING_SKILL_PATH = os.path.join(
     HEALING_PROJECT_PATH, 'auto_healing_skills', 'auto-healing-phase1-decision'
@@ -102,7 +111,7 @@ SKIP_KNOWN_ISSUE = _flag('AUTO_HEALING_SKIP_KNOWN_ISSUE', 'AUTO_HEALING_SKIP_KNO
 KNOWN_ISSUE_PATH = os.environ.get(
     'AUTO_HEALING_KNOWN_ISSUE_PATH', os.path.join(MODULE_DIR, 'known_issue.json')
 )
-PHASE2_ENABLED = _flag('AUTO_HEALING_PHASE2')
+PHASE2_ENABLED = _flag('AUTO_HEALING_PHASE2', 'AUTO_HEALING_PHASE2')
 IS_REPLAY = os.environ.get('AUTO_HEALING_REPLAY') == '1'
 PHASE2_TIMEOUT_SEC = int(os.environ.get('AUTO_HEALING_PHASE2_TIMEOUT', '660'))
 
@@ -1189,6 +1198,23 @@ def _trigger_phase2(session):
         # stages the WHOLE working tree, so leaving this on commits unrelated
         # work-in-progress alongside the patches.
         f.write(f'export AUTO_HEALING_CREATE_BRANCH="{"1" if CREATE_BRANCH else "0"}"\n')
+        # Pin the Phase 2 agent to Luna/max. Environment variables remain
+        # available for CI or an explicit per-run override.
+        ai_backend = os.environ.get(
+            'HEALING_AI_BACKEND',
+            getattr(config, 'AUTO_HEALING_AI_BACKEND', 'codex'),
+        )
+        codex_model = os.environ.get(
+            'HEALING_CODEX_MODEL',
+            getattr(config, 'AUTO_HEALING_CODEX_MODEL', 'gpt-5.6-luna'),
+        )
+        reasoning_effort = os.environ.get(
+            'HEALING_CODEX_REASONING_EFFORT',
+            getattr(config, 'AUTO_HEALING_CODEX_REASONING_EFFORT', 'max'),
+        )
+        f.write(f'export HEALING_AI_BACKEND="{ai_backend}"\n')
+        f.write(f'export HEALING_CODEX_MODEL="{codex_model}"\n')
+        f.write(f'export HEALING_CODEX_REASONING_EFFORT="{reasoning_effort}"\n')
         if rp_launch_id:
             f.write(f'export AUTO_HEALING_RP_LAUNCH_ID="{rp_launch_id}"\n')
         f.write(f'python3 "{orchestrator_py}" "{run_id}" 2>&1 | tee "{log_path}"\n')

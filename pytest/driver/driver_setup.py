@@ -5,6 +5,14 @@
 # WebDriver session against a physical iOS device.
 
 import logging
+import os
+import subprocess
+import time
+from typing import Mapping
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlparse
+from urllib.request import urlopen
+
 from appium import webdriver
 from appium.options.ios import XCUITestOptions
 
@@ -12,10 +20,98 @@ import config
 
 logger = logging.getLogger(__name__)
 
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_START_WDA_SCRIPT = os.path.join(_PROJECT_ROOT, "scripts", "start_wda.sh")
 
-def build_options() -> XCUITestOptions:
+WDA_READY_ATTEMPTS = 3
+WDA_READY_REQUEST_TIMEOUT_SECONDS = 15
+WDA_READY_RETRY_DELAY_SECONDS = 1
+WDA_TUNNEL_START_TIMEOUT_SECONDS = 90
+
+
+def _wda_responds(status_url: str) -> bool:
+    """True when the local WDA tunnel answers /status with a 2xx."""
+    try:
+        with urlopen(status_url, timeout=WDA_READY_REQUEST_TIMEOUT_SECONDS) as response:
+            return 200 <= response.status < 300
+    except (HTTPError, URLError, OSError, ValueError) as exc:
+        logger.debug("WDA probe failed at %s: %s", status_url, exc)
+        return False
+
+
+def ensure_wda_tunnel(capabilities: Mapping[str, object] | None = None) -> None:
+    """Make sure the local WDA tunnel answers before a session is created.
+
+    `appium:webDriverAgentUrl` points at an iproxy tunnel on this Mac, not at
+    device-side WDA. The tunnel dies with the shell that created it, so the
+    Phase 2 healing replay — a separate pytest process started after the main
+    run's shell is gone — kept finding port 8100 dead and failed every test
+    with "Could not proxy command to the remote server".
+
+    scripts/start_wda.sh reuses a healthy tunnel for the same UDID and only
+    ever manages the local iproxy process, never device-side WDA.
+
+    Raises:
+        RuntimeError: if the tunnel cannot be brought up (most often because
+            device-side WDA itself is not running, which only Xcode can fix).
+    """
+    caps = dict(capabilities or config.IOS_CAPABILITIES)
+    wda_url = str(caps.get("appium:webDriverAgentUrl", "")).rstrip("/")
+    if not wda_url:
+        # No externally managed WDA: Appium builds and launches its own.
+        return
+
+    status_url = f"{wda_url}/status"
+    if _wda_responds(status_url):
+        logger.info("WDA tunnel is ready: %s", status_url)
+        return
+
+    logger.warning("WDA tunnel is down at %s - restarting it", status_url)
+
+    udid = caps.get("appium:udid")
+    if not udid:
+        raise RuntimeError("appium:udid is required to restart the WDA tunnel")
+    if not os.path.exists(_START_WDA_SCRIPT):
+        raise RuntimeError(f"WDA tunnel is down and {_START_WDA_SCRIPT} is missing")
+
+    env = {
+        **os.environ,
+        "WDA_UDID": str(udid),
+        "WDA_LOCAL_PORT": str(urlparse(wda_url).port or 8100),
+    }
+    # start_new_session detaches iproxy from this pytest run's process group so
+    # the tunnel outlives the run — otherwise the next replay would have to
+    # rebuild it all over again.
+    result = subprocess.run(
+        ["bash", _START_WDA_SCRIPT],
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=WDA_TUNNEL_START_TIMEOUT_SECONDS,
+        start_new_session=True,
+    )
+    for line in (result.stdout or "").splitlines():
+        logger.info("%s", line)
+
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or "").strip()
+        raise RuntimeError(f"Could not restart the WDA tunnel for {udid}: {detail}")
+
+    for attempt in range(1, WDA_READY_ATTEMPTS + 1):
+        if _wda_responds(status_url):
+            logger.info("WDA tunnel restarted: %s", status_url)
+            return
+        if attempt < WDA_READY_ATTEMPTS:
+            time.sleep(WDA_READY_RETRY_DELAY_SECONDS)
+
+    raise RuntimeError(
+        f"The WDA tunnel for {udid} was restarted but still does not answer {status_url}"
+    )
+
+
+def build_options(capabilities: Mapping[str, object] | None = None) -> XCUITestOptions:
     """Convert the capability dict in config.py into an XCUITestOptions object."""
-    caps = config.IOS_CAPABILITIES
+    caps = dict(capabilities or config.IOS_CAPABILITIES)
     options = XCUITestOptions()
 
     options.platform_name        = caps["platformName"]
@@ -46,14 +142,16 @@ def build_options() -> XCUITestOptions:
     return options
 
 
-def create_driver() -> webdriver.Remote:
+def create_driver(capabilities: Mapping[str, object] | None = None) -> webdriver.Remote:
     """
     Start a new Appium session and return the driver.
 
     Raises:
-        RuntimeError: if Appium server is unreachable or session creation fails.
+        RuntimeError: if the WDA tunnel cannot be brought up, the Appium server
+            is unreachable, or session creation fails.
     """
-    options = build_options()
+    ensure_wda_tunnel(capabilities)
+    options = build_options(capabilities)
     logger.info("Connecting to Appium at %s", config.APPIUM_SERVER_URL)
     try:
         driver = webdriver.Remote(

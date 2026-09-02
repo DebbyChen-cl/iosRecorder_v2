@@ -23,9 +23,11 @@ from typing import List, Optional, Tuple, Union
 
 from appium.webdriver.common.appiumby import AppiumBy
 from selenium.common.exceptions import (
+    InvalidSessionIdException,
     NoSuchElementException,
     StaleElementReferenceException,
     TimeoutException,
+    WebDriverException,
 )
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
@@ -50,6 +52,16 @@ logger = logging.getLogger(__name__)
 # Default timeouts (seconds)
 DEFAULT_WAIT   = 30
 DEFAULT_SCROLL_DURATION = 800  # ms
+
+# GT baselines live beside (not inside) the automation repository. Retain the
+# parent-directory relationship so it works under both a local checkout and
+# Jenkins' shared checkout without embedding a user-specific absolute path.
+_AUTOMATION_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DEFAULT_GT_FOLDER = os.path.join(
+    _AUTOMATION_REPO_ROOT,
+    "..",
+    "rdqe-ios-autotest-phdm-groundtruth",
+)
 
 # ── wait_until_not_show budgets ────────────────────────────────────────────
 # The two waits are counted separately: a short one to confirm the element
@@ -209,6 +221,26 @@ def _hierarchy_stability_signature(
     return f"n={element_count}|{digest}"
 
 
+# Locator values whose tap hands the screen over to a *different* application
+# (Facebook / Instagram).  During that handoff WDA's snapshot can block until
+# Appium's wdaConnectionTimeout (240 s) expires, so the post-action stability
+# poll is skipped for them entirely: the step that follows is a `try_tap` /
+# `verify_visible` with its own wait, which is the real synchronisation point.
+# `btnShareMore` is deliberately NOT here — it opens an in-app popover and never
+# leaves PhotoDirector.
+EXTERNAL_APP_HANDOFF_LOCATORS = frozenset({"btnShareFB", "btnShareIG"})
+
+
+def _is_external_app_handoff(args, kwargs) -> bool:
+    """True when this action targets a locator known to launch another app."""
+    candidates = [a for a in args if isinstance(a, str)]
+    for key in ("value", "container_value"):
+        v = kwargs.get(key)
+        if isinstance(v, str):
+            candidates.append(v)
+    return any(c in EXTERNAL_APP_HANDOFF_LOCATORS for c in candidates)
+
+
 def wait_for_stable_hierarchy(fn):
     """
     Decorator: after the wrapped action completes, repeatedly poll
@@ -245,6 +277,13 @@ def wait_for_stable_hierarchy(fn):
         finally:
             self._stability_depth -= 1
 
+        if self._stability_depth == 0 and _is_external_app_handoff(args, kwargs):
+            logger.info(
+                "[stability] skipped after '%s': locator hands off to an external app",
+                fn.__name__,
+            )
+            return result
+
         if self._stability_depth == 0 and getattr(self, "stability_check", False):
             interval = getattr(self, "stability_interval", 0.4)
             timeout = getattr(self, "stability_timeout", 120.0)
@@ -264,13 +303,21 @@ def wait_for_stable_hierarchy(fn):
                 time.sleep(interval)
                 try:
                     curr = self._hierarchy_stability_signature(self.driver.page_source)
-                except StaleElementReferenceException:
+                except WebDriverException as exc:
                     # WDA can briefly lose the accessibility root while an action
-                    # hands off from the app to an external app.  Reacquire it on
-                    # the next poll; the normal stability criteria still apply.
+                    # hands off from the app to an external app, and the snapshot
+                    # can also hang until Appium's proxy timeout fires (a plain
+                    # WebDriverException, not a stale-element one).  Either way the
+                    # hierarchy is simply not readable yet: reacquire it on the next
+                    # poll instead of failing the action that already succeeded.
+                    # A dead session is not recoverable, so that one still raises.
+                    if isinstance(exc, InvalidSessionIdException):
+                        raise
                     logger.debug(
-                        "[stability] page source unavailable during app handoff after '%s'",
+                        "[stability] page source unavailable during app handoff "
+                        "after '%s': %s",
                         fn.__name__,
+                        type(exc).__name__,
                     )
                     prev = None
                     prev_count = prev_digest = None
@@ -907,12 +954,22 @@ class DriverActions:
             int(rect["height"]),
         )
         cy = y + h // 2
-        target_percent = max(0.0, min(100.0, float(percent)))
+        requested_percent = float(percent)
+        # Older recorded calls use the normalized 0–1 form (0=min, 1=max),
+        # while newer calls pass percentages (0–100). Accept both forms so a
+        # recorded endpoint value of 1 does not become a 1% drag.
+        if 0.0 <= requested_percent <= 1.0:
+            requested_percent *= 100.0
+        target_percent = max(0.0, min(100.0, requested_percent))
         current_value = el.get_attribute("value") or ""
         current_match = re.search(r"-?\d+(?:\.\d+)?", str(current_value))
         current_percent = float(current_match.group()) if current_match else 50.0
         current_percent = max(0.0, min(100.0, current_percent))
-        start_x = x + int(w * current_percent / 100.0)
+        start_x, _ = self._slider_grab_point(
+            el,
+            rect,
+            (x + int(w * current_percent / 100.0), cy),
+        )
         target_x = x + int(w * target_percent / 100.0)
         self.drag_coordinates(start_x, cy, target_x, cy)
         logger.info("set_slider (%s,%r) -> %.1f%% (x=%d)", by, value, target_percent, target_x)
@@ -1288,10 +1345,45 @@ class DriverActions:
         container_by: Optional[str] = None, container_value: Optional[str] = None,
         container_w: int = 0, container_h: int = 0,
     ) -> bool:
-        """Find element and long-press at (pct_x%, pct_y%) within its bounds."""
+        """Find element and long-press at (pct_x%, pct_y%) within its bounds.
+
+        Sent as a W3C pointer sequence (move → down → hold → up) rather than
+        ``mobile: touchAndHold``.  That command with bare x/y reaches WDA's
+        ``/wda/touchAndHold``, which resolves an ``XCUICoordinate`` against the
+        *application* element and calls ``pressForDuration:``.  XCTest never
+        checks the point is hittable and always answers OK, so a press that the
+        app's ``UILongPressGestureRecognizer`` never sees is indistinguishable
+        from one that worked — the failure only surfaces one step later, on
+        whatever control the long press was supposed to reveal.  The pointer
+        sequence delivers a genuine held touch at the same coordinates, which is
+        what the recogniser is waiting for.
+        """
+        from selenium.webdriver.common.action_chains import ActionChains
+        from selenium.webdriver.common.actions.action_builder import ActionBuilder
+        from selenium.webdriver.common.actions import interaction
+        from selenium.webdriver.common.actions.pointer_input import PointerInput
         el = self.wait_for_visible(by, value, timeout, container_by, container_value, container_w, container_h)
         tx, ty = self._coord_at_pct(el, pct_x, pct_y)
-        self.driver.execute_script("mobile: touchAndHold", {"x": tx, "y": ty, "duration": duration})
+        try:
+            ac = ActionChains(self.driver)
+            ac.w3c_actions = ActionBuilder(
+                self.driver, mouse=PointerInput(interaction.POINTER_TOUCH, "touch")
+            )
+            pa = ac.w3c_actions.pointer_action
+            pa.move_to_location(tx, ty)
+            pa.pointer_down()
+            pa.pause(duration)
+            pa.pointer_up()
+            ac.perform()
+        except WebDriverException as exc:
+            logger.warning(
+                "long_press_within_element: W3C pointer sequence failed for (%s, %r) "
+                "at (%s, %s): %s — falling back to mobile: touchAndHold",
+                by, value, tx, ty, type(exc).__name__,
+            )
+            self.driver.execute_script(
+                "mobile: touchAndHold", {"x": tx, "y": ty, "duration": duration}
+            )
         return True
 
     @step("Double tap")
@@ -1847,8 +1939,32 @@ class DriverActions:
         offset_start / offset_end: (x_pct, y_pct) fractions of the container
         rect that define the drag gesture.  Generated by the recorder from the
         original gesture; defaults to a 40 % horizontal/vertical swipe.
+
+        If a drag leaves the hierarchy unchanged the container is already at that
+        end, so *direction* flips once to its opposite (left↔right, up↔down) and
+        the remaining attempts scroll the other way.
         """
+        opposite = {"left": "right", "right": "left", "up": "down", "down": "up"}
+        if direction not in opposite:
+            raise ValueError(f"Unknown scroll direction: {direction!r}")
+
+        def _page_source() -> Optional[str]:
+            try:
+                return self.driver.page_source
+            except Exception:
+                # WDA can briefly lose the accessibility root mid-gesture; an
+                # unreadable snapshot just means "cannot tell", never "unchanged".
+                return None
+
         last_vis: Optional[float] = None
+        # A drag that leaves the hierarchy byte-identical moved nothing — the
+        # container is already pinned at that end.  Recorded gestures sometimes
+        # carry the wrong sense (the list opens already scrolled to the far side),
+        # so flip once to the opposite direction instead of burning every remaining
+        # attempt pulling against a wall.  One flip only: flipping back would just
+        # ping-pong between two dead ends.
+        flipped = False
+        prev_source: Optional[str] = None
         for attempt in range(max_attempts):
             if self.is_element_present(target_by, target_value, timeout=2):
                 element = self.find_element(target_by, target_value)
@@ -1890,15 +2006,28 @@ class DriverActions:
             else:
                 cx, cy = rx + rw / 2, ry + rh / 2
                 h_off, v_off = rw * 0.4, rh * 0.4
+                # *direction* names where the CONTENT travels, matching
+                # ``scroll()`` and 'mobile: scroll': 'down' reveals items further
+                # down the list, so the finger has to drag UP.  Recorded calls
+                # pass offset_start/offset_end with the same convention
+                # (start y > end y for 'down'); keep the fallback agreeing with
+                # them, or a caller that omits the offsets scrolls backwards and
+                # a target below the fold is never found.
                 drag = {
                     "left":  (cx + h_off, cy, cx - h_off, cy),
                     "right": (cx - h_off, cy, cx + h_off, cy),
-                    "up":    (cx, cy + v_off, cx, cy - v_off),
-                    "down":  (cx, cy - v_off, cx, cy + v_off),
+                    "up":    (cx, cy - v_off, cx, cy + v_off),
+                    "down":  (cx, cy + v_off, cx, cy - v_off),
                 }
-                if direction not in drag:
-                    raise ValueError(f"Unknown scroll direction: {direction!r}")
                 sx, sy, ex, ey = drag[direction]
+
+            if flipped:
+                # Reversing the drag *is* the opposite direction, and it works for
+                # recorded offsets too — mirroring the percentages would land the
+                # gesture somewhere the recorder never touched.
+                sx, sy, ex, ey = ex, ey, sx, sy
+            elif prev_source is None:
+                prev_source = _page_source()
 
             self.driver.execute_script(
                 "mobile: dragFromToWithVelocity",
@@ -1910,6 +2039,17 @@ class DriverActions:
                     "holdDuration": 0.1,
                 },
             )
+
+            if not flipped:
+                curr_source = _page_source()
+                if curr_source is not None and curr_source == prev_source:
+                    flipped = True
+                    logger.info(
+                        "scroll_until: dragging %r left the hierarchy unchanged — "
+                        "already at that end, flipping to %r",
+                        direction, opposite[direction],
+                    )
+                prev_source = curr_source
         reached = (
             "never found in the hierarchy"
             if last_vis is None
@@ -2617,27 +2757,8 @@ class DriverActions:
         "XCUIElementTypeSecureTextField",
     )
 
-    @step("Verify element text")
-    def verify_text(
-        self,
-        by: str,
-        value: str,
-        expected: str,
-        timeout: int = 5,
-        tolerance: Optional[float] = None,
-    ) -> bool:
-        """
-        Assert that the element's text / label equals *expected*.
-        Raises AssertionError with a clear diff message on mismatch.
-
-        *tolerance* switches the comparison to a numeric one that accepts a
-        difference of up to that many units — for readouts driven by a replayed
-        coordinate gesture, where the exact digit is not reproducible (see
-        ``config.TEXT_NUMERIC_TOLERANCE``).  ``None`` looks the element id up in
-        ``self.text_numeric_tolerance`` and falls back to an exact string compare.
-        Non-numeric text is always compared exactly, whatever the tolerance.
-        """
-        element = self.wait_for_visible(by, value, timeout)
+    def _read_text_value(self, element: WebElement) -> str:
+        """Read an element's current displayed text using recorder-compatible fallbacks."""
         # Mirror recording: try value (typed content) then label.
         actual = element.get_attribute("value") or element.text or ""
         # Mirror recording: only search relatives when BOTH value and label are empty.
@@ -2661,29 +2782,84 @@ class DriverActions:
                 if actual:
                     break
         # name is the last resort — only reached when no text content was found anywhere.
-        if not actual:
-            actual = element.get_attribute("name") or ""
-        allowed = self._text_tolerance(value) if tolerance is None else float(tolerance)
+        return actual or element.get_attribute("name") or ""
+
+    @staticmethod
+    def _text_matches(actual: str, expected: str, allowed: float) -> bool:
+        """Return whether a current text value meets exact or configured numeric matching."""
         if allowed > 0:
             actual_n, expected_n = _as_number(actual), _as_number(expected)
             if actual_n is not None and expected_n is not None:
-                assert abs(actual_n - expected_n) <= allowed, (
-                    f"verify_text FAILED for ({by}, {value!r})\n"
-                    f"  expected : {expected!r} (±{allowed:g})\n"
-                    f"  actual   : {actual!r}"
-                )
-                logger.info(
-                    "verify_text PASSED for (%s, %r): %r vs expected %r (±%g)",
-                    by, value, actual, expected, allowed,
-                )
+                return abs(actual_n - expected_n) <= allowed
+        return actual == expected
+
+    @step("Verify element text")
+    def verify_text(
+        self,
+        by: str,
+        value: str,
+        expected: str,
+        timeout: float = 5,
+        tolerance: Optional[float] = None,
+    ) -> bool:
+        """
+        Assert that the element's text / label reaches *expected* within *timeout*.
+        Raises AssertionError with a clear diff message on mismatch.
+
+        *tolerance* switches the comparison to a numeric one that accepts a
+        difference of up to that many units — for readouts driven by a replayed
+        coordinate gesture, where the exact digit is not reproducible (see
+        ``config.TEXT_NUMERIC_TOLERANCE``).  ``None`` looks the element id up in
+        ``self.text_numeric_tolerance`` and falls back to an exact string compare.
+        Non-numeric text is always compared exactly, whatever the tolerance.  The
+        timeout applies to the value as well as element presence: native controls
+        can expose an old accessibility value briefly after an asynchronous UI
+        update, even when the element itself is already visible.
+        """
+        element = self.wait_for_visible(by, value, timeout)
+        allowed = self._text_tolerance(value) if tolerance is None else float(tolerance)
+        deadline = time.monotonic() + max(0.0, float(timeout))
+        actual = ""
+
+        while True:
+            try:
+                actual = self._read_text_value(element)
+            except StaleElementReferenceException:
+                # A native view may be replaced while its displayed value is
+                # committed. Re-resolve the same verified locator; do not alter
+                # the assertion target or use an arbitrary sleep.
+                remaining = max(0.0, deadline - time.monotonic())
+                if remaining <= 0:
+                    break
+                element = self.wait_for_visible(by, value, remaining)
+                continue
+
+            if self._text_matches(actual, expected, allowed):
+                if allowed > 0 and _as_number(actual) is not None and _as_number(expected) is not None:
+                    logger.info(
+                        "verify_text PASSED for (%s, %r): %r vs expected %r (±%g)",
+                        by, value, actual, expected, allowed,
+                    )
+                else:
+                    logger.info("verify_text PASSED for (%s, %r)", by, value)
                 return True
-        assert actual == expected, (
+
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            time.sleep(min(0.2, remaining))
+
+        if allowed > 0 and _as_number(actual) is not None and _as_number(expected) is not None:
+            raise AssertionError(
+                f"verify_text FAILED for ({by}, {value!r})\n"
+                f"  expected : {expected!r} (±{allowed:g})\n"
+                f"  actual   : {actual!r}"
+            )
+        raise AssertionError(
             f"verify_text FAILED for ({by}, {value!r})\n"
             f"  expected : {expected!r}\n"
             f"  actual   : {actual!r}"
         )
-        logger.info("verify_text PASSED for (%s, %r)", by, value)
-        return True
 
     def _text_tolerance(self, value: str) -> float:
         """Configured numeric tolerance for the element id *value* (0 = exact)."""
@@ -3307,7 +3483,7 @@ class DriverActions:
         self,
         name: str,
         compare_path: str = "",
-        gt_folder: str = "pytest/screenshots/ground_truth",
+        gt_folder: str = DEFAULT_GT_FOLDER,
         threshold: float = 0.99,
     ) -> tuple[bool, str]:
         """

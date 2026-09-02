@@ -4,13 +4,21 @@ import logging
 import os
 import sys
 import time
-from contextlib import contextmanager
+from urllib.error import HTTPError, URLError
+from urllib.request import urlopen
 
 from appium.webdriver.common.appiumby import AppiumBy
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import (
+    InvalidSessionIdException,
+    NoSuchElementException,
+    StaleElementReferenceException,
+    TimeoutException,
+    WebDriverException,
+)
 from selenium.webdriver.support.ui import WebDriverWait
 
 import config
+from build_info import save_build_info
 from driver.driver_actions import DriverActions
 from driver.driver_setup import create_driver, quit_driver
 
@@ -20,6 +28,9 @@ TARGET_APP_BUNDLE_ID = "com.cyberlink.photodirector"
 TARGET_APP_NAME = "PhotoDirector: AI Photo Editor"
 MAX_ATTEMPTS = 5
 RETRY_DELAY_SECONDS = 180
+WDA_READY_ATTEMPTS = 3
+WDA_READY_REQUEST_TIMEOUT_SECONDS = 15
+WDA_READY_RETRY_DELAY_SECONDS = 1
 
 logger = logging.getLogger(__name__)
 
@@ -28,22 +39,131 @@ class BuildMismatchError(RuntimeError):
     """Raised when the located TestFlight build does not match requested version/build."""
 
 
-@contextmanager
-def testflight_driver_session():
-    """Create an Appium session that launches into TestFlight."""
-    original_bundle = config.IOS_CAPABILITIES.get("appium:bundleId")
-    config.IOS_CAPABILITIES["appium:bundleId"] = BUNDLE_ID
+def wait_for_wda_ready(capabilities: dict[str, object]) -> None:
+    """Wait for the configured device's WDA tunnel to answer /status.
+
+    Jenkins prepares the local tunnel for the configured UDID. The installer
+    only verifies readiness, so it never manages or interrupts device-side WDA.
+    """
+    wda_url = str(capabilities.get("appium:webDriverAgentUrl", "")).rstrip("/")
+    if not wda_url:
+        raise RuntimeError("appium:webDriverAgentUrl is required for the externally managed WDA")
+
+    status_url = f"{wda_url}/status"
+    last_error = None
+    for attempt in range(1, WDA_READY_ATTEMPTS + 1):
+        try:
+            with urlopen(status_url, timeout=WDA_READY_REQUEST_TIMEOUT_SECONDS) as response:
+                if 200 <= response.status < 300:
+                    logger.info("Configured device WDA is ready: %s", status_url)
+                    return
+                last_error = RuntimeError(f"HTTP {response.status}")
+        except (HTTPError, URLError, OSError, ValueError) as exc:
+            last_error = exc
+
+        logger.warning(
+            "WDA readiness probe %s/%s failed at %s: %s",
+            attempt,
+            WDA_READY_ATTEMPTS,
+            status_url,
+            last_error,
+        )
+        if attempt < WDA_READY_ATTEMPTS:
+            time.sleep(WDA_READY_RETRY_DELAY_SECONDS)
+
+    raise RuntimeError(
+        f"Configured device WDA is not ready at {status_url}. "
+        "Start WebDriverAgent for the configured device, then rerun the installer. "
+        f"Last error: {last_error}"
+    )
+
+
+def create_ready_driver():
+    """Create an Appium session that is verified against the configured WDA."""
+    capabilities = dict(config.IOS_CAPABILITIES)
+    capabilities["appium:bundleId"] = BUNDLE_ID
+    capabilities["appium:autoLaunch"] = False
     driver = None
-    try:
-        driver = create_driver()
-        yield driver
-    finally:
-        if driver:
+    for attempt in range(1, WDA_READY_ATTEMPTS + 1):
+        wait_for_wda_ready(capabilities)
+        try:
+            driver = create_driver(capabilities)
+            # Kept from update_testflight_app.py: this verifies the live
+            # Appium/WDA session and also keeps it active during retries.
+            driver.get_window_size()
+            logger.info("TestFlight Appium/WDA session is ready")
+            return driver
+        except (RuntimeError, WebDriverException) as exc:
+            logger.warning(
+                "Appium/WDA session readiness %s/%s failed: %s",
+                attempt,
+                WDA_READY_ATTEMPTS,
+                exc,
+            )
             quit_driver(driver)
-        if original_bundle is None:
-            config.IOS_CAPABILITIES.pop("appium:bundleId", None)
-        else:
-            config.IOS_CAPABILITIES["appium:bundleId"] = original_bundle
+            driver = None
+            if attempt == WDA_READY_ATTEMPTS:
+                raise
+            time.sleep(WDA_READY_RETRY_DELAY_SECONDS)
+
+    raise RuntimeError("Could not create a ready Appium/WDA session")
+
+
+class TestFlightSession:
+    """Own the Appium session so a dropped WDA session can be replaced.
+
+    WDA can drop its session while the installer works on the device - the
+    target app uninstall alone is enough to do it - and every later command
+    then fails with InvalidSessionIdException. Holding the driver here lets
+    the installer rebuild the session instead of failing the Jenkins stage.
+    """
+
+    def __init__(self) -> None:
+        self.driver = None
+        self.actions = None
+
+    def start(self) -> DriverActions:
+        self.driver = create_ready_driver()
+        self.actions = DriverActions(self.driver)
+        return self.actions
+
+    def restart(self) -> DriverActions:
+        logger.warning("Recreating the Appium/WDA session")
+        self.close()
+        return self.start()
+
+    def close(self) -> None:
+        if self.driver:
+            quit_driver(self.driver)
+        self.driver = None
+        self.actions = None
+
+    def ensure_alive(self) -> None:
+        """Recreate the session when WDA no longer answers for it."""
+        if self.driver is not None:
+            try:
+                self.driver.get_window_size()
+                return
+            except WebDriverException as exc:
+                logger.warning("Appium/WDA session is no longer usable: %s", exc)
+        self.restart()
+
+    def launch_testflight(self) -> None:
+        """Foreground TestFlight, rebuilding the session when WDA lost it."""
+        try:
+            self.actions.launch_app(BUNDLE_ID)
+            return
+        except InvalidSessionIdException as exc:
+            logger.warning("TestFlight launch hit a dead session: %s", exc)
+        self.restart()
+        self.actions.launch_app(BUNDLE_ID)
+
+    def terminate_testflight(self) -> None:
+        """Force quit TestFlight; a lost session is recovered on next launch."""
+        try:
+            self.actions.terminate_app(BUNDLE_ID)
+        except WebDriverException as exc:
+            logger.info("Could not terminate TestFlight: %s", exc)
 
 
 def parse_jenkins_build(raw: str) -> tuple[str, str]:
@@ -86,9 +206,11 @@ def _wait_for_open_button(driver, timeout: int = 600) -> None:
 
 
 def _assert_target_build_text(build_name: str, prod_ver: str, build_no: str) -> None:
-    """Validate that build row text exactly matches requested version/build tokens."""
+    """Validate version/build tokens while tolerating TestFlight's spacing."""
     normalized = (build_name or "").strip()
-    if prod_ver not in normalized or f"({build_no})" not in normalized:
+    compact_name = "".join(normalized.split())
+    compact_version = "".join((prod_ver or "").split())
+    if compact_version not in compact_name or f"({build_no})" not in compact_name:
         raise BuildMismatchError(
             "Wrong build detected in Previous Builds: "
             f"expected version={prod_ver} build={build_no}, got='{normalized}'"
@@ -123,9 +245,18 @@ def _check_main_page_build(actions: DriverActions, prod_ver: str, build_no: str)
     return True
 
 
-def check_previous_builds(actions: DriverActions, prod_ver: str, build_no: str, app_element) -> bool:
-    """Navigate to Previous Builds and install the exact build when available."""
+def check_previous_builds(actions: DriverActions, prod_ver: str, build_no: str) -> bool:
+    """Navigate to Previous Builds and install the exact build when available.
+
+    TestFlight can background itself while the main-card build lookup waits.
+    Always foreground it and locate a fresh card here instead of tapping an
+    element retained from the earlier lookup.
+    """
     try:
+        logger.info("Reopening TestFlight and locating a fresh app card")
+        actions.launch_app(BUNDLE_ID)
+        app_element = _find_app_card(actions)
+
         logger.info("Opening app details page")
         actions.tap(app_element)
         time.sleep(1.5)
@@ -195,64 +326,81 @@ def check_previous_builds(actions: DriverActions, prod_ver: str, build_no: str, 
         logger.info("Installation from Previous Builds complete")
         return True
 
-    except (TimeoutException, NoSuchElementException) as exc:
+    except (
+        TimeoutException,
+        NoSuchElementException,
+        StaleElementReferenceException,
+        WebDriverException,
+    ) as exc:
         logger.info("Previous Builds flow failed: %s", exc)
         return False
 
 
-def update_testflight_app(actions: DriverActions, prod_ver: str, build_no: str) -> bool:
+def update_testflight_app(session: TestFlightSession, prod_ver: str, build_no: str) -> bool:
     """Update/install target build in TestFlight with retry and keepalive."""
-    actions.launch_app(BUNDLE_ID)
+    session.launch_testflight()
+    last_failure_reason = None
 
     for attempt in range(1, MAX_ATTEMPTS + 1):
         logger.info("--- Attempt %s/%s ---", attempt, MAX_ATTEMPTS)
+        # Read the actions object per attempt: a restarted session replaces it.
+        actions = session.actions
         try:
-            app_element = _find_app_card(actions)
+            _find_app_card(actions)
             logger.info("App '%s' found", TARGET_APP_NAME)
 
             if _check_main_page_build(actions, prod_ver, build_no):
-                actions.terminate_app(BUNDLE_ID)
+                session.terminate_testflight()
                 return True
 
             logger.info("Trying Previous Builds fallback")
-            if check_previous_builds(actions, prod_ver, build_no, app_element):
-                actions.terminate_app(BUNDLE_ID)
+            if check_previous_builds(actions, prod_ver, build_no):
+                session.terminate_testflight()
                 return True
 
         except BuildMismatchError as exc:
-            logger.error("Build mismatch error: %s", exc)
-            actions.terminate_app(BUNDLE_ID)
-            return False
-        except (TimeoutException, NoSuchElementException) as exc:
+            last_failure_reason = str(exc)
+            logger.warning("Attempt %s build mismatch: %s", attempt, exc)
+        except (
+            TimeoutException,
+            NoSuchElementException,
+            StaleElementReferenceException,
+            WebDriverException,
+        ) as exc:
+            last_failure_reason = str(exc)
             logger.info("Attempt %s failed: %s", attempt, exc)
 
         if attempt < MAX_ATTEMPTS:
             logger.info("Retrying in %s seconds", RETRY_DELAY_SECONDS)
-            actions.terminate_app(BUNDLE_ID)
+            session.terminate_testflight()
             # Keep session alive to avoid WDA idle timeout during long wait.
             for _ in range(RETRY_DELAY_SECONDS // 60):
                 time.sleep(60)
                 try:
-                    actions.driver.get_window_size()
+                    session.driver.get_window_size()
                 except Exception:
                     logger.debug("keepalive ping failed once; continuing")
-            actions.launch_app(BUNDLE_ID)
+            session.launch_testflight()
 
-    logger.info("Max attempts reached")
+    logger.error("Max attempts reached: %s", last_failure_reason or "target build was not found")
     return False
 
 
-def remove_target_app_if_installed(driver) -> None:
+def remove_target_app_if_installed(session: TestFlightSession) -> None:
     """Remove PhotoDirector app before TestFlight install/update."""
     logger.info("Removing %s if installed...", TARGET_APP_BUNDLE_ID)
     try:
-        if driver.is_app_installed(TARGET_APP_BUNDLE_ID):
-            driver.remove_app(TARGET_APP_BUNDLE_ID)
+        if session.driver.is_app_installed(TARGET_APP_BUNDLE_ID):
+            session.driver.remove_app(TARGET_APP_BUNDLE_ID)
             logger.info("Removed installed app: %s", TARGET_APP_BUNDLE_ID)
         else:
             logger.info("App not installed, skip remove: %s", TARGET_APP_BUNDLE_ID)
     except Exception as exc:
         logger.warning("Error while removing app %s: %s", TARGET_APP_BUNDLE_ID, exc)
+
+    # The uninstall restarts SpringBoard, which regularly makes WDA drop the
+    # session; get a usable one back before touching TestFlight.
+    session.ensure_alive()
 
 
 def write_build_config_if_exists(prod_ver: str, build_no: str, sr_code: str, tr_code: str) -> None:
@@ -292,6 +440,7 @@ def main() -> int:
     parser.add_argument("--sr_code", required=True, help="SR code")
     parser.add_argument("--tr_code", required=True, help="TR code")
     parser.add_argument("--short_description", required=True, help="Short description")
+    parser.add_argument("--build-suffix", default="(64)", help="Suffix displayed in the app About page")
     args = parser.parse_args()
 
     try:
@@ -301,14 +450,30 @@ def main() -> int:
         return 1
 
     logger.info("Starting update check for Version=%s Build=%s", prod_ver, build_no)
-    with testflight_driver_session() as driver:
-        actions = DriverActions(driver)
-        remove_target_app_if_installed(driver)
-        success = update_testflight_app(actions, prod_ver, build_no)
+    session = TestFlightSession()
+    try:
+        session.start()
+        remove_target_app_if_installed(session)
+        success = update_testflight_app(session, prod_ver, build_no)
+    finally:
+        session.close()
 
     if success:
         logger.info("SUCCESS: App updated/found")
         write_build_config_if_exists(prod_ver, build_no, args.sr_code, args.tr_code)
+        saved = save_build_info(
+            {
+                "project": args.project,
+                "sr_code": args.sr_code,
+                "tr_code": args.tr_code,
+                "version": prod_ver,
+                "build_number": build_no,
+                "build_display": f"{build_no} {args.build_suffix}".strip(),
+                "short_description": args.short_description,
+                "jenkins_build": args.jenkins_build,
+            }
+        )
+        logger.info("build_info.json updated: SR=%s TR=%s", saved["sr_code"], saved["tr_code"])
         return 0
 
     logger.error("FAILURE: Target build not found after %s attempts", MAX_ATTEMPTS)
